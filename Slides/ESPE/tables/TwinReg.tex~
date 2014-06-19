@@ -1,0 +1,35 @@
+\begin{table}[htpb!] 
+\caption{Probability of Giving Birth to Twins} \label{TWINtab:twinreg1} 
+\begin{center}
+\scalebox{0.6}{
+\begin{tabular}{lcccccc} \toprule \toprule 
+&(1)&(2)&(3)&(4)&(5)&(6)\\
+Twin*100&All&\multicolumn{2}{c}{Income}&\multicolumn{2}{c}{Time}&Prenatal\\
+ \cmidrule(r){3-4} \cmidrule(r){5-6} 
+&&Low inc&Middle inc&1990-2013&1972-1989&\\\midrule
+\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}\\
+Age&0.594***&0.613***&0.554***&0.646***&0.314***&0.632***\\
+&(0.029)&(0.036)&(0.050)&(0.033)&(0.075)&(0.040)\\
+Age Squared&-0.008***&-0.008***&-0.007***&-0.009***&-0.003*&-0.009***\\
+&(0.001)&(0.001)&(0.001)&(0.001)&(0.001)&(0.001)\\
+Age First Birth&-0.053***&-0.093***&0.005&-0.052***&-0.055***&-0.041***\\
+&(0.009)&(0.012)&(0.014)&(0.010)&(0.019)&(0.013)\\
+Education (years)&0.040**&0.086***&-0.005&0.046**&0.021&-0.070**\\
+&(0.017)&(0.022)&(0.029)&(0.020)&(0.034)&(0.028)\\
+Education squared&-0.002&-0.006***&0.001&-0.002&0.001&0.003\\
+&(0.001)&(0.002)&(0.002)&(0.002)&(0.003)&(0.002)\\
+Height&0.058***&0.057***&0.059***&0.062***&0.043***&0.059***\\
+&(0.004)&(0.005)&(0.007)&(0.005)&(0.008)&(0.007)\\
+BMI&0.048***&0.063***&0.039***&0.045***&0.054***&0.045***\\
+&(0.006)&(0.009)&(0.009)&(0.007)&(0.011)&(0.011)\\
+Prenatal (Doctor)&&&&&&0.913***\\
+&&&&&&(0.128)\\
+Prenatal (Nurse)&&&&&&0.073\\
+&&&&&&(0.108)\\
+Prenatal (None)&&&&&&-0.484***\\
+&&&&&&(0.132)\\
+&&&&&&\\R-squared&0.01&0.01&0.01&0.01&0.01&0.01\\
+Observations &1930600&1201516&729084&1524894&405706&615908\\
+\hline\hline\multicolumn{7}{p{14.3cm}}{\begin{footnotesize}\textsc{Notes:} Conditional on birth cohorts and country dummies.  Linear probability estimates.  Prenatal column only estimated on births five years preceding date of survey.
+$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01
+ \end{footnotesize}}\\ \hline \normalsize \end{tabular}}\end{center}\end{table} 

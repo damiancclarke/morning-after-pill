@@ -1,0 +1,13 @@
+\begin{table}[htpb!]\caption{`Plausibly Exogenous' Bounds} 
+\label{TWINtab:Conley}\begin{center}\scalebox{0.75}{
+\begin{tabular}{lcccc}
+\toprule \toprule 
+&\multicolumn{2}{c}{UCI: $\gamma\in [0,\delta]$}&\multicolumn{2}{c}{LTZ: $\gamma \sim U(0,\delta)$}\\ 
+\cmidrule(r){2-3} \cmidrule(r){4-5}
+&Lower Bound&Upper Bound&Lower Bound&Upper Bound\\
+Two Plus&-0.1859&0.0175&-0.1613&-0.0009\\
+Three Plus&-0.1710&0.0007&-0.1527&-0.0134\\
+Four Plus&-0.1538&-0.0072&-0.1380&-0.0199\\
+Five Plus&-0.1372&0.0273&-0.1205&0.0139\\
+\midrule\multicolumn{5}{p{11.6cm}}{\begin{footnotesize}\textsc{Notes:} This table presents upper and lower bounds of a 95\% confidence interval for the effects of family size on (standardised) children's education attainment. These are estimated by the methodology of Conley et al.\ 2012 under various priors about the direct effect that being from a twin family has on educational outcomes ($\gamma$). In the UCI (union of confidence interval) approach, it is assumed the true $\gamma\in[0,\delta]$, while in the LTZ (local to zero) approach it is assumed that $\gamma\sim U(0,\delta)$.  In each case $\delta$ is estimated by including twinning in the first stage  equation and observing the effect size $\hat\gamma$.  Estimated $\hat\gamma$'s are (respectively for two plus to five plus):   0.1070, 0.0968, 0.0822, 0.0926.\end{footnotesize}}  
+\\ \bottomrule \end{tabular}}\end{center}\end{table} 

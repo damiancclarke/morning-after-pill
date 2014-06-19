@@ -1,0 +1,45 @@
+\begin{table}[htpb!]\caption{Summary Statistics} 
+\label{TWINtab:sumstats}\begin{center}\scalebox{0.5}{\begin{tabular}{lccccc}
+\toprule \toprule 
+&\multicolumn{2}{c}{Low Income}&\multicolumn{2}{c}{Middle Income}\\ 
+\cmidrule(r){2-3} \cmidrule(r){4-5}
+& Single & Twins & Single & Twins & All \\ \midrule 
+\textsc{Fertility} & & & & & \\ 
+Fertility&3.670&6.093&3.348&5.425&3.609\\
+&(2.365)&(2.582)&(2.272)&(2.609)&(2.372)\\
+Desired Family Size&4.182&5.296&3.340&4.128&3.892\\
+&(2.500)&(2.832)&(2.083)&(2.498)&(2.403)\\
+Fraction Twin & \multicolumn{2}{c}{  0.0194}& \multicolumn{2}{c}{  0.0173 } &  0.0185\\
+& \multicolumn{2}{c}{(0.1379)}& \multicolumn{2}{c}{(0.1306)} & (0.1348)\\
+Birth Order Twin & \multicolumn{2}{c}{   4.680}& \multicolumn{2}{c}{   4.017 }&   4.420\\
+& \multicolumn{2}{c}{(2.463)}& \multicolumn{2}{c}{(2.370)}& (2.448)\\
+\textsc{Mother's Characteristics}&&&&&\\ Age
+&30.92&34.18&31.99&34.94&31.40\\
+&(7.980)&(7.166)&(8.105)&(7.156)&(8.038)\\
+Education&3.984&3.337&6.817&6.115&5.030\\
+&(4.370)&(4.033)&(4.794)&(5.048)&(4.735)\\
+Height&155.6&157.7&155.6&157.2&155.7\\
+&(7.084)&(6.987)&(6.956)&(6.957)&(7.042)\\
+BMI&21.89&22.47&25.83&26.50&23.38\\
+&(3.983)&(4.098)&(5.066)&(5.437)&(4.822)\\
+Pr(BMI)$<$18.5&0.172&0.123&0.0344&0.0276&0.119\\
+&(0.377)&(0.328)&(0.182)&(0.164)&(0.324)\\
+Actual Births$>$Desired&0.297&0.513&0.319&0.567&0.311\\
+&(0.457)&(0.500)&(0.466)&(0.495)&(0.463)\\
+\textsc{Children's Outcomes}&&&&&\\ Education (Years)
+&3.695&3.212&5.438&4.999&4.465\\
+&(3.581)&(3.270)&(3.859)&(3.734)&(3.805)\\
+Education (Z-Score)&-0.00869&-0.0130&0.0121&-0.0366&0.000177\\
+&(1.001)&(0.961)&(0.998)&(0.987)&(1.000)\\
+No Education (Percent)&0.200&0.213&0.0634&0.0766&0.140\\
+&(0.400)&(0.409)&(0.244)&(0.266)&(0.346)\\
+Infant Mortality&0.0860&0.165&0.0489&0.113&0.0758\\
+&(0.280)&(0.371)&(0.216)&(0.316)&(0.265)\\
+Child Mortality&0.122&0.208&0.0616&0.131&0.102\\
+&(0.327)&(0.406)&(0.240)&(0.338)&(0.303)\\
+\midrule
+Number of Countries &42&42&34&34&68 \\
+Number of Mothers &491,905 &7,457 &297,413 &4,317 & 850,032 \\
+Number of Children (Education) &1,176,513 &25,003 &714,751 &14,333 & 1,930,600 \\
+Number of Children (Ever Born) &1,716,247 &43,866 &940,204 &21,302 & 2,721,619 \\
+\bottomrule \end{tabular}}\end{center}\end{table}

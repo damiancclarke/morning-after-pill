@@ -1,0 +1,46 @@
+\begin{table}[htpb!] 
+\caption{Probability of Giving Birth to Twins (Chile)} 
+\label{TWINtab:Chile} 
+\begin{center}\begin{tabular}{lclc} \toprule \toprule 
+&(1)&&\\
+Twin$\times$100&&&\\\midrule
+\multicolumn{2}{l}{\textsc{Pre-Pregnancy}}&\multicolumn{2}{l}{\textsc{Pregnancy}}\\\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}\\
+Income p.c.&-0.006&Smoked&-0.573\\
+&	(0.011)
+&&	(0.416)
+\\
+Income p.c. squared&0.000&Drugs (infrequent)&-0.119\\
+&	(0.000)
+&&	(1.646)
+\\
+Secondary Education&0.142&Drugs (frequent)&-1.872***\\
+&	(0.300)
+&&	(0.344)
+\\
+Tertiary Education&1.507***&Alcohol (infrequent)&-0.002\\
+&	(0.583)
+&&	(0.570)
+\\
+Low Weight&-0.589&Alcohol (frequent)&-1.891***\\
+&	(0.471)
+&&	(0.290)
+\\
+Obese&-1.997***&No Check-ups&-1.031\\
+&	(0.766)
+&&	(0.966)
+\\
+Mother's Age&0.410***&Hospital Birth&0.939***\\
+&	(0.133)
+&&	(0.344)
+\\
+Mother's Age Squared&-0.007***&Diabetes&-0.255\\
+&	(0.002)
+&&	(0.505)
+\\
+Indigenous&-1.027***&Depression&0.031\\
+&	(0.395)
+&&	(0.416)
+\\
+&&&\\
+Observations&14268&R-squared&0.00\\
+\midrule\multicolumn{4}{p{11cm}}{\begin{footnotesize}\textsc{Notes:} Data comes from the Encuesta Longitudinal de Primera Infancia (ELPI) from Chile. Education at each level are dummy variables, primary education is the omitted base. Regional controls and child age fixed effects are omitted for clarity. Heteroscedasticity robust standard errors are presented in parenthesis.$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01\end{footnotesize}}\\ \hline \normalsize \end{tabular}\end{center}\end{table}

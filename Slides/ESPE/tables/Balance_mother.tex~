@@ -1,0 +1,45 @@
+\begin{table}[htbp]\centering
+\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+\caption{Test of Balance of Observables: Twins versus Non-twins \label{TWINtab:comp}}
+\scalebox{0.5}{
+\begin{tabular}{l*{1}{ccc}}
+\toprule\toprule & Non-Twin & Twin & Diff.\\
+                    &        Family&        Family&      (Diff. SE)         \\
+\midrule
+Total Fertilty      &       4.457&       6.786&      -2.328\sym{***}\\
+                    &            &            &    (0.0252)         \\
+Desired Fertility   &       4.452&       5.563&      -1.112\sym{***}\\
+                    &            &            &    (0.0309)         \\
+Age First Birth     &       19.16&       18.98&       0.179\sym{***}\\
+                    &            &            &    (0.0421)         \\
+Mother's Education  &       4.295&       3.379&       0.916\sym{***}\\
+                    &            &            &    (0.0519)         \\
+Father's Education  &       5.534&       4.732&       0.801\sym{***}\\
+                    &            &            &    (0.0579)         \\
+Mother's Height     &       156.1&       157.9&      -1.741\sym{***}\\
+                    &            &            &    (0.0840)         \\
+Pr(BMI $<$ 18.5)    &       0.119&      0.0931&      0.0262\sym{***}\\
+                    &            &            &   (0.00377)         \\
+Prenatal care (doctor)&       0.314&       0.212&       0.102\sym{***}\\
+                    &            &            &   (0.00539)         \\
+Prenatal care (nurse)&       0.454&       0.524&     -0.0702\sym{***}\\
+                    &            &            &   (0.00582)         \\
+Prenatal care (none)&       0.190&       0.179&      0.0114\sym{*}  \\
+                    &            &            &   (0.00458)         \\
+Mother's Age        &       25.56&       27.70&      -2.134\sym{***}\\
+                    &            &            &    (0.0559)         \\
+Child Mortality     &      0.0128&      0.0303&     -0.0175\sym{***}\\
+                    &            &            &   (0.00111)         \\
+Infant Mortality    &     0.00690&      0.0187&     -0.0118\sym{***}\\
+                    &            &            &  (0.000703)         \\
+Wealth Quintile 1   &       0.258&       0.272&     -0.0138\sym{**} \\
+                    &            &            &   (0.00512)         \\
+Wealth Quintile 2   &       0.219&       0.226&    -0.00752         \\
+                    &            &            &   (0.00484)         \\
+Wealth Quintile 3   &       0.198&       0.201&    -0.00327         \\
+                    &            &            &   (0.00466)         \\
+Wealth Quintile 4   &       0.176&       0.177&   -0.000711         \\
+                    &            &            &   (0.00446)         \\
+Wealth Quintile 5   &       0.150&       0.124&      0.0253\sym{***}\\
+                    &            &            &   (0.00416)         \\
+\\\bottomrule\normalsize\end{tabular}}\end{table} 

@@ -1,0 +1,19 @@
+\begin{table}[htpb!]\caption{Q-Q IV Estimates by Gender} 
+\label{TWINtab:gend}\begin{center}
+\scalebox{0.6}{\begin{tabular}{lcccccccc}
+\toprule \toprule 
+&\multicolumn{4}{c}{Females}&\multicolumn{4}{c}{Males}\\ 
+\cmidrule(r){2-5} \cmidrule(r){6-9} 
+&Base&Socioec&Health&Obs.&Base&Socioec&Health&Obs. \\ \midrule 
+\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\\Two Plus &0.005&-0.039&-0.037&122,414&0.010&-0.010&-0.015&127,122\\
+&(0.043)&(0.039)&(0.038)&&(0.040)&(0.038)&(0.036)&\\
+\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\\Three Plus &-0.024&-0.056*&-0.052*&187,098&0.016&-0.015&-0.022&188,889\\
+&(0.033)&(0.030)&(0.029)&&(0.030)&(0.028)&(0.027)&\\
+\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\\Four Plus &-0.029&-0.052*&-0.053**&192,714&-0.005&-0.020&-0.018&192,675\\
+&(0.032)&(0.029)&(0.027)&&(0.030)&(0.028)&(0.027)&\\
+\midrule\multicolumn{9}{p{14.2cm}}{\begin{footnotesize}\textsc{Notes:} Female or male refers to the gender of the index child of the regression. 
+All regressions include full controls including socioeconomic and maternal health variables.  The full lis of controls are available in 
+the notes to table \ref{TWINtab:IVAll}.  Full IV results for male and female children are presented in table \ref{TWINtab:IVgend}. Standard errors are clustered 
+ by mother.$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01
+\end{footnotesize}} \\ \bottomrule 
+\end{tabular}}\end{center}\end{table}

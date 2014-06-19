@@ -1,0 +1,38 @@
+\begin{table}[!htbp] \centering
+\caption{The Morning After Pill and Treatment Spillovers}
+\label{TEENtab:Spillover} \begin{tabular}
+{@{\extracolsep{5pt}}lccc}\\[-1.8ex]\hline\hline\\
+[-1.8ex] & 15-19 & 20-34 & 35-49 \\
+& Year olds & Year olds & Year olds \\ \midrule
+\multicolumn{4}{l}{\textsc{\noindent Panel A: Births}} \\
+& & & \\
+Morning After Pill &$-$0.091$^{***}$&$-$0.053$^{***}$&0.016\\
+&(0.016)&(0.013)&(0.014)\\
+Close $<15$ km &$-$0.083$^{***}$&$-$0.044$^{***}$&0.019\\
+&(0.021)&(0.014)&(0.016)\\
+Close 15-30 km &$-$0.078$^{***}$&$-$0.024$^{*}$& \\
+&(0.022)&(0.013)& \\
+Close 30-45 km &$-$0.057&$-$0.026& \\
+&(0.036)&(0.031)& \\
+& & & \\
+Observations&4,152,490&11,022,111&10,572,196\\
+McFadden's $R^2$&0.673&0.774&0.538\\ \midrule
+\multicolumn{4}{l}{\textsc{\noindent Panel B: Fetal Deaths}}\\
+&&&\\
+Morning After Pill &$-$0.935$^{***}$&$-$0.230$^{*}$&$-$0.785$^{***}$\\
+&(0.217)&(0.125)&(0.230)\\
+Close $<15$ km &$-$0.163&$-$0.031& 0.051\\
+&(0.234)&(0.151)&(0.226)\\
+&&&\\
+Observations&218,388&949,477&227,029\\
+McFadden's $R^2$&0.379&0.386&0.412\\
+\hline \hline \\[-1.8ex]
+\multicolumn{4}{p{9.2cm}}{\begin{footnotesize}\textsc{Notes:}
+All models are estimated using logistic regressions, and
+coefficients are reported as log odds.  Each regression includes
+comuna and year fixed effects and comuna-specific trends, and
+the full set of time-varying controls described in table
+\ref{TEENtab:PillPreg}.  \citet{Conley1999} standard errors are
+reported.
+$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01;\end{footnotesize}}
+\normalsize\end{tabular}\end{table}

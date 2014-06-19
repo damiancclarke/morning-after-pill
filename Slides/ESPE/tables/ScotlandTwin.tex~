@@ -1,0 +1,60 @@
+\begin{table}[htpb!] 
+\caption{Probability of Giving Birth to Twins (Scotland)} 
+\label{TWINtab:Scotland} 
+\begin{center}
+\scalebox{0.65}{
+\begin{tabular}{lclc} \toprule \toprule 
+&(1)&&\\
+Twin$\times$100&&&\\\midrule
+\multicolumn{2}{l}{\textsc{Pre-Pregnancy}}&\multicolumn{2}{l}{\textsc{Pregnancy}}\\\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}&\begin{footnotesize}\end{footnotesize}\\
+Deprivation Index (Quintile 2)&-1.628**
+&Smoker&0.001
+\\
+&(0.958)
+&&(0.669)
+\\
+Deprivation Index (Quintile 3)&-0.188
+&Previous Smoker&1.717**
+\\
+&(0.967)
+&&(0.877)
+\\
+Deprivation Index (Quintile 4)&-0.421
+&Alcohol (1-2 per week)&-4.498*
+\\
+&(0.934)
+&&(1.935)
+\\
+Deprivation Index (Quintile 5)&-1.132
+&Alcohol (3+ per week)&-3.030*
+\\
+&(0.920)
+&&(1.543)
+\\
+Height&0.306***
+&Overweight&-0.092
+\\
+&(0.044)
+&&(0.643)
+\\
+Married&3.272***
+&Obese&1.350**
+\\
+&(0.878)
+&&(0.746)
+\\
+Age&-0.337
+&Diabetes&-0.188
+\\
+&(0.400)
+&&(0.967)
+\\
+Age Squared&0.020***
+&&\\
+&(0.007)
+&&\\
+&&&\\
+Observations&193254
+&R-squared&0.01\\ 
+\midrule\multicolumn{4}{p{11.6cm}}{\begin{footnotesize}\textsc{Notes:} Data comes from Scottish birth records.  All births occurring after 24 weeks for the period 1997-2012 are included. Twin births account for 1.51\% of the sample. $^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01\end{footnotesize}}\\ \hline \normalsize \end{tabular}}\end{center}\end{table}
+\normalsize \end{tabular}}\end{center}\end{table}

@@ -1,0 +1,26 @@
+\begin{table}[!htbp] \centering 
+\caption{OLS Estimates of the Q-Q Trade-off} 
+ \label{TWINtab:OLS} 
+\scalebox{0.5}{
+\begin{tabular}{lcccccc} \toprule \toprule 
+&Base&+&+Health&Bord&Altonji&Altonji\\
+&Controls&Health&\&Socioec&Controls&Ratio 1&Ratio 2\\\midrule
+\textsc{Panel A: All Countries}&&&&&&\\
+Fertility &-0.119***&-0.111***&-0.0781***&-0.0850***&13.875&1.91\\
+&(0.000919)&(0.000909)&(0.000875)&(0.00104)&&\\
+&&&&&&\\
+Observations &1,059,351&1,059,351&1,059,351&1,059,351&&\\
+R$^2$&0.091&0.106&0.159&0.160&&\\\midrule
+\textsc{Panel B: Low Income}&&&&&&\\
+Fertility &-0.117***&-0.108***&-0.0767***&-0.0840***&12.0&1.903\\
+&(0.00120)&(0.00117)&(0.00112)&(0.00130)&&\\
+&&&&&&\\
+Observations &651,145&651,145&651,145&651,145&&\\
+R$^2$&0.092&0.118&0.177&0.178&&\\\midrule
+\textsc{Panel C: Middle Income}&&&&&&\\
+Fertility &-0.125***&-0.119***&-0.0850***&-0.0910***&19.833&2.125\\
+&(0.00143)&(0.00143)&(0.00140)&(0.00170)&&\\
+&&&&&&\\
+Observations &408,206&408,206&408,206&408,206&&\\
+R$^2$&0.095&0.102&0.141&0.144&&\\ 
+\bottomrule \normalsize\end{tabular}}\end{table}

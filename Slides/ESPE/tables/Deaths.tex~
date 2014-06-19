@@ -1,0 +1,46 @@
+\begin{table}[htpb!] \centering
+\caption{The Effect of the Morning After Pill on Fetal Deaths}
+\label{TEENtab:PillDeath}
+\begin{tabular}{@{\extracolsep{5pt}}lccc}\\[-1.8ex]
+\hline\hline\\[-1.8ex]
+& All & Early & Late \\
+& Deaths & Gestation & Gestation \\ 
+& (1) & (2) & (3) \\ \midrule
+\multicolumn{4}{l}{\textsc{15-19 year olds}} \\
+&&&\\
+Morning After Pill &$-$0.185$^{**}$&$-$0.815$^{***}$&$-$0.155\\
+&(0.081)&(0.183)&(0.111)\\
+&&&\\
+Mean (deaths/live birth)&0.008&0.002&0.005\\
+Observations&219,608&218,388&218,911\\
+McFadden's $R^2$&0.232&0.378&0.251\\
+&&&\\
+\multicolumn{4}{l}{\textsc{20-34 year olds}} \\
+&&&\\
+Morning After Pill &$-$0.058&$-$0.189$^{*}$&$-$0.071\\
+&(0.048)&(0.102)&(0.055)\\
+&&&\\
+Mean (deaths/live birth)&0.007&0.002&0.004\\
+Observations&954,424&949,477&951,577\\
+McFadden's $R^2$&0.198&0.385&0.170\\
+&&&\\
+\multicolumn{4}{l}{\textsc{35-49 year olds}} \\
+&&&\\
+Morning After Pill &$-$0.488$^{***}$&$-$0.776$^{***}$&$-$0.544$^{***}$\\
+&(0.079)&(0.208)&(0.101)\\
+&&&\\
+Mean (deaths/live birth)&0.012&0.003&0.007\\
+Observations&228,920&227,029&227,781\\
+McFadden's $R^2$&0.260&0.411&0.238\\
+\hline \hline \\[-1.8ex]
+\multicolumn{4}{p{10cm}}{\begin{footnotesize}\textsc{Notes:}
+Total fetal deaths for each group are
+1,748,7,014, and2,625
+ for 15-19, 20-34 and 35-49 year olds respectively.  All
+regressions include year and comuna fixed-effects, and
+comuna-specific trends.  Each regression also includes the
+full set of time varying controls described in table
+\ref{TEENtab:PillPreg}.  Standard errors are clustered by
+comuna.
+$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01;\end{footnotesize}}
+\normalsize\end{tabular}\end{table}

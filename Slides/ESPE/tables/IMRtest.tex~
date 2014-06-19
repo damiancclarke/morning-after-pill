@@ -1,0 +1,22 @@
+\begin{table}[htpb!]
+%\caption{Test of hypothesis that women who bear twins have better prior health}\label{TWINtab:IMR}
+\begin{center}
+\scalebox{0.5}{
+\begin{tabular}{lccc}
+\toprule \toprule 
+\textsc{Infant Mortality (per 100 births)}& Base & +S\&H & Observations \\ \midrule 
+\begin{footnotesize}\end{footnotesize}& 
+\begin{footnotesize}\end{footnotesize}& 
+\begin{footnotesize}\end{footnotesize}& 
+\begin{footnotesize}\end{footnotesize}\\ 
+Treated (2+)\hspace{5mm}\hspace{5mm}\hspace{5mm}\hspace{5mm}\hspace{5mm}\hspace{5mm}&-2.065***&-2.110***&503785\\
+&(0.212)&(0.213)&\\
+Treated (3+)\hspace{5mm}&-4.619***&-4.632***&686931\\
+&(0.201)&(0.201)&\\
+Treated (4+)&-4.257***&-4.243***&676303\\
+&(0.183)&(0.183)&\\
+Treated (5+)&-3.353***&-3.324***&587919\\
+&(0.183)&(0.183)&\\
+\midrule\multicolumn{4}{p{12.1cm}}{\begin{footnotesize}\textsc{Notes:} The sample for these regressions consist of all children who have been entirely exposed to the risk of infant mortality (ie those over 1 year of age). Subsamples 2+, 3+, 4+ and 5+ are generated to allow comparison of children born at similar birth orders.  For a full description of these groups see the the body of the paper or notes to table \ref{TWINtab:IVAll}. Treated=1 refers to children who are born before a twin while Treated=0 refers to children of similar birth orders not born before a twin.  Base and S+H controls are described in table \ref{TWINtab:IVAll}.$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01 
+\end{footnotesize}} \\ \bottomrule 
+\end{tabular}}\end{center}\end{table}
