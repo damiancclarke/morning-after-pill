@@ -87,7 +87,7 @@ discretion of each mayor in local jurisdictions
 \item Previously, any person in Chile wanting to post coitally contracept had to:
 \begin{itemize}
 \item Risk illegal abortion which is prosecuted, dangerous and stigmatised; or
-\item Have access to the information that high doses of the pill act similarly to the post-coital pill
+\item Have access to the information that high doses of the pill act similarly to the emergency contraceptive (EC) pill
 \end{itemize}
 \item High rates of teen pregnancy (48.60 per 1000 women aged 15-19 in 2012)
 \item Low rates of contraceptive coverage (12.9\% of 15-19 year olds using any form)
@@ -178,7 +178,8 @@ distribute the EC pill without restriction
 \end{figure}
 }
 
-\frame{\frametitle{Data}
+\begin{frame}[label=sum]
+\frametitle{Data}
 \begin{itemize}
 \item Matched administrative data files recording all live births and fetal deaths in Chile
 \item Crossed with data recording population by municipality.  Principal outcomes:
@@ -190,7 +191,8 @@ distribute the EC pill without restriction
 \item Measure of treatment comes from an independent survey (Dides et al.\ 2009, 2010, 2011)
 \item Also have administrative data on pill disbursements
 \end{itemize}
-}
+\hyperlink{sumR}{\beamergotobutton{Descriptives}}
+\end{frame}
 
 
 
@@ -250,15 +252,18 @@ also have:
 \end{figure}
 }
 
-\frame{\frametitle{Plausibility?}
+\begin{frame}[label=plaus]
+\frametitle{Plausibility?}
 These are large effects, and indeed much larger than what is reported in the two economic studies that exist in the USA.  However:
 \begin{itemize}
-\item These effects are smaller than the estimates of viewing ``16 and Pregnant'' [ADD LINK]
+\item These effects are similar in magnitude to the effect of viewing ``16 and Pregnant'' (Kearney and Levine, 2014)
 \item In Chile, prior to the morning after pill, outside options were very limited: either give birth, travel to abort, or risk death/incarceration in the country
 \item In cases where abortion exists, this technology may shift women from abortion to post-coital contraceptives, and so may not turn up in net figures
-\item A back of the envelope calculation suggests that the effectiveness of the pill (pregnancies avoided per prescription) is $\sim$0.7-0.8.  The US FDA suggests that typical use has effectiveness of 89\% [ADD LINK]
+\item A back of the envelope calculation suggests that the effectiveness of the pill (pregnancies avoided per prescription) is $\sim$0.7-0.8.  The US FDA suggests that typical use has effectiveness of 89\%
+\hyperlink{plausR}{\beamergotobutton{See results}}
 \end{itemize}
-}
+\end{frame}
+
 
 
 \section{Discussion}
@@ -273,8 +278,29 @@ Propose a way to recover consistent estimates.
 \end{enumerate}
 }
 
+\frame{
+\textcolor{blue}{Thank you.}
+}
+
+\begin{frame}[label=sumR]
+\input{./tables/SummaryStats.tex}
+\hyperlink{sum}{\beamergotobutton{Back}}
+\end{frame}
+
+\begin{frame}[label=plausR]
+\input{./tables/Consistency.tex}
+\hyperlink{plaus}{\beamergotobutton{Back}}
+\end{frame}
+
+\begin{frame}
+\input{./tables/HumanCapital.tex}
+\end{frame}
+
+
 
 \end{document}
+
+
 
 
 %********************************************************************************
