@@ -41,7 +41,7 @@ require(gdata)
 
 create <- FALSE
 birthM <- TRUE
-deathM <- TRUE
+deathM <- FALSE
 export <- TRUE
 #===============================================================================
 #=== (2) Import Raw Data with Pill comuna and all births/gestational deaths
@@ -176,6 +176,7 @@ closegen <- function(d1,d2,dat) {
 basemodelB <- function(age_sub,dat,lag) {
   dat <- birthlag(dat,lag)
   dat <- dat[dat$age %in% age_sub,]
+  dat <- dat[dat$year>=2006,]
   
   mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year + 
                factor(pill) + factor(year)                              , 
@@ -192,6 +193,7 @@ basemodelB <- function(age_sub,dat,lag) {
 closemodelB <- function(age_sub,dat,lag) { 
   dat <- birthlag(dat,lag)
   dat <- dat[dat$age %in% age_sub,]
+  dat <- dat[dat$year>=2006,]
   
   dat <- closegen(0,15,dat)
   dat <- closegen(15,30,dat)
@@ -216,6 +218,7 @@ closemodelB <- function(age_sub,dat,lag) {
 basemodelD <- function(age_sub,dat,lag,type) {
   dat <- deathlag(dat,lag,type)
   dat <- dat[dat$age %in% age_sub,]
+  dat <- dat[dat$year>=2006,]
   
   mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year + 
                factor(pill) + factor(year)                              , 
@@ -232,6 +235,7 @@ basemodelD <- function(age_sub,dat,lag,type) {
 closemodelD <- function(age_sub,dat,lag,type) { 
   dat <- deathlag(dat,lag,type)
   dat <- dat[dat$age %in% age_sub,]
+  dat <- dat[dat$year>=2006,]
   
   dat <- closegen(0,15,dat)
   
@@ -251,32 +255,32 @@ closemodelD <- function(age_sub,dat,lag,type) {
 #=== (6) Run Models
 #===============================================================================
 if(birthM) {
-  #lagBB3t <- basemodelB(15:19,birth.dat,3)
-  #lagBB4t <- basemodelB(15:19,birth.dat,4)
-  #lagBB5t <- basemodelB(15:19,birth.dat,5)
+  lagBB3t <- basemodelB(15:19,birth.dat,3)
+  lagBB4t <- basemodelB(15:19,birth.dat,4)
+  lagBB5t <- basemodelB(15:19,birth.dat,5)
   lagBB3w <- basemodelB(20:34,birth.dat,3)
   lagBB4w <- basemodelB(20:34,birth.dat,4)
   lagBB5w <- basemodelB(20:34,birth.dat,5)
   
-  #lagCB3t <- closemodelB(15:19,birth.dat,3)
-  #lagCB4t <- closemodelB(15:19,birth.dat,4)
-  #lagCB5t <- closemodelB(15:19,birth.dat,5)
+  lagCB3t <- closemodelB(15:19,birth.dat,3)
+  lagCB4t <- closemodelB(15:19,birth.dat,4)
+  lagCB5t <- closemodelB(15:19,birth.dat,5)
   lagCB3w <- closemodelB(20:34,birth.dat,3)
   lagCB4w <- closemodelB(20:34,birth.dat,4)
   lagCB5w <- closemodelB(20:34,birth.dat,5)  
 }
 
 if(deathM) {
-#  lagBD3te <- basemodelD(15:19,death.dat,3,"death")
-#  lagBD4te <- basemodelD(15:19,death.dat,4,"death")
-#  lagBD5te <- basemodelD(15:19,death.dat,5,"death")
+  lagBD3te <- basemodelD(15:19,death.dat,3,"death")
+  lagBD4te <- basemodelD(15:19,death.dat,4,"death")
+  lagBD5te <- basemodelD(15:19,death.dat,5,"death")
   lagBD3we <- basemodelD(20:34,death.dat,3,"death")
   lagBD4we <- basemodelD(20:34,death.dat,4,"death")
   lagBD5we <- basemodelD(20:34,death.dat,5,"death")  
 
-#  lagCD3te <- closemodelD(15:19,death.dat,3,"death")
-#  lagCD4te <- closemodelD(15:19,death.dat,4,"death")
-#  lagCD5te <- closemodelD(15:19,death.dat,5,"death")
+  lagCD3te <- closemodelD(15:19,death.dat,3,"death")
+  lagCD4te <- closemodelD(15:19,death.dat,4,"death")
+  lagCD5te <- closemodelD(15:19,death.dat,5,"death")
   lagCD3we <- closemodelD(20:34,death.dat,3,"death")
   lagCD4we <- closemodelD(20:34,death.dat,4,"death")
   lagCD5we <- closemodelD(20:34,death.dat,5,"death")   
@@ -292,7 +296,7 @@ xv4  <- 'Close 30-45 km &'
 
 obs  <- 'Observations&'
 R2   <- 'McFadden\'s $R^2$&'
-sig  <- '$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01'
+sig  <- '$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01.'
 
 if(export){
   to <-file(paste(outt.dir,"Placebo.tex", sep=""))
@@ -301,34 +305,65 @@ if(export){
                '\\label{TEENtab:Placebo}',
                '\\begin{tabular}{lcccccc}',
                '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-               '&\\multicolumn{2}{c}{Lag = 3 years}',
-               '&\\multicolumn{2}{c}{Lag = 4 years}',
-               '&\\multicolumn{2}{c}{Lag = 5 years}',
+               '&\\multicolumn{2}{c}{Lead = 3 years}',
+               '&\\multicolumn{2}{c}{Lead = 4 years}',
+               '&\\multicolumn{2}{c}{Lead = 5 years}',
                '\\\\ \\cmidrule(r){2-3} \\cmidrule(r){4-5} \\cmidrule(r){6-7}',
                '&(1)&(2)&(3)&(4)&(5)&(6)\\\\ \\hline',
-               '\\textsc{Panel A: Births} &&&&&& \\\\',
+               '\\textsc{Panel A: 15-19 Year-Olds} &&&&&& \\\\',
                ' & & & & & & \\\\',
-               paste(xvar,'xx.xx&xx.xx&xx.xx&xx.xx&xx.xx&xx.xx\\\\', sep=""), 
-               paste('&(xx.xx)&(xx.xx)&(xx.xx)&(xx.xx)&(xx.xx)&(xx.xx)\\\\', sep=""), 
-               paste(xv2,'&xx.xx&&xx.xx&&xx.xx\\\\', sep=""), 
-               paste('&&(xx.xx)&&(xx.xx)&&(xx.xx)\\\\', sep=""), 
-               paste(xv3,'&xx.xx&&xx.xx&&xx.xx\\\\', sep=""), 
-               paste('&&(xx.xx)&&(xx.xx)&&(xx.xx)\\\\', sep=""), 
-               paste(xv4,'&xx.xx&&xx.xx&&xx.xx\\\\', sep=""), 
-               paste('&&(xx.xx)&&(xx.xx)&&(xx.xx)\\\\', sep=""), 
+               paste(xvar,lagBB3t$b,'&',lagCB3t$b[1],'&',lagBB4t$b,'&',
+                     lagCB4t$b[1],'&',lagBB3t$b,'&',lagCB3t$b[1],'\\\\',sep=""),
+               paste('&',lagBB3t$s,'&',lagCB3t$s[1],'&',lagBB4t$s,'&',
+                     lagCB4t$s[1],'&',lagBB3t$s,'&',lagCB3t$s[1],'\\\\',sep=""),
+               paste(xv2,'&',lagCB3t$b[2],'&&',lagCB4t$b[2],'&&',lagCB5t$b[2],
+                     '\\\\', sep=""), 
+               paste('&&',lagCB3t$s[2],'&&',lagCB4t$s[2],'&&',lagCB5t$s[2],
+                     '\\\\', sep=""), 
+               paste(xv3,'&',lagCB3t$b[3],'&&',lagCB4t$b[3],'&&',lagCB5t$b[3],
+                     '\\\\', sep=""), 
+               paste('&&',lagCB3t$s[3],'&&',lagCB4t$s[3],'&&',lagCB5t$s[3],
+                     '\\\\', sep=""), 
+               paste(xv4,'&',lagCB3t$b[4],'&&',lagCB4t$b[4],'&&',lagCB5t$b[4],
+                     '\\\\', sep=""), 
+               paste('&&',lagCB3t$s[4],'&&',lagCB4t$s[4],'&&',lagCB5t$s[4],
+                     '\\\\', sep=""), 
                ' & & & & & & \\\\',
-               paste(obs, '&&&&&','\\\\', sep=""), 
-               paste(R2,  '&&&&&','\\\\ \\midrule', sep=""), 
-               '\\textsc{Panel B: Deaths} &&&&&& \\\\',
+               paste(obs,lagBB3t$n,'&',lagCB3t$n,'&',lagBB4t$n,'&',
+                     lagCB4t$n,'&',lagBB5t$n,'&',lagCB5t$n,'\\\\', sep=""), 
+               paste(R2,lagBB3t$r,'&',lagCB3t$r,'&',lagBB4t$r,'&',
+                     lagCB4t$r,'&',lagBB5t$r,'&',lagCB5t$r,'\\\\ \\midrule', sep=""), 
+               '\\textsc{Panel A: 20-34 Year-Olds} &&&&&& \\\\',
                ' & & & & & & \\\\',
-               paste(xvar,'xx.xx&xx.xx&xx.xx&xx.xx&xx.xx&xx.xx\\\\', sep=""), 
-               paste('&(xx.xx)&(xx.xx)&(xx.xx)&(xx.xx)&(xx.xx)&(xx.xx)\\\\', sep=""), 
-               paste(xv2,'&xx.xx&&xx.xx&&xx.xx\\\\', sep=""), 
-               paste('&&(xx.xx)&&(xx.xx)&&(xx.xx)\\\\', sep=""), 
+               paste(xvar,lagBB3w$b,'&',lagCB3w$b[1],'&',lagBB4w$b,'&',
+                     lagCB4w$b[1],'&',lagBB3w$b,'&',lagCB3w$b[1],'\\\\',sep=""),
+               paste('&',lagBB3w$s,'&',lagCB3w$s[1],'&',lagBB4w$s,'&',
+                     lagCB4w$s[1],'&',lagBB3w$s,'&',lagCB3w$s[1],'\\\\',sep=""),
+               paste(xv2,'&',lagCB3w$b[2],'&&',lagCB4w$b[2],'&&',lagCB5w$b[2],
+                     '\\\\', sep=""), 
+               paste('&&',lagCB3w$s[2],'&&',lagCB4w$s[2],'&&',lagCB5w$s[2],
+                     '\\\\', sep=""), 
+               paste(xv3,'&',lagCB3w$b[3],'&&',lagCB4w$b[3],'&&',lagCB5w$b[3],
+                     '\\\\', sep=""), 
+               paste('&&',lagCB3w$s[3],'&&',lagCB4w$s[3],'&&',lagCB5w$s[3],
+                     '\\\\', sep=""), 
+               paste(xv4,'&',lagCB3w$b[4],'&&',lagCB4w$b[4],'&&',lagCB5w$b[4],
+                     '\\\\', sep=""), 
+               paste('&&',lagCB3w$s[4],'&&',lagCB4w$s[4],'&&',lagCB5w$s[4],
+                     '\\\\', sep=""), 
                ' & & & & & & \\\\',
-               paste(obs, '&&&&&','\\\\', sep=""), 
-               paste(R2,  '&&&&&','\\\\ \\hline \\hline', sep=""),
-               '\\multicolumn{7}{p{12cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               paste(obs,lagBB3w$n,'&',lagCB3w$n,'&',lagBB4w$n,'&',
+                     lagCB4w$n,'&',lagBB5w$n,'&',lagCB5w$n,'\\\\', sep=""), 
+               paste(R2,lagBB3w$r,'&',lagCB3w$r,'&',lagBB4w$r,'&',
+                     lagCB4w$r,'&',lagBB5w$r,'&',lagCB5w$r,'\\\\  \\hline \\hline', 
+                     sep=""), 
+               '\\multicolumn{7}{p{18.5cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               'All specifications are identical to those estimated in tables ',
+               '\\ref{TEENtab:PillPreg} and \\ref{TEENtab:Spillover}.  However, ',
+               'instead of using births 1 year subsequent to the reform ',
+               'the outcome variable in each case is births and preceeding ',
+               'the reform by lead$=l\\in{3,4,5}$ years, and hence entirely',
+               'unaffected in both treatment and control municipalities.',
                paste(sig, '\\end{footnotesize}}', sep=""),
                '\\normalsize\\end{tabular}\\end{table}\\end{landscape}'),to)
   close(to)
