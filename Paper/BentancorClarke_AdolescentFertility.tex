@@ -1,0 +1,253 @@
+\documentclass{article}[11pt,subeqn]
+
+\title{Assessing Plan B: The Effect of the Morning After Pill on Children and Women\footnote{We acknowledge
+the excellent support and advice of a number of members of the Government of Chile who provided extremely 
+useful access to, and advice regarding, national databases.  Principally, we thank Rodrigo Alarc\'on S., 
+Andr\'es \'Alvarez A., Carlos Arce M\'artinez, Ximena Carrasco and Nicol\'as Mu\~n\'oz of the Ministries 
+of Health, Social Development and Education.  Much care was taken by all parties to respect all necessary 
+privacy clauses, and data analysis was undertaken in line with Law 19.628 of Protection of Private Life 
+(\emph{Ley 19.628 de Protecci\'on de la Vida Privada}).  We are grateful to Sonia Bhalotra, Lidia Casas,
+Rachel Cassidy, Julien Labonne, Jeanne Lafortune, Simon Quinn, Climent Quintana Domeque, Chris Roth, George 
+Vega Yon and seminar audiences at ESPE Braga, LAGV Aix en Provence, and the Universidad de Chile for useful 
+comments, without implicating them in any remaining shortcomings.  We thank Daniela G\'omez P.\ and Katharine 
+Lauderdale for excellent research assistance.  Full source code and data are publicly available for inspection 
+at \texttt{https://github.com/damiancclarke/morning-after-pill}.}}
+\author{Andrea Bentancor\thanks{Universidad Adolfo Ib\'a\~nez.} 
+\and Damian Clarke\thanks{Department of Economics, the University of Oxford.  
+Contact: damian.clarke@economics.ox.ac.uk}}
+\date{\today}
+
+
+\usepackage{url}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{rotating}
+\usepackage{dcolumn}
+\usepackage{color}
+\pagecolor{white}
+\usepackage{pdfpages}
+\usepackage{lastpage}
+\usepackage{lscape}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{breqn}
+\usepackage{appendix}
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+\bibpunct{(}{)}{;}{a}{,}{,}
+
+\usepackage{epsfig}
+\usepackage{epstopdf}
+\usepackage{multirow}
+
+
+\usepackage{wrapfig}
+\usepackage{blindtext}
+
+\setlength\topmargin{-0.375in}
+\setlength\textheight{8.8in}
+\setlength\textwidth{5.8in}
+\setlength\oddsidemargin{0.4in}
+\setlength\evensidemargin{-0.5in}
+\setlength\parindent{0.25in}
+\setlength\parskip{0.25in}
+
+\newcommand{\person}{we\ }
+\newcommand{\Person}{We\ }
+
+\bibliographystyle{abbrvnat}
+\bibpunct{(}{)}{;}{a}{,}{,}
+
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+\usepackage{changepage}% http://ctan.org/pkg/changepage
+\makeatletter
+\newenvironment{chapabstract}{%
+    \begin{center}%
+      \bfseries Abstract
+    \end{center}}%
+   {\par}
+\makeatother
+
+
+\newcommand{\teenfolder}{./..}
+\newcommand{\biblioinc}{\newpage \bibliography{./../../Document/ThesisRefs}}
+\newcommand{\JELs}{\\ \emph{JEL codes}: J13,J16,J18,I15,O15. \\}
+
+\begin{document}
+\begin{spacing}{1.4}
+
+\maketitle
+
+%\begin{abstract}
+%Abstract
+%\end{abstract}
+
+\input{./../Teens.tex}
+
+%\newpage
+%\bibliography{./references}
+
+
+\end{spacing}
+\end{document}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{Introduction}
+References: \citet{Hotzetal1997}, \citet{FletcherWolfe2009}, \citet{Fletcher2011},
+\citet{Miller2011}, \citet{Klepingeretal1999}, \citet{Chevalieretal2003},
+\citet{Miller2009}, \citet{LevinePainter2000}, \citet{Wolfeetal2001}.
+
+
+\section{Data}
+\subsection{Birth and Death Data}
+\begin{table}[htpb!]
+\centering
+\caption{Summary Statistics: Births and Deaths in Chile}
+\vspace{6mm}
+\begin{tabular}{lccccc} \toprule
+    \textsc{Variable} &      \textsc{Obs} &     \textsc{Mean}  & \textsc{Std. Dev.}  &    \textsc{Min}  &      \textsc{Max} \\ \midrule
+\multicolumn{6}{l}{\textbf{Births: Non-Teen Mothers}} \\
+      Mother's Age &   1810296 &   28.85929  &  5.854662  &       20  &       50 \\
+     Mother's Education &   1810296 &   4.115956  &  1.740126  &        0  &        9 \\
+        Baby's Weight &   1810296 &   3340.662  &  542.1566  &      500  &     5000 \\
+     Gestational Time &   1810296 &   38.57157  &  1.788613  &       22  &       44 \\
+\multicolumn{6}{l}{\textbf{Births: Teen Mothers}} \\
+      Mother's Age &    340291 &   17.49805  &  1.379226  &      11    &     19 \\
+     Mother's Education &    340291 &   3.851389  &  2.261713  &        0   &       9 \\
+        Baby's Weight &    340291 &   3270.666  &  521.2902  &      500   &    5000 \\
+     Gestational Time &    340291 &   38.71924  &   1.88629  &       22   &      44 \\ \midrule
+\multicolumn{6}{l}{\textbf{Deaths: Non-Teenagers}} \\
+        Weight at Death &     13886  &  1323.453  &  1152.886  &        2    &   4860 \\
+      Mother's Age &     13886  &  30.27848  &  6.544296  &       20    &     49 \\
+    Mother's Education &     13882  &  4.208976  &  1.892028  &        0    &      9 \\
+     Gestational Time &     13886  &  27.40616  &  8.322035  &        5    &     43 \\
+\multicolumn{6}{l}{\textbf{Deaths: Teenagers}} \\
+        Weight at Death &      2447  &  1196.814  &  1050.019   &       4     &  4980 \\
+      Mother's Age &      2447  &  17.34777  &   1.48377   &      12     &    19 \\
+    Mother's Education &      2444  &  3.811784  &  2.294293   &       0     &     9 \\
+     Gestational Time &      2447  &   26.6698  &  7.910197   &       8     &    42 \\ \bottomrule
+\multicolumn{6}{p{11.5cm}}{\begin{footnotesize}\textsc{Notes}: Top panel presents all births in Chile between the years of
+2002 and 2010.  Births are dropped from the sample if they are reported to have gestational lengths
+of less than 22 weeks or greater than 50 weeks.  Similarly, birthweights of less than 500g or greater
+than 5000g are removed.  The bottom panel represents all fetal deaths between 2002 and 2010.  The sample
+consists of all deaths where the gestational length is reported to be greater than 1 week, and weight
+at death is reported to be less than 5000g.\end{footnotesize}}
+\end{tabular}
+\end{table}
+
+
+
+\begin{center}
+\begin{figure}[htpb!]
+\includegraphics[scale=1]{./../Results/Graphs/Births.eps}
+\caption{Live Births in Chile, 2002-2010}
+\label{Births}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[htpb!]
+\includegraphics[scale=1]{./../Results/Graphs/Deaths.eps}
+\caption{Fetal Deaths in Chile, 2002-2010}
+\label{Deaths}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[ht!]
+\includegraphics[scale=1]{./../Results/Graphs/BirthsAge.eps}
+\caption{Births by Mother's Age, 2002-2010}
+\label{Birthsage}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[hb!]
+\includegraphics[scale=1]{./../Results/Graphs/DeathsAge.eps}
+\caption{Deaths by Mother's Age, 2002-2010}
+\label{Deathsage}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[htpb!]
+\includegraphics[scale=1]{./../Results/Graphs/WeightAge.eps}
+\caption{Birthweight by Mother's Age, 2002-2010}
+\label{Weightage}
+\end{figure}
+\end{center}
+
+\begin{center}
+\begin{figure}[htpb!]
+\includegraphics[scale=1]{./../Results/Graphs/GestationAge.eps}
+\caption{Gestational Length by Mother's Age, 2002-2010}
+\label{Weeksage}
+\end{figure}
+\end{center}
+\clearpage
+
+
+
+\section{Methodology}
+We are interested in estimating the effect of being a teenage mother---that is to say 
+giving live birth (\emph{LB}) to a child---on later life outcomes of the mother.  We
+examine three types of outcome variables (below denoted as $y$).  These are: labour market
+outcomes, educational outcomes, and future child-bearing patterns.  In order to identify
+the effect of teenage child bearing, we estimate the following equation:
+\begin{equation}
+\label{eqn:teenbirth}
+y_{ict}=\beta_0+\beta_1LB_{ict}+\beta_2 Bwt_{ict} + \beta_3 gest_{ict} + \gamma\mathbf{X}_{ict} + \alpha_c + \eta_t + \varepsilon_{ict},
+\end{equation}
+where $\beta_1$ denotes our estimator of interest for mother $i$, living in \emph{comuna} $c$, who
+gave birth in year $t$.  We define our `treatment' variable $LB$ as follows:
+\[
+ LB_{ict} =
+  \begin{cases}
+   1 & \text{if } TeenPreg=1, miscarriage=0   \\
+   0 & \text{if } TeenPreg=1, miscarriage=1.
+  \end{cases}
+\]
+Here we identify the effect of teen pregnancy by comparing two groups of women who become
+pregnant as teens: those who eventually give birth to children (and hence are treated), and
+those who do not give live birth due to miscarriage (and hence act as controls).  An important
+concern here is that miscarriage is not random, but rather depends upon maternal health
+characteristics and behaviours which will also be correlated with later outcomes (see for example
+\citet{Hotzetal1997, FletcherWolfe2009} for discussions).
+
+In order to control for these health behaviours of mothers, we include a measure of weight at
+birth and gestational length in equation (\ref{eqn:teenbirth}).  In this case our identifying 
+assumption is that:
+\[
+ miscarriage_{ict}\Big|(gest_{ict},Bwt_{ict})\independent \varepsilon_{ict},
+\]
+which is to say that maternal health characteristics and behaviours during pregnancy are adequately 
+captured by the birthweight and gestational length of their baby.
+
