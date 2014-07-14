@@ -1,4 +1,4 @@
-# BirthGenerate.R v1.10            KEL / DCC               yyyy-mm-dd:2013-12-12
+# BirthGenerate.R v1.20            KEL / DCC               yyyy-mm-dd:2013-12-12
 #---|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 #
 # Generates the file named in the argument "filename".  This file has one line 
@@ -9,8 +9,8 @@
 # included.
 #
 # This is a refactorization of managedata_KEL_20131124.R. This code has been 
-# written by KEL, with minor updates by DCC to incorporate additional time 
-# varying controls and pill distance data.
+# written by KEL, with updates by DCC to incorporate additional time varying 
+# controls and pill distance data.
 #
 # prior to running this function the following directories must be defined:
 #   > pop.dir (contains all population files from INE converted to .csv)
@@ -20,6 +20,8 @@
 #   > work.dir (directory where data is exported)
 #   > pol.dir (directory where mayor characteristics are kept)
 #   > com.dir (directory where comuna characteristics are kept)
+#
+# Last update v1.20: Refactorise
 
 prep_s1_data <- function(age_range,usecom,filename) {
     
@@ -270,24 +272,25 @@ prep_s1_data <- function(age_range,usecom,filename) {
   # (10) Comuna Covariates
   #=============================================================================
   if(usecom) {  
-    f <- paste(com.dir,"Comunas_datos_20062012_r.csv",sep="")
+    f <- paste(com.dir,"Comunas_datos_20062012.csv",sep="")
     com <- read.csv(f,sep=";")
-
-    com <- com[,c("dom_comuna", "year", "educretiromedia","saludtotal", 
-                "saludpersonal", "saludcapacit", "eductotal","educmunic",
-                "mujeresindigente","mujeresfuncionarias","pobreza","urb",
-                "rur","dens","region","condom","usingcont")]
-    names(com) <- c("dom_comuna", "year", "outofschool", "healthspend", 
-                  "healthstaff", "healthtraining", "educationspend",
-                  "educationmunicip","femalepoverty","femaleworkers",
-                  "poverty","urban","rural","density","region","condom",
-                  "usingcont")
-
-    tmp <- merge(fin,com,by=c("dom_comuna","year"),all=T)
-    tmp$sample <- 1
-    sum(tmp$sample)
-  
+    com$urbind <- 0 
+    com$urbind[com$urb>70]<-1
+    
+    tmp <- merge(com,fin,by=c("dom_comuna","year"),all=T)  
     fin <- tmp[complete.cases(tmp),]
+    
+    fin <- fin[,c("dom_comuna","educretiromedia","saludtotal","saludpersonal" ,
+                  "saludcapacit", "eductotal","educmunic","mujeresindigente"  ,
+                  "mujeresfuncionarias","pobreza","urb","urbind","year","dens",
+                  "region","condom","usingcont","pill","mujer","party","votop",
+                  "election","pilldistance","pregnant","age","order","n")]
+    names(fin) <- c("dom_comuna","outofschool", "healthspend", "healthstaff"  , 
+                    "healthtraining", "educationspend","educationmunicip"     ,
+                    "femalepoverty","femaleworkers","poverty","urban","urbBin",
+                    "year","density","region","condom","usingcont","pill"     ,
+                    "mujer","party","votop","election","pilldistance"         ,
+                    "pregnant","age","order","n")
     rm(tmp)
   }  
   #=============================================================================

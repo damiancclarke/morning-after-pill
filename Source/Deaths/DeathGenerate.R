@@ -343,21 +343,27 @@ prep_s1_data_deaths <- function(age_range,week,regex,usecom,filename) {
   # (13) Comuna Covariates
   #*****************************************************************************  
   if(usecom) {  
-    f <- paste(com.dir,"Comunas_datos_20062012_r.csv",sep="")
+    f <- paste(com.dir,"Comunas_datos_20062012.csv",sep="")
     com <- read.csv(f,sep=";")
-  
-    com <- com[,c("dom_comuna", "year", "educretiromedia","saludtotal", 
-                "saludpersonal", "saludcapacit", "eductotal","educmunic",
-                "mujeresindigente","mujeresfuncionarias","pobreza","urb",
-                "rur","dens","region","condom","usingcont")]
-    names(com) <- c("dom_comuna", "year", "outofschool", "healthspend", 
-                  "healthstaff", "healthtraining", "educationspend",
-                  "educationmunicip","femalepoverty","femaleworkers",
-                  "poverty","urban","rural","density","region","condom",
-                  "usingcont")
-  
-    tmp <- merge(fin,com,by=c("dom_comuna","year"),all=T)
+    com$urbind <- 0 
+    com$urbind[com$urb>70]<-1
+    
+    tmp <- merge(com,fin,by=c("dom_comuna","year"),all=T)  
     fin <- tmp[complete.cases(tmp),]
+    
+    fin <- fin[,c("dom_comuna","educretiromedia","saludtotal","saludpersonal" ,
+                  "saludcapacit", "eductotal","educmunic","mujeresindigente"  ,
+                  "mujeresfuncionarias","pobreza","urb","urbind","year","dens",
+                  "region","condom","usingcont","pill","mujer","party","votop",
+                  "election","pilldistance","pregnant","age","order","n"      ,
+                  "death","earlyP","earlyQ","lateP","lateQ")]
+    names(fin) <- c("dom_comuna","outofschool", "healthspend", "healthstaff"  , 
+                    "healthtraining", "educationspend","educationmunicip"     ,
+                    "femalepoverty","femaleworkers","poverty","urban","urbBin",
+                    "year","density","region","condom","usingcont","pill"     ,
+                    "mujer","party","votop","election","pilldistance"         ,
+                    "pregnant","age","order","n","death","earlyP","earlyQ"    ,
+                    "lateP","lateQ")    
     rm(tmp)  
   }
   #*****************************************************************************
