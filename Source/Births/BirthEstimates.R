@@ -1,4 +1,4 @@
-# BirthsEstimates.R v1.22          KEL / DCC               yyyy-mm-dd:2013-12-29
+# BirthsEstimates.R v1.23          KEL / DCC               yyyy-mm-dd:2013-12-29
 #---|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 #
 # Import data from S1Data_granular_covars.csv to run various models.  Initial 
@@ -8,15 +8,16 @@
 # Principal model is of the form:
 #   preg_{ijt} = alpha + delta*PAE_{jt} + theta_j + i.eta**g(year_t) + u_{ijt}
 #
-# This code has been written by KEL, with updates by DCC to incorporate 
-# additional time varying controls and export results to TeX.  When running the
-# switches in section (1) determine whether or not specific sections of the
-# code will be run.
+# This code has been written by KEL, with updates by DCC to incorporate additio-
+# nal time varying controls and export results to TeX.  When running, the switc-
+# hes in section (1) determine whether or not specific sections of the code will
+# be run.  Note that the user-contributed stargazer library is very slow, so the
+# "full" section is best avoided, or run only once.
 #
 # aboe refers to appended back of the envelope calculation which examines
 # whether effect sizes look reasonable
 #
-# last edit v1.22: Refactorise
+# last edit v1.23: Clean directory structure.
 # contact: damian.clarke@economics.ox.ac.uk
 
 rm(list=ls())
@@ -24,12 +25,12 @@ rm(list=ls())
 #==============================================================================
 #=== (1) Parameters
 #==============================================================================
-create <- FALSE
+create <- TRUE
 preg   <- TRUE
 spill  <- TRUE
-full   <- FALSE
-aboe   <- FALSE
-ranges <- FALSE
+full   <- TRUE
+aboe   <- TRUE
+ranges <- TRUE
 
 birth_y_range <- 2006:2011
 pill_y_range <- birth_y_range - 1
@@ -47,13 +48,11 @@ require("lmtest")
 require("stargazer")
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
-geo.dir  <- "~/database/ChileRegiones/Nombres/"
 pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
 ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
 brth.dir <- paste(proj.dir, "Data/MinSal/dta/",sep="")
 pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
 com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
-work.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
 code.dir <- paste(proj.dir, "Source/Births/",sep="")
 tab.dir  <- paste(proj.dir, "Tables/", sep="")
 graf.dir <- paste(proj.dir, "Figures/", sep="")
@@ -68,17 +67,17 @@ Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
 #=== (3a) Source functions
 #==============================================================================
 if(create){
-  f <- paste(code.dir,"BirthGenerate.R",sep="")
+  f <- paste(brth.dir,"BirthGenerate.R",sep="")
   source(f)
 
-  filename <- paste(work.dir, 'S1Data_granular_covars2.csv' ,sep="")
+  filename <- paste(brth.dir, 'S1Data_granular_covars.csv' ,sep="")
   prep_s1_data(age_range,usecom="TRUE",filename)
 }
 
 #==============================================================================
 #=== (3b) Load Data
 #==============================================================================
-f <- paste(work.dir, "S1Data_granular_covars2.csv", sep="")
+f <- paste(brth.dir, "S1Data_granular_covars.csv", sep="")
 orig <- read.csv(f)
 
 
