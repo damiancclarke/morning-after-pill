@@ -1,4 +1,4 @@
-# placeboTest.R v0.01            damiancclarke             yyyy-mm-dd:2014-07-10
+# placeboTest.R v0.02            damiancclarke             yyyy-mm-dd:2014-07-10
 #---|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 #
 # Runs various placebo tests using lead births and gestational deaths as the ou-
@@ -11,6 +11,7 @@
 #
 # This code has been written by DCC.
 #
+# Last version 0.02: Updating directory structure.
 # contact: damian.clarke@economics.ox.ac.uk
 
 rm(list=ls())
@@ -20,17 +21,15 @@ rm(list=ls())
 #=== (1) Directories, libraries
 #===============================================================================
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
-deth.dir <- "~/database/MinSal/Defunciones/dbfiles/"
-geo.dir  <- "~/database/ChileRegiones/Nombres/"
-brth.dir <- paste(proj.dir, "Data/MinSal/dta/",sep="")
-pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
-ma.dir   <- paste(proj.dir, "/Data/PAE/",sep="")
-outB.dir <- paste(proj.dir, "Data/Nacimientos/", sep="")
-outD.dir <- paste(proj.dir, "Data/Deaths/", sep="")
-outt.dir <- paste(proj.dir, "Tables/", sep="")
+
+brth.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
 codB.dir <- paste(proj.dir, "Source/Births/",sep="")
 codD.dir <- paste(proj.dir, "Source/Deaths/",sep="")
 com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
+deth.dir <- paste(proj.dir, "Data/Deaths/",sep="")
+ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
+outt.dir <- paste(proj.dir, "Tables/", sep="")
+pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
 
 
 require(sandwich)
@@ -39,10 +38,11 @@ require(foreign)
 require(reshape)
 require(gdata)
 
-create <- FALSE
+create <- TRUE
 birthM <- TRUE
-deathM <- FALSE
+deathM <- TRUE
 export <- TRUE
+
 #===============================================================================
 #=== (2) Import Raw Data with Pill comuna and all births/gestational deaths
 #===============================================================================
@@ -52,8 +52,8 @@ if(create) {
   age_range     <- c(15,49)  
   week          <- 20
   pat           <- "P"
-  filenameB     <- paste(outB.dir, 'S1Data_covars_20002011.csv', sep="")
-  filenameD     <- paste(outD.dir, 'S1Data_20002011.csv', sep="")
+  filenameB     <- paste(brth.dir, 'S1Data_covars_20002011.csv', sep="")
+  filenameD     <- paste(deth.dir, 'S1Data_20002011.csv', sep="")
   
   fb <- paste(codB.dir,"BirthGenerate.R",sep="")
   fd <- paste(codD.dir,"DeathGenerate.R",sep="")
@@ -65,8 +65,8 @@ if(create) {
 }
 
 
-birth.dat <- read.csv(paste(outB.dir, "S1Data_covars_20002011.csv", sep=""))
-death.dat <- read.csv(paste(outD.dir, "S1Data_20002011.csv", sep=""))
+birth.dat <- read.csv(paste(brth.dir, "S1Data_covars_20002011.csv", sep=""))
+death.dat <- read.csv(paste(deth.dir, "S1Data_20002011.csv", sep=""))
 
 #===============================================================================
 #=== (3) Functions for changing actual outcome year for pre-pill outcome
