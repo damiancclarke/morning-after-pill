@@ -15,11 +15,9 @@
 # prior to running this function the following directories must be defined:
 #   > pop.dir (contains all population files from INE converted to .csv)
 #   > brth.dir (directory containing dta file of all births in Chile)
-#   > geo.dir (directory containing MinSal comuna names and codes)
 #   > ma.dir (directory where pill data is stored)
-#   > work.dir (directory where data is exported)
 #   > pol.dir (directory where mayor characteristics are kept)
-#   > com.dir (directory where comuna characteristics are kept)
+#   > com.dir (directory where comuna characteristics and name file are kept)
 #
 # Last update v1.20: Refactorise
 
@@ -146,7 +144,7 @@ prep_s1_data <- function(age_range,usecom,filename) {
   #=============================================================================
   # (6a) Comuna id in birth data
   #=============================================================================
-  f <- paste(geo.dir, "regionescomunas_short.csv",sep="")
+  f <- paste(com.dir, "regionescomunas_short.csv",sep="")
   map <- read.csv(f,sep=";")
   map <- map[,1:7]
   map$dom_comuna <- toupper(as.character(map$COMUNA))
