@@ -1,17 +1,19 @@
 # DeathGenerate.R v1.00            KEL / DCC               yyyy-mm-dd:2013-12-24
 #---|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 #
-# Generates S1Data_deaths_covars.csv.  This file has one line per comuna, age
-# group and pregnancy status.  For the total number of pregnant women, there is
-# also a measure of the number of pregnancies terminating in fetal death.  The
-# final fil wlso contains covariates for political controls, education and 
-# health controls, gender controls, and pill status (and distance to nearest 
-# comuna with pill if pill==0).
+# Generates the file described in "filename". This file has one line per comuna,
+# age group and pregnancy status.  For the total number of pregnant women, there
+# is also a measure of the number of pregnancies terminating in fetal death. The
+# final file also contains covariates for political controls, education and hea-
+# lth controls, gender controls, and pill status (and distance to nearest comuna
+# with pill if pill==0).
 #
 # The file accepts the arguments age_range (generally 15-49) weeks (the number
 # of weeks gestation the death occurs before), and regex (a regex style pattern
 # to use for searching ICD codes).  If no ICD code is desired, * should simply
-# be entered as this argument.
+# be entered as this argument.  If the full file with comuna data is desired the
+# usecom argument should be set to TRUE, and the name of the file to be exported
+# is listed as filename.
 #
 # This is a minor refactorization of managedata_deaths_KEL_20131204.R. This 
 # code has been written by KEL, with minor additions by DCC to incorporate 
@@ -21,10 +23,9 @@
 #   > pop.dir (contains all population files from INE converted to .csv)
 #   > brth.dir (directory containing data file of all births in Chile)
 #   > deth.dir (directory containing data file of all fetal deaths in Chile)
-#   > geo.dir  (directory containing MinSal comuna names and codes)
 #   > ma.dir   (directory where pill data is stored)
 #   > pol.dir  (directory where mayor characteristics are kept)
-#   > com.dir  (directory where comuna characteristics are kept)
+#   > com.dir  (directory where comuna characteristics and names are kept)
 #
 # NOTE: FIX UP PART OF CODE WHICH CREATES EARLY/LATE DUMMIES.  THIS IS
 # VERY VERBOSE - JUST MAKE INTO FUNCTION.
@@ -224,7 +225,7 @@ prep_s1_data_deaths <- function(age_range,week,regex,usecom,filename) {
   #*****************************************************************************
   # (9) Standardise comuna names
   #*****************************************************************************
-  f <- paste(geo.dir, "regionescomunas_short.csv",sep="")
+  f <- paste(com.dir, "regionescomunas_short.csv",sep="")
   map <- read.csv(f,sep=";")
   map <- map[,1:7]
   map$dom_comuna <- toupper(as.character(map$COMUNA))

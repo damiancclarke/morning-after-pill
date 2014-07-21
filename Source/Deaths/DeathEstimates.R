@@ -1,4 +1,4 @@
-# DeathEstimates.R v1.21          KEL / DCC               yyyy-mm-dd:2013-12-29
+# DeathEstimates.R v1.23          KEL / DCC               yyyy-mm-dd:2013-12-29
 #---|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 #
 # Import data from S1Data_granular_covars.csv to run various models.  Initial 
@@ -14,22 +14,19 @@
 # switches in section (1) determine whether or not specific sections of the
 # code will be run.
 #
-# To Do:
-#   - Fix standard errors (cluster at level of comuna for now).  Later, make 
-#     sure that Cameron, Gelbach and Miller se's (comuna and year) are ok.
-#   - Estimate this as triple differences.  Current results show that deaths
-#     prior to 25 weeks move, while deaths after 25 weeks don't.  Good triple
-#     difference set-up is comuna*time*gestacion
+# Last version -- 1.23: Restructure directories
+# contact: damian.clarke@economics.ox.ac.uk
+
 
 rm(list=ls())
 
 #******************************************************************************
 #***(1) Parameters
 #******************************************************************************
-create  <- FALSE
-death   <- FALSE
+create  <- TRUE
+death   <- TRUE
 spill   <- TRUE
-combine <- FALSE
+combine <- TRUE
 full    <- FALSE
 
 birth_y_range <- 2006:2011
@@ -48,15 +45,14 @@ require(lmtest)
 require(stargazer)
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
-deth.dir <- "~/database/MinSal/Defunciones/dbfiles/"
-geo.dir  <- "~/database/ChileRegiones/Nombres/"
-pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
-brth.dir <- paste(proj.dir, "Data/MinSal/dta/",sep="")
-ma.dir   <- paste(proj.dir, "/Data/PAE/",sep="")
-pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
-com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
-work.dir <- paste(proj.dir, "Data/Deaths/",sep="")
+
+brth.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
 code.dir <- paste(proj.dir, "Source/Deaths/",sep="")
+com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
+deth.dir <- paste(proj.dir, "Data/Deaths/",sep="")
+ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
+pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
+pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
 tab.dir  <- paste(proj.dir, "Tables/", sep="")
 
 Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
@@ -72,14 +68,14 @@ if(create) {
   f <- paste(code.dir,"DeathGenerate.R",sep="")
   source(f)
 
-  filename <- paste(work.dir, 'S1Data_deaths_covars.csv', sep="")
+  filename <- paste(deth.dir, 'S1Data_deaths_covars.csv', sep="")
   prep_s1_data_deaths(age_range,week,pat,TRUE,filename)
 }
 
 #******************************************************************************
 #***(3b) Load Data
 #******************************************************************************
-f <- paste(work.dir,"S1Data_deaths_covars.csv",sep="")
+f <- paste(deth.dir,"S1Data_deaths_covars.csv",sep="")
 orig <- read.csv(f)
 
 #******************************************************************************

@@ -50,7 +50,7 @@ require("stargazer")
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
 pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
 ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
-brth.dir <- paste(proj.dir, "Data/MinSal/dta/",sep="")
+brth.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
 pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
 com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
 code.dir <- paste(proj.dir, "Source/Births/",sep="")
