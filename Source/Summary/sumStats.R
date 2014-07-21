@@ -1,9 +1,9 @@
 # sumStats.R v1.00               damiancclarke             yyyy-mm-dd:2014-01-01
 #---|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 #
-# sumStats.R creates summary stats for women and municipalities in Chile by
-# their emergency contraceptive status.  The summary stats are extracted from
-# two source files:
+# sumStats.R creates summary stats for women and municipalities in Chile by the-
+# ir emergency contraceptive status.  The summary stats are extracted from two 
+# source files:
 #    > S1Data_granular_covars.csv - the file recording births and pill status
 #    > S1Data_deaths_covars.csv   - the file recording fetal deaths and pill
 #
@@ -18,38 +18,36 @@ rm(list=ls())
 #***(1) Directories, libraries
 #*******************************************************************************
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
-geo.dir  <- "~/database/ChileRegiones/Nombres/"
-deth.dir <- paste(proj.dir, "Data/Deaths/", sep="")
-ncmt.dir <- paste(proj.dir, "Data/Nacimientos/", sep="")
-brth.dir <- paste(proj.dir, "Data/MinSal/dta/",sep="")
-outt.dir <- paste(proj.dir, "Tables/", sep="")
-pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
-ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
-graf.dir <- paste(proj.dir, "Figures/", sep="")
-pill.dir <- paste(proj.dir, "Data/PAE/", sep="")
+
+brth.dir <- paste(proj.dir, "Data/Nacimientos/", sep="")
+com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
 codB.dir <- paste(proj.dir, "Source/Births/",sep="")
 codD.dir <- paste(proj.dir, "Source/Deaths/",sep="")
-work.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
+deth.dir <- paste(proj.dir, "Data/Deaths/", sep="")
+graf.dir <- paste(proj.dir, "Figures/", sep="")
+ma.dir   <- paste(proj.dir, "Data/PAE/", sep="")
+outt.dir <- paste(proj.dir, "Tables/", sep="")
+pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
+pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
 
 library("data.table")
 library("doBy")
 library("SDMTools")
 
-comunas    <- FALSE
-women      <- FALSE
-kids       <- FALSE
-tables     <- FALSE
-pillgraph  <- FALSE
-preggraph  <- FALSE
-deathgraph <- FALSE
-totgraph   <- FALSE
-create     <- FALSE
+create     <- TRUE
+comunas    <- TRUE
+kids       <- TRUE
+tables     <- TRUE
+pillgraph  <- TRUE
+preggraph  <- TRUE
+deathgraph <- TRUE
+totgraph   <- TRUE
 trends     <- TRUE
 
 #*******************************************************************************
 #***(2) Load required data
 #*******************************************************************************
-births <- read.csv(paste(ncmt.dir,"S1Data_granular_covars.csv", sep=""))
+births <- read.csv(paste(brth.dir,"S1Data_granular_covars.csv", sep=""))
 deaths <- read.csv(paste(deth.dir,"S1Data_deaths_covars.csv", sep=""))
 
 deaths$conserv <- 0
@@ -73,7 +71,7 @@ if(create) {
   fD <- paste(codD.dir,"DeathGenerate.R",sep="")
   source(fB)
   source(fD)  
-  filenameB <- paste(ncmt.dir, 'S1Data_covars_20002011.csv' ,sep="")
+  filenameB <- paste(brth.dir, 'S1Data_covars_20002011.csv' ,sep="")
   filenameD <- paste(outD.dir, 'S1Data_20002011.csv', sep="")
   prep_s1_data(age_range,usecom="FALSE",filenameB)
   prep_s1_data_deaths(age_range,week,pat,FALSE,filenameD)
@@ -106,11 +104,6 @@ comunaSum <- function() {
   
   n<- with(deaths, tapply(dc, pill, FUN = function(x) length(unique(x))))
   return(list("sd" = sdd, "mean" = md, "n"=n[2]))
-}
-
-womanSum <- function() {
-  
-  return
 }
 
 childSum <- function() {
@@ -204,9 +197,6 @@ deathtrends <- function(age_sub,dat) {
 #*******************************************************************************
 if(comunas) {
   cs <- comunaSum()
-}
-if(women) {
-  ws <- womanSum()
 }
 if(kids) {
   ks <- childSum()
@@ -309,8 +299,8 @@ close(sumfile)
 #***(6) Graphical Results
 #*******************************************************************************
 if (pillgraph) {
-  pillS <- read.csv(paste(pill.dir,"PillDist.csv", sep=""), sep=";")  
-  pillM <- read.csv(paste(pill.dir,"Pill_MinSal.csv", sep=""), sep=";")    
+  pillS <- read.csv(paste(ma.dir,"PillDist.csv", sep=""), sep=";")  
+  pillM <- read.csv(paste(ma.dir,"Pill_MinSal.csv", sep=""), sep=";")    
 
   
   pillM$under18[is.na(pillM$under18)] <- 0
@@ -494,7 +484,7 @@ if (totgraph) {
 }
 
 if (trends) {
-  f <- paste(ncmt.dir, "S1Data_covars_20002011.csv", sep="")
+  f <- paste(brth.dir, "S1Data_covars_20002011.csv", sep="")
   orig <- read.csv(f)
 
   postscript(paste(graf.dir,"Trends1519.eps",sep=""),
