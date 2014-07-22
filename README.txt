@@ -11,9 +11,9 @@ See: https://github.com/damiancclarke/morning-after-pill/wiki
 This repository contains all source code and data, along with final tables and
 figures for this paper.  Proper details are available on the wiki at this page
 
-		 >> https://github.com/damiancclarke/morning-after-pill
+  >> https://github.com/damiancclarke/morning-after-pill
 
 This describes how to replicate all code, along with full raw and interim data.
 Most recent versions of the paper are available at SSRN and on the web:
-		 >> https://sites.google.com/site/damiancclarke/research
-		 >> http://ssrn.com/abstract=2468141
+  >> https://sites.google.com/site/damiancclarke/research
+  >> http://ssrn.com/abstract=2468141
