@@ -1,0 +1,315 @@
+\documentclass[10pt,letterpaper,subeqn]{beamer}
+\setbeamertemplate{navigation symbols}{}
+\usefonttheme{serif}
+\usecolortheme{orchid}
+
+
+
+\usepackage[english]{babel}
+\selectlanguage{english}
+\usepackage{bm}
+\usepackage{booktabs}
+\usepackage{color}
+\usepackage[update,prepend]{epstopdf}
+\usepackage{framed}
+\usepackage{fleqn}
+\usepackage{graphics}
+\usepackage{hyperref}
+\usepackage[utf8]{inputenc}
+\usepackage{setspace}
+\usepackage{textcomp}
+\usepackage{wrapfig}
+\usepackage{multirow}
+\usepackage{caption}
+\usepackage{subcaption}
+\setbeamertemplate{caption}[numbered]
+
+
+\title{Assessing Plan B: The Effect of the Morning After Pill on Children and Women}
+\author{Andrea Bentancor\inst{1} \and Damian Clarke\inst{2}}
+\institute{\inst{1} Universidad Adolfo Ib\'a\~nez  \inst{2} University of Oxford}
+\date{June 2014}
+
+
+\begin{document}
+
+
+\begin{frame}
+\titlepage
+\end{frame}
+
+
+\section{Introduction}
+\frame{\frametitle{This Talk}
+\begin{enumerate}
+\item There was \textcolor{blue}{quasi-experimental} variation in fully-subsidised
+\textcolor{blue}{morning after pill} availability in Chile. \vspace{2mm}
+\item Availability \textcolor{blue}{reduced teenage childbearing} and (illegal) 
+abortions by an important amount. \vspace{2mm}
+\item The control group may be partially treated via \textcolor{blue}{spillovers}.  
+Show how to recover consistent estimates.
+\end{enumerate}
+}
+
+\frame{\frametitle{Motivation}
+\begin{itemize}
+\item Considerable evidence that the oral contraceptive pill improves outcomes for women and children
+\begin{itemize}
+\item Delays in childbearing, marriage (Angrist and Evans, 1996)
+\item Higher education, labour market participation (Goldin and Katz, 2002)
+\item Reduction in gender wage differential (Bailey 2012)
+\end{itemize}
+\item But, \textcolor{blue}{scarce evidence on the effects of post-coital birth control}
+\item A small number of papers from expansions in USA, nothing outside USA, nor at national level
+\item Would like to know: how does the introduction of the ``morning after pill'' affect 
+fertility/abortions?
+\end{itemize}
+}
+
+\frame{\frametitle{Importance}
+\begin{itemize}
+\item Oral contraceptive pill provided fundamental change in ability to control total fertility and timing (Bailey 2006)
+\item However, requires a costly, ongoing and regular investment
+\item The morning after pill however, is a once-off contraceptive (non-abortive) treatment
+\item In many situations it is much cheaper or fully subsidised
+\item Also, non-abortive, so present in circumstances even where abortion is illegal
+\item May operate at a different margin (younger women and women not regularly contracepting)
+\end{itemize}
+}
+
+\frame{\frametitle{The Context}
+A finding by the Supreme Court of Chile making the morning after pill legal, but at the
+discretion of each mayor in local jurisdictions
+\vspace{5mm}
+\begin{itemize}
+\item This is quite different to USA literature given that abortion is entirely outlawed in Chile
+\item Previously, any person in Chile wanting to post coitally contracept had to:
+\begin{itemize}
+\item Risk illegal abortion which is prosecuted, dangerous and stigmatised; or
+\item Have access to the information that high doses of the pill act similarly to the emergency contraceptive (EC) pill
+\end{itemize}
+\item High rates of teen pregnancy (48.60 per 1000 women aged 15-19 in 2012)
+\item Low rates of contraceptive coverage (12.9\% of 15-19 year olds using any form)
+\end{itemize}
+}
+
+\section{Methods}
+\frame{\frametitle{Methodology}
+\[
+ \label{TEENeqn:pill}
+birth_{ijt} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt-1}\} + \phi_t + \eta_j + 
+\eta_j\cdot t + X_{jt-1}\gamma + \varepsilon_{ijt}.
+\]
+\vspace{5mm}
+\begin{itemize}
+\item Flexible diff-in-diffs
+\item Woman $i$ in municipality $j$ and time $t$ is `treated' if public health
+centres report that the pill is freely available upon request
+\item Identifying assumption is parallel trends; pill placement is conditionally
+exogenous
+\end{itemize}
+}
+
+\frame{\frametitle{Estimating Treatment Effects in The Presence of Treatment Spillovers}
+\[
+y_{ijct} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt-1}\} + 
+\sum_{c=0}^C\zeta_c\cdot close_{cdjt-1} + \hdots + \varepsilon_{ijct}
+\]
+where
+\[
+ close_{cdjt} =
+  \begin{cases}
+   1 & \text{if } dist_{jt} > c \wedge dist_{jt}\leq c+d   \\
+   0 & \text{if } dist_{jt} \leq c \vee  dist_{jt}>c+d.
+  \end{cases}
+\]
+\vspace{5mm}
+\begin{itemize}
+\item Test what happens if we exclude from the control group women `close to' the pill
+\item Let the data determine who is `close' and who isn't
+\item This loosens SUTVA, but still requires that this hold in non-close municipalities
+\item Cluster errors to allow for spatial correlation (Conley, 1999)
+\end{itemize}
+}
+
+\frame{\frametitle{General Identification Challenges}
+Parallel trends assumption would be violated if pill and non-pill mayors simultaneously embark
+on other related policies
+\begin{itemize}
+\item Selection into prescribing the pill is largely based on mayor's ideology, however not
+necessarily along party lines
+\item Pill law was passed mid-electoral cycle
+\item Add a series of time-varying controls
+\item Undertake a series of robustness checks using false (lagged) treatments
+\end{itemize}
+}
+
+\section{Data}
+\frame{\frametitle{The Reform}
+Constitutional finding of the Supreme Court in 2008 regarding ``National Laws for the Regulation
+of Fertility'' (Law 20.418)
+\begin{itemize}
+\item Made it legal for all Municipal Health Centres to distribute the EC pill freely to women
+\item Of the 346 municipalities in Chile, approximately 150 immediately reported that they 
+distribute the EC pill without restriction
+\item EC pill prescriptions jumped sharply, from 0 in 2007 to approximately 7,000 doses in 2008
+\end{itemize}
+}
+
+\frame{
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Pill Prescriptions and Availability by Time}
+\label{TEENfig:Pilltime}
+\vspace{-5mm}
+\includegraphics[scale=0.44]{./figures/Pill.eps} 
+\end{center}
+\end{figure}
+}
+
+\frame{
+\begin{figure}[htpb!]
+\begin{center}
+\caption{The Availability of the Pill by Geographic Region}
+\label{TEENfig:PillGeo}
+%\includegraphics[scale=0.2]{./figures/Pill_l.eps}
+\textsc{Image removed to reduce file size}
+\end{center}
+\end{figure}
+}
+
+\begin{frame}[label=sum]
+\frametitle{Data}
+\begin{itemize}
+\item Matched administrative data files recording all live births and fetal deaths in Chile
+\item Crossed with data recording population by municipality.  Principal outcomes:
+\begin{itemize}
+\item Births per woman
+\item Fetal deaths per live birth (late term, early term)
+\end{itemize}
+\item All births and deaths from 2006--2011.  1,391,565 births; 11,387 fetal deaths
+\item Measure of treatment comes from an independent survey (Dides et al.\ 2009, 2010, 2011)
+\item Also have administrative data on pill disbursements
+\end{itemize}
+\hyperlink{sumR}{\beamergotobutton{Descriptives}}
+\end{frame}
+
+
+
+
+\frame{
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Total Recorded Births and Fetal Deaths, 2006-2011}
+\label{TEENfig:BirthDeath}
+\vspace{-5mm}
+\includegraphics[scale=0.44]{./figures/BirthDeath.eps} 
+\end{center}
+\end{figure}
+}
+
+\section{Results}
+\frame{\frametitle{Results}
+Headline results:
+\begin{itemize}
+\item Naive estimates of the effect of having the morning after pill available:
+\begin{itemize}
+\item Reduces births by 5.5\% for teenagers
+\item Reduces births by 3.7\% for 20-34 year olds
+\item No effect on 35-44 year olds
+\item Strong evidence for reduction in early term fetal deaths, no effect on late term
+\end{itemize}
+\item However, strong evidence of spillovers.  Those living `close to' pill municipalities 
+also have:
+\begin{itemize}
+\item Reduction in births for 15--19, 20--34 year olds
+\item Reduced rates of early-term fetal deaths
+\item These effects persist for distances up to 30km\ldots
+\end{itemize}
+\end{itemize}
+}
+
+\frame{\frametitle{Births}
+\input{./tables/Births.tex}
+}
+
+\frame{\frametitle{Fetal Deaths}
+\input{./tables/Deaths.tex}
+}
+
+\frame{\frametitle{Spillovers}
+\input{./tables/Spillovers.tex}
+}
+
+\frame{
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Estimates of $\hat\delta^c$ for Pregnancy (15-19)}
+\label{TEENfig:Dist1519}
+\vspace{-5mm}
+\includegraphics[scale=0.44]{./figures/Dist1519.eps} 
+\end{center}
+\end{figure}
+}
+
+\begin{frame}[label=plaus]
+\frametitle{Plausibility?}
+These are large effects, and indeed much larger than what is reported in the two economic studies that exist in the USA.  However:
+\begin{itemize}
+\item These effects are similar in magnitude to the effect of viewing ``16 and Pregnant'' (Kearney and Levine, 2014)
+\item In Chile, prior to the morning after pill, outside options were very limited: either give birth, travel to abort, or risk death/incarceration in the country
+\item In cases where abortion exists, this technology may shift women from abortion to post-coital contraceptives, and so may not turn up in net figures
+\item A back of the envelope calculation suggests that the effectiveness of the pill (pregnancies avoided per prescription) is $\sim$0.7-0.8.  The US FDA suggests that typical use has effectiveness of 89\%
+\hyperlink{plausR}{\beamergotobutton{See results}}
+\end{itemize}
+\end{frame}
+
+
+
+\section{Discussion}
+\frame{\frametitle{The Take Away Points}
+\begin{enumerate}
+\item There was \textcolor{blue}{quasi-experimental} variation in fully-subsidised
+\textcolor{blue}{morning after pill} availability in Chile. \vspace{2mm}
+\item Availability \textcolor{blue}{reduced teenage childbearing} and (illegal) 
+abortions by an important amount. \vspace{2mm}
+\item The control group may be partially treated via \textcolor{blue}{spillovers}.  
+Show how to recover consistent estimates.
+\end{enumerate}
+}
+
+\frame{
+\textcolor{blue}{Thank you.}
+}
+
+\begin{frame}[label=sumR]
+\input{./tables/SummaryStats.tex}
+\hyperlink{sum}{\beamergotobutton{Back}}
+\end{frame}
+
+\begin{frame}[label=plausR]
+\input{./tables/Consistency.tex}
+\hyperlink{plaus}{\beamergotobutton{Back}}
+\end{frame}
+
+\begin{frame}
+\input{./tables/HumanCapital.tex}
+\end{frame}
+
+
+
+\end{document}
+
+
+
+
+%********************************************************************************
+%********************************************************************************
+%********************************************************************************
+%********************************************************************************
+%********************************************************************************
+%********************************************************************************
+%********************************************************************************
+%********************************************************************************
+%********************************************************************************
+%********************************************************************************
