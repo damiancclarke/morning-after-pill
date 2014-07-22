@@ -28,7 +28,7 @@ rm(list=ls())
 create <- TRUE
 preg   <- TRUE
 spill  <- TRUE
-full   <- TRUE
+full   <- FALSE
 aboe   <- TRUE
 ranges <- TRUE
 
@@ -48,12 +48,13 @@ require("lmtest")
 require("stargazer")
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
-pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
-ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
+
 brth.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
-pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
-com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
 code.dir <- paste(proj.dir, "Source/Births/",sep="")
+com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
+ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
+pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
+pop.dir  <- paste(proj.dir, "Data/Population/",sep="")
 tab.dir  <- paste(proj.dir, "Tables/", sep="")
 graf.dir <- paste(proj.dir, "Figures/", sep="")
 
@@ -67,7 +68,7 @@ Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
 #=== (3a) Source functions
 #==============================================================================
 if(create){
-  f <- paste(brth.dir,"BirthGenerate.R",sep="")
+  f <- paste(code.dir,"BirthGenerate.R",sep="")
   source(f)
 
   filename <- paste(brth.dir, 'S1Data_granular_covars.csv' ,sep="")

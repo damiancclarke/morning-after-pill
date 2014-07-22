@@ -29,7 +29,7 @@ com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
 deth.dir <- paste(proj.dir, "Data/Deaths/",sep="")
 ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
 outt.dir <- paste(proj.dir, "Tables/", sep="")
-pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
+pop.dir  <- paste(proj.dir, "Data/Population/",sep="")
 
 
 require(sandwich)

@@ -28,7 +28,7 @@ graf.dir <- paste(proj.dir, "Figures/", sep="")
 ma.dir   <- paste(proj.dir, "Data/PAE/", sep="")
 outt.dir <- paste(proj.dir, "Tables/", sep="")
 pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
-pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
+pop.dir  <- paste(proj.dir, "Data/Population/",sep="")
 
 library("data.table")
 library("doBy")

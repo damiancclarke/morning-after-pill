@@ -52,7 +52,7 @@ com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
 deth.dir <- paste(proj.dir, "Data/Deaths/",sep="")
 ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
 pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
-pop.dir  <- paste(proj.dir, "Data/Poblacion/proyecciones/DatCom/",sep="")
+pop.dir  <- paste(proj.dir, "Data/Population/",sep="")
 tab.dir  <- paste(proj.dir, "Tables/", sep="")
 
 Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
