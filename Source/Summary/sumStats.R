@@ -487,7 +487,10 @@ if (trends) {
   f <- paste(brth.dir, "S1Data_covars_20002011.csv", sep="")
   orig <- read.csv(f)
 
-  postscript(paste(graf.dir,"Trends1519.eps",sep=""),
+#  postscript(paste(graf.dir,"Trends1519.eps",sep=""),
+#             horizontal = FALSE, onefile = FALSE, paper = "special",
+#             height=7, width=9)
+  postscript(paste(graf.dir,"Reform1519.eps",sep=""),
              horizontal = FALSE, onefile = FALSE, paper = "special",
              height=7, width=9)
   trends1519 <-birthtrends(age_sub=15:19, orig)  
@@ -497,6 +500,7 @@ if (trends) {
        ylim=c(min(trends1519$N)-1000,max(trends1519$N)+2000),
        ylab="Number of Live Births",xlab="Year")
   lines(nopillM$year,nopillM$N, type="b",pch=15)
+  abline(v=2008.7)  
   legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
          text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
   note <- "Note: Some municipalities which did not give the EC pill in 2010 did give the EC
@@ -504,9 +508,14 @@ if (trends) {
   note <- sub("\n","",note)
   note <- gsub("  "," ",note)  
   mtext(note, side=1, line=4, adj=0, cex=0.8)  
+  mtext(c("Constitutional Tribunal"),side=3,line=1, cex=0.8, at=2009)
+  mtext(c("Change in 'Normas de Fertilidad'"),side=3,line=0, cex=0.8, at=2009)
   dev.off()
 
-  postscript(paste(graf.dir,"Trends2034.eps",sep=""),
+#  postscript(paste(graf.dir,"Trends2034.eps",sep=""),
+#             horizontal = FALSE, onefile = FALSE, paper = "special",
+#             height=7, width=9)
+  postscript(paste(graf.dir,"Reform2034.eps",sep=""),
              horizontal = FALSE, onefile = FALSE, paper = "special",
              height=7, width=9)
   trends2034 <-birthtrends(age_sub=20:34, orig)
@@ -516,6 +525,7 @@ if (trends) {
        ylim=c(min(trends2034$N)-1000,max(trends2034$N)+8000),
        ylab="Number of Live Births",xlab="Year")
   lines(nopillM$year,nopillM$N, type="b",pch=15)
+  abline(v=2008.7)
   
   legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
          text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
@@ -524,6 +534,8 @@ if (trends) {
   note <- sub("\n","",note)
   note <- gsub("  "," ",note)  
   mtext(note, side=1, line=4, adj=0, cex=0.8)  
+  mtext(c("Constitutional Tribunal"),side=3,line=1, cex=0.8, at=2009)
+  mtext(c("Change in 'Normas de Fertilidad'"),side=3,line=0, cex=0.8, at=2009)
   dev.off() 
 
   
