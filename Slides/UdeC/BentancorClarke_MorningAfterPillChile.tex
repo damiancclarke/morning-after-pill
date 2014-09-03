@@ -7,6 +7,7 @@
 
 \usepackage[english]{babel}
 \selectlanguage{english}
+\usepackage{amsmath, amsfonts, amssymb, cancel}
 \usepackage{bm}
 \usepackage{booktabs}
 \usepackage{color}
@@ -21,9 +22,10 @@
 \usepackage{wrapfig}
 \usepackage{multirow}
 \usepackage{caption}
-\usepackage{subcaption}
+%\usepackage{subcaption}
 \usepackage{lscape}
 \setbeamertemplate{caption}[numbered]
+
 
 
 \title{Assessing Plan B: The Effect of the Morning After Pill on Children and Women}
@@ -117,12 +119,12 @@ fertility/abortions?
 Considerable polemic regarding the introduction of AE in Chile
 \vspace{5mm}
 \begin{itemize}
-\item However, very little (no?) evidence regarding \emph{effects} 
+\item However, very little (or no?) evidence regarding \emph{effects} 
 \item This in a context of high rates of adolescence pregnacy
 \begin{itemize}
-\item In Chile, 48.60 per 1000 women aged 15-19 (2012)
+\item In Chile, \textcolor{red}{48.60 per 1000} women aged 15-19 (2012)
 \item \emph{Very strong} correlation with poverty, vulnerability, education
-\item Low rates of contraceptive coverage (12.9\% of 15-19 year olds using any form)
+\item Low rates of contraceptive coverage: \textcolor{red}{12.9\% of 15-19} year olds using any form (INJUV)
 \end{itemize}
 \item AE is likely to be particularly effective in Chile given the absence
 of other post-coital birth control options
@@ -130,20 +132,21 @@ of other post-coital birth control options
 }
 
 \frame{\frametitle{Importance III}
-Econometrically, DD techniques frequently require SUTVA, or the lack of a spillover
-between treated subjects
+Econometrically, DD techniques require SUTVA, or the lack of a spillover between treated subjects
 \vspace{5mm}
 \begin{itemize}
 \item Literature recognises spillovers \emph{within} treatment clusters (Angelucci; Bobonis; Baird et al.)
-\item However, in this case we are concerned that 
-\item
+\item However, in this case we are concerned that plausibly exogenous treatment may cross \emph{beween} treatment clusters
+\item If this is the case, control groups are partially contaminated
+\item We propose a flexible estimation technique to recover consistent estimates in the presence of local
+spillovers
 \end{itemize}
 }
 
 
-\frame{\frametitle{The Context}
-A finding by the Supreme Court of Chile making the morning after pill legal, but at the
-discretion of each mayor in local jurisdictions
+\begin{frame}[label=Context]
+\frametitle{The Context}
+A finding by a Constitutional Tribunal in 2008 regarding \emph{las normas nacionales sobre la fertilidad} making the morning after pill legal, but at the discretion of each mayor in local jurisdictions (\emph{comunas})
 \vspace{5mm}
 \begin{itemize}
 \item This is quite different to USA literature given that abortion is entirely outlawed in Chile
@@ -151,13 +154,28 @@ discretion of each mayor in local jurisdictions
 \begin{itemize}
 \item Risk illegal abortion which is prosecuted, dangerous and stigmatised; or
 \item Have access to the information that high doses of the pill act similarly to the emergency contraceptive (EC) pill
+\item Purchase the morning after pill (sporadically available from 1995)
 \end{itemize}
-\item High rates of teen pregnancy (48.60 per 1000 women aged 15-19 in 2012)
-\item Low rates of contraceptive coverage (12.9\% of 15-19 year olds using any form)
+\end{itemize}
+\hyperlink{PAE}{\beamergotobutton{Further Details\ldots}}
+\end{frame}
+
+\frame{\frametitle{Roadmap: Findings}
+\begin{itemize}
+\item Na\"ive estimates of the reform suggest a \textcolor{blue}{4.0\%} and 3.0\% reduction in total pregnancies for 15-19 and 20-34 year olds respectively
+\item Similarly, we find suggesting evidence that the morning after pill reduced abortions 
+\item Once accounting for spillovers, main effects are a \textcolor{blue}{6.9\%} reduction in births (15-19) and a reduction of approximately 55\% in illegal abortion
+\item These effects are not focused by a women's labour market or educational status
 \end{itemize}
 }
 
-\section{Methods}
+\section{Methodology}
+\frame{
+\begin{center}
+\textcolor{blue}{{\Large\textsc{Methodology}}}
+\end{center}
+}
+
 \frame{\frametitle{Methodology}
 \[
  \label{TEENeqn:pill}
@@ -196,6 +214,86 @@ where
 \end{itemize}
 }
 
+\frame{\frametitle{Estimating Treatment Effects in The Presence of Treatment Spillovers}
+In other words, we can include a series of dummies: $close_{0,10}$, $close_{10,20}$, 
+$close_{20,30}$, \ldots
+\vspace{5mm}
+\begin{itemize}
+\item We can include marginal `close' variables until either:
+\begin{itemize}
+\item The effect on the marginal close dummy (ie $close_{20,30}$) is identical to the effect 
+on the dummy before (ie $close_{10,20}$)
+\item Or the main effect $\hat{\delta}$ no longer varies as additional dummies are added
+\end{itemize}
+\item Thus, the only discretionary choice is the distance covered by each close dummy
+\item It can be shown that if spillovers work in the same direction as treatment (ie reduce births),
+then omitting close dummies biases $\hat\delta$ towards zero
+\end{itemize}
+}
+
+\frame{\frametitle{Attenuation Bias in DD}
+Consider a DD situation with treament $\delta$ and close effect $\zeta$:
+\begin{equation}
+ \label{TEENeqn:DDa1}
+ y_{ijtc} = \eta_j + \phi_t + \delta D_{jt} + \zeta close_{jtc} + 
+\varepsilon_{ijtc}
+\end{equation}
+\vspace{1cm}
+Now, consider the effect of each single differences in the double differences
+framework.  First, the treated clusters:
+
+\begin{eqnarray}
+\label{TEENeqn:diftreat}
+\nonumber
+ E[y_{ijtc}|j=Pill,t=2,c=1]-E[y_{ijtc}|j=Pill,t=1,c=1] = \\ \nonumber
+ \textcolor{red}{\phi_2-\phi_1+\delta}.
+\end{eqnarray}
+}
+
+\frame{\frametitle{Attenuation Bias in DD}
+Second, the non-treated clusters close to the treated clusters:
+\begin{eqnarray}
+\label{TEENeqn:difclose}
+\nonumber
+ E[y_{ijtc}|j=No Pill,t=2,c=1]- E[y_{ijtc}|j=No Pill,t=1,c=1] = \\
+\nonumber \textcolor{blue}{\phi_2-\phi_1+\zeta}
+\end{eqnarray}
+\vspace{1cm}
+And finally the non-treated clusters not close to the treated clusters:
+\begin{eqnarray}
+\label{TEENeqn:difnonclose}
+\nonumber
+ E[y_{ijtc}|j=No Pill,t=2,c=0]- E[y_{ijtc}|j=No Pill,t=1,c=0] = \\ \nonumber
+\textcolor{blue}{\phi_2-\phi_1}.
+\end{eqnarray}
+}
+
+\frame{\frametitle{Attenuation Bias in DD}
+If we were to na\"ively combine the two control groups into one to calculate
+our second difference, this would give:
+\vspace{6mm}
+{\footnotesize
+\begin{equation*}
+\begin{split}
+ \{E[y_{ijtc}|j=Pill,t=2,c=1]- E[y_{ijtc}|j=Pill,t=1,c=1]\}-\\
+ \bigg(\frac{N_c}{N_c+N_{nc}}\{E[y_{ijtc}|j=No Pill,t=2,c=1]- E[y_{ijtc}|j=No Pill,t=1,c=1]\}+\\
+ \frac{N_{nc}}{N_c+N_{nc}}\{E[y_{ijtc}|j=No Pill,t=2,c=0]- E[y_{ijtc}|j=No Pill,t=1,c=0]\}\bigg) = \\
+ \delta - \frac{N_{c}}{N_{c}+N_{nc}}\zeta.
+ \end{split}
+\end{equation*}}
+}
+
+\frame{\frametitle{Attenuation Bias in DD}
+In this case, the DD estimator will be biased unless:
+\vspace{5mm}
+\begin{itemize}
+\item $N_c=0$: there are no close municipalities
+\item $\zeta=0$: there is no spillover 
+\item We omit all close municipalities from estimation
+\item \textcolor{blue}{We properly account for close municipalities} using (parametric or semiparametric) controls
+\end{itemize}
+}
+
 \frame{\frametitle{General Identification Challenges}
 Parallel trends assumption would be violated if pill and non-pill mayors simultaneously embark
 on other related policies
@@ -204,11 +302,21 @@ on other related policies
 necessarily along party lines
 \item Pill law was passed mid-electoral cycle
 \item Add a series of time-varying controls
+\begin{itemize}
+\item Fundamentally, this includes other contraceptive dispursement (condoms) and education and health spending
+\end{itemize}
 \item Undertake a series of robustness checks using false (lagged) treatments
 \end{itemize}
 }
 
 \section{Data}
+\frame{
+\begin{center}
+\textcolor{blue}{{\Large\textsc{Data}}}
+\end{center}
+}
+
+
 \frame{\frametitle{The Reform}
 Constitutional finding of the Supreme Court in 2008 regarding ``National Laws for the Regulation
 of Fertility'' (Law 20.418)
@@ -272,13 +380,19 @@ distribute the EC pill without restriction
 }
 
 \section{Results}
+\frame{
+\begin{center}
+\textcolor{blue}{{\Large\textsc{Results}}}
+\end{center}
+}
+
 \frame{\frametitle{Results}
 Headline results:
 \begin{itemize}
-\item Naive estimates of the effect of having the morning after pill available:
+\item Na\"ive estimates of the effect of having the morning after pill available:
 \begin{itemize}
-\item Reduces births by 5.5\% for teenagers
-\item Reduces births by 3.7\% for 20-34 year olds
+\item Reduces births by 4.0\% for teenagers
+\item Reduces births by 3.0\% for 20-34 year olds
 \item No effect on 35-44 year olds
 \item Strong evidence for reduction in early term fetal deaths, no effect on late term
 \end{itemize}
@@ -293,18 +407,18 @@ also have:
 }
 
 \frame{\frametitle{Births}
-\input{./../../Tables/Births.tex}
+\input{./tables/Births.tex}
 }
 
 \frame{\frametitle{Fetal Deaths}
-\input{./../../Tables/Deaths.tex}
+\input{./tables/Deaths.tex}
 }
 
 \frame{\frametitle{Spillovers}
-\input{./../../Tables/Spillovers.tex}
+\input{./tables/Spillovers.tex}
 }
 
-\frame{
+\begin{frame}[label=dist1519]
 \begin{figure}[htpb!]
 \begin{center}
 \caption{Estimates of $\hat\delta^c$ for Pregnancy (15-19)}
@@ -313,7 +427,8 @@ also have:
 \includegraphics[scale=0.44]{./../../Figures/Dist1519.eps} 
 \end{center}
 \end{figure}
-}
+\hyperlink{dist2034}{\beamergotobutton{20-34 year-olds}}
+\end{frame}
 
 \begin{frame}[label=plaus]
 \frametitle{Plausibility?}
@@ -327,9 +442,56 @@ These are large effects, and indeed much larger than what is reported in the two
 \end{itemize}
 \end{frame}
 
+\frame{\frametitle{Placebo Tests}
+We can run similar regressions comparing pill and non-pill $comunas$ using false (lagged) reforms:
+\begin{equation}
+ \label{TEENeqn:placebo}
+\nonumber
+birth_{ijt-l} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt}\} + \phi_t + \eta_j + 
+\eta_j\cdot t + \varepsilon_{ijt},
+\end{equation}
+\vspace{5mm}
+\begin{itemize}
+\item Where $l$ refers to a series of lags $l\in 3,4,5$ years.
+\item We should expect that in each case, $\hat\delta$ should not be significantly different to zero 
+\end{itemize}
+}
+
+\frame{\frametitle{Placebo Tests}
+\input{./tables/Placebo.tex}
+}
+
+\frame{
+\begin{figure}
+\begin{center}
+\caption{Birth Trends 2000-2011: 15-19 Years}
+\vspace{-5mm}
+\label{TEENfig:Trend2034}
+\includegraphics[scale=0.44]{./../../Figures/Trends1519.eps} 
+\end{center}
+\end{figure}
+}
 
 
-\section{Discussion}
+\frame{
+\begin{figure}
+\begin{center}
+\caption{Birth Trends 2000-2011: 20-34 Years}
+\vspace{-5mm}
+\label{TEENfig:Trend2034}
+\includegraphics[scale=0.44]{./../../Figures/Trends2034.eps} 
+\end{center}
+\end{figure}
+}
+
+
+\section{Conclusion}
+\frame{
+\begin{center}
+\textcolor{blue}{{\Large\textsc{Conclusion}}}
+\end{center}
+}
+
 \frame{\frametitle{The Take Away Points}
 \begin{enumerate}
 \item There was \textcolor{blue}{quasi-experimental} variation in fully-subsidised
@@ -345,18 +507,57 @@ Show how to recover consistent estimates.
 \textcolor{blue}{Thank you.}
 }
 
+\section{Appended Details}
+\frame{
+\begin{center}
+\textcolor{blue}{{\Large\textsc{Appended Details}}}
+\end{center}
+}
+
+\begin{frame}[label=PAE]
+\frametitle{The Morning After Pill in Chile}
+In Chile, levonorgestrel is prescribed as a post-coital contraceptive to prevent the implantation
+of the blastocyst\\
+\vspace{5mm}
+\begin{itemize}
+\item The legislative environment surrounding this medication is complex (Casas-Becerra; Dides)
+\begin{itemize}
+\item ICMER began discussions in 1996
+\item First sale was of Postinor in 2001 (resolution by Institute of Public Health)
+\item Constitutionality was quickly challenged by NG groups; prohibited by Supreme Court
+\item In November 2005 vote of Supreme Court votes 5-0 to reverse 2011 decision
+\item 36 \emph{diputados} challenged this decision, going to Consititutional Tribunal
+\end{itemize}
+\item This paper begins in 2008, where Municipalities were allowed to prescribe
+\end{itemize}
+\hyperlink{Context}{\beamergotobutton{Back}}
+\end{frame}
+
 \begin{frame}[label=sumR]
-\input{./../../Tables/SummaryStats.tex}
+\input{./tables/SummaryStats.tex}
 \hyperlink{sum}{\beamergotobutton{Back}}
 \end{frame}
 
 \begin{frame}[label=plausR]
-\input{./../../Tables/Consistency.tex}
+\input{./tables/Consistency.tex}
 \hyperlink{plaus}{\beamergotobutton{Back}}
 \end{frame}
 
+\begin{frame}[label=dist2034]
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Estimates of $\hat\delta^c$ for Pregnancy (20-34)}
+\label{TEENfig:Dist1519}
+\vspace{-5mm}
+\includegraphics[scale=0.44]{./../../Figures/Dist2034.eps} 
+\end{center}
+\end{figure}
+\hyperlink{dist2034}{\beamergotobutton{Back}}
+\end{frame}
+
+
 \begin{frame}
-\input{./../../Tables/HumanCapital.tex}
+\input{./tables/HumanCapital.tex}
 \end{frame}
 
 
