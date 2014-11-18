@@ -448,19 +448,24 @@ where
    0 & \text{if } dist_{jt} \leq c \vee  dist_{jt}>c+d.
   \end{cases}
 \]
+where $dist_{jt}$ is the distance (in km) to the nearest treatment municipality 
+(ie a municipality which reports prescribing the pill).  By definition, this takes
+0 for all treatment municipalities.
 
 This specification is identical to that in (\ref{TEENeqn:pill}), however here we 
-include a number $close$ controls (indexed by $c$).  These $close$ variables are 
+include a number of $close$ controls (indexed by $c$).  These $close$ variables are 
 designed to capture spillovers between the pill treatment areas and surrounding 
 areas which may also be affected by this treatment status, but which were not 
-themselves treated.  By judiciously selecting an appropriate series of $close$ 
-dummy variables, the true effect of the morning after pill can be recovered even
-in the case that spillovers occur between certain treatment and control clusters.%
-\footnote{Thus, these controls are determined by $c$, the minimum distance to
-a treatment cluster, and $c+d$, the maximum distance to the treatment cluster.
-For example, $close_{0,15,jt}$ will take the value of 1 for any municipality
-which does not itself prescribe the EC pill, but is within (0,15] km of a 
-treatment municipality.  Similarly $close_{15,30,jt}\Rightarrow (15,30]$.}
+themselves treated.  As defined above, at most one of these $close$ dummies can
+be switched on for a given (non-treated) municipality.  By judiciously selecting 
+an appropriate series of $close$ dummy variables, the true effect of the morning 
+after pill can be recovered even in the case that spillovers occur between 
+certain treatment and control clusters.\footnote{Thus, these controls are 
+determined by $c$, the minimum distance to a treatment cluster, and $c+d$, 
+the maximum distance to the treatment cluster. For example, $close_{0,15,jt}$ 
+will take the value of 1 for any municipality which does not itself prescribe 
+the EC pill, but is within (0,15] km of a treatment municipality.  Similarly 
+$close_{15,30,jt}\Rightarrow (15,30]$.}
 
 To see this, define $y_{1ijt}$ as the potential outcome for a woman in the 
 presence of treatment.  Likewise, $y_{0ijt}$ is the potential outcome for a 
