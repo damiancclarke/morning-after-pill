@@ -25,12 +25,13 @@ rm(list=ls())
 #==============================================================================
 #=== (1) Parameters
 #==============================================================================
-create <- TRUE
-preg   <- TRUE
-spill  <- TRUE
+create <- FALSE
+preg   <- FALSE
+Npreg  <- TRUE
+spill  <- FALSE
 full   <- FALSE
-aboe   <- TRUE
-ranges <- TRUE
+aboe   <- FALSE
+ranges <- FALSE
 
 birth_y_range <- 2006:2011
 pill_y_range <- birth_y_range - 1
@@ -62,7 +63,7 @@ graf.dir <- paste(proj.dir, "Figures/", sep="")
 Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
            "outofschool","healthspend","healthstaff","healthtraining"        , 
            "educationspend","femalepoverty","year","urban","educationmunicip",
-           "condom","usingcont","femaleworkers","failures","successes")
+           "condom","usingcont","femaleworkers","region")
 
 #==============================================================================
 #=== (3a) Source functions
@@ -100,10 +101,11 @@ stars <- function(p,B) {
 pillest <- function(outresults,d,n,regex,dim) {
   pillline <- grepl(regex,rownames(summary(outresults)$coefficients))
   
-  if(dim==1) {
+  if(dim==1|dim==3) {
     beta <- summary(outresults)$coefficients[pillline,]["Estimate"]
     se   <- outresults$coefficients2[pillline,]["Std. Error"]
-    p    <- outresults$coefficients2[pillline,]["Pr(>|z|)"]    
+    if (dim==1) {p <- outresults$coefficients2[pillline,]["Pr(>|z|)"]}
+    else {p <- outresults$coefficients2[pillline,]["Pr(>|t|)"]}
   }
   else {
     beta <- summary(outresults)$coefficients[pillline,][, "Estimate"]
@@ -111,10 +113,15 @@ pillest <- function(outresults,d,n,regex,dim) {
     p    <- outresults$coefficients2[pillline,][, "Pr(>|z|)"]    
   }
   
-  null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
-  Lfull <- as.numeric(logLik(outresults))
-  Lnull <- as.numeric(logLik(null))
-  R2    <- 1 - Lfull/Lnull
+  if (dim==1) {
+      null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
+      Lfull <- as.numeric(logLik(outresults))
+      Lnull <- as.numeric(logLik(null))
+      R2    <- 1 - Lfull/Lnull
+  }
+  else {
+      R2 <- summary(outresults)$r.squared
+  }
   beta  <- stars(p,beta)
   se    <- paste("(", format(round(se,3),nsmall=3),")", sep="")
   R2    <- format(round(R2,3),nsmall=3)
@@ -155,9 +162,10 @@ runmod <- function(age_sub,order_sub,num) {
                                          dat$healthtraining,dat$educationspend,
                                          dat$femalepoverty,dat$urbBin,dat$year,
                                          dat$educationmunicip,dat$condom      ,
-                                         dat$usingcont,dat$femaleworkers),
+                                         dat$usingcont,dat$femaleworkers      ,
+                                         dat$region),
                                          function(vec) {sum(na.omit(vec))})
-  names(formod)           <- Names
+  names(formod)           <- c(Names,"failures","successes")
   formod$healthstaff      <- formod$healthstaff/100000
   formod$healthspend      <- formod$healthspend/100000
   formod$healthtraining   <- formod$healthtraining/100000
@@ -221,7 +229,56 @@ runmod <- function(age_sub,order_sub,num) {
   }
 }
 
+NumMod <- function(age_sub,order_sub) {
+  
+  dat <- orig
+  dat <- dat[dat$age %in% age_sub,]
+  dat <- dat[(dat$order %in% order_sub) | !(dat$pregnant),]
+  dat <- dat[dat$pregnant==1,]
 
+  formod <- aggregate.data.frame(dat$n,
+                                 by=list(dat$dom_comuna,dat$year-2005         ,
+                                         (dat$year-2005)^2,dat$pill,dat$mujer ,
+                                         dat$party,dat$votop,dat$outofschool  ,
+                                         dat$healthspend,dat$healthstaff      ,
+                                         dat$healthtraining,dat$educationspend,
+                                         dat$femalepoverty,dat$urbBin,dat$year,
+                                         dat$educationmunicip,dat$condom      ,
+                                         dat$usingcont,dat$femaleworkers      ,
+                                         dat$region),
+                                         function(vec) {sum(na.omit(vec))})
+  names(formod)           <- c(Names,"births")
+  formod$healthstaff      <- formod$healthstaff/100000
+  formod$healthspend      <- formod$healthspend/100000
+  formod$healthtraining   <- formod$healthtraining/100000
+  formod$educationspend   <- formod$educationspend/100000
+  formod$educationmunicip <- formod$educationmunicip/100000
+
+
+  xtr   <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend    +
+               factor(year) + factor(pill), data=formod)
+    clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+    xtr$coefficients2 <- robust.se(xtr,clusters)[[2]]
+  
+  xcont  <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend      +
+               factor(year) + factor(pill) + factor(party) + factor(mujer) +
+               votes + outofschool + educationspend + educationmunicip     +
+               healthspend + healthtraining + healthstaff + femalepoverty  + 
+               femaleworkers + condom, data=formod  )
+  xcont$coefficients2 <- robust.se(xcont,clusters)[[2]]
+
+  n  <- nrow(formod)
+  s1 <- pillest(xtr,   formod, n, "pill", 3)
+  s5 <- pillest(xcont, formod, n, "pill", 3)
+    
+  betas <- paste(s1$b, "&", s5$b, sep="")
+  ses   <- paste(s1$s, "&", s5$s, sep="")
+  n     <- paste(s1$n, '&' ,s5$n, sep='')
+  r     <- paste(s1$r, '&', s5$r, sep='')
+
+  return(list("b" = betas,"se" = ses, "n" = n, "r" = r))  
+
+}
 #==============================================================================
 #=== (4b) Various functions to examine effect of spillover 
 #==============================================================================
@@ -240,7 +297,7 @@ spillovers <- function(age_sub,order_sub) {
   dat <- dat[dat$age %in% age_sub,]
   dat <- dat[(dat$order %in% order_sub) | !(dat$pregnant),]  
   
-  dat <- closegen(0,15,dat)
+  dat <- closegen(0,10,dat)
   dat <- closegen(15,30,dat)
   dat <- closegen(30,45,dat)
   
@@ -248,7 +305,7 @@ spillovers <- function(age_sub,order_sub) {
   dat$successes <- dat$pregnant*dat$n
   
   formod2 <- aggregate.data.frame(dat[,c("failures","successes")],
-                                  by=list(dat$close15,dat$close30,dat$close45  ,
+                                  by=list(dat$close10,dat$close30,dat$close45  ,
                                           dat$dom_comuna,dat$year-2005         ,
                                           (dat$year-2005)^2,dat$pill,dat$mujer ,
                                           dat$party,dat$votop,dat$outofschool  ,
@@ -256,18 +313,18 @@ spillovers <- function(age_sub,order_sub) {
                                           dat$healthtraining,dat$educationspend,
                                           dat$femalepoverty,dat$urbBin,dat$year,
                                           dat$educationmunicip,dat$condom      ,
-                                          dat$usingcont,dat$femaleworkers),
+                                          dat$usingcont,dat$femaleworkers      ,
+                                          dat$region),
                                   function(vec) {sum(na.omit(vec))})
   
-  names(formod2) <- c("close15","close30","close45",Names)
+  names(formod2) <- c("close15","close30","close45",Names,"failures","successes")
     
   xspill <- glm(cbind(successes,failures) ~ factor(dom_comuna)            + 
                   factor(dom_comuna):trend + factor(year) + factor(pill)  + 
                   factor(party) + factor(mujer) + votes + outofschool     + 
                   educationspend + educationmunicip + healthspend         + 
                   healthtraining + healthstaff + femalepoverty + condom   + 
-                  femaleworkers + factor(close15) + factor(close30)       + 
-                  factor(close45), family="binomial",data=formod2)
+                  femaleworkers + factor(close15) , family="binomial",data=formod2)
   clusters <-mapply(paste,"dom_comuna.",formod2$dom_comuna,sep="")
   xspill$coefficients2 <- robust.se(xspill,clusters)[[2]]
 
@@ -314,9 +371,10 @@ rangeest <- function(age_sub,order_sub){
                                          dat$healthtraining,dat$educationspend,
                                          dat$femalepoverty,dat$urbBin,dat$year,
                                          dat$educationmunicip,dat$condom      ,
-                                         dat$usingcont,dat$femaleworkers),
+                                         dat$usingcont,dat$femaleworkers      ,
+                                         dat$region),
                                  function(vec) {sum(na.omit(vec))})
-  names(formod)           <- Names
+  names(formod)           <- c(Names,"failures","successes")
     
   xrange <- glm(cbind(successes,failures) ~ factor(dom_comuna)            + 
                   factor(dom_comuna):trend + factor(year) + factor(pill)  +
@@ -390,6 +448,15 @@ if(preg){
   b1519 <- runmod(age_sub = 15:19, order_sub = 1,1)
   b2034 <- runmod(age_sub = 20:34, order_sub = 1,1)
   b3549 <- runmod(age_sub = 35:49, order_sub = 1,1)
+}
+
+if(Npreg){
+  N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100)
+  N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100)
+  N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100)
+  #Nb1519 <- runmod(age_sub = 15:19, order_sub = 1,1)
+  #Nb2034 <- runmod(age_sub = 20:34, order_sub = 1,1)
+  #Nb3549 <- runmod(age_sub = 35:49, order_sub = 1,1)
 }
 
 
