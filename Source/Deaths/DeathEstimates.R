@@ -23,10 +23,11 @@ rm(list=ls())
 #******************************************************************************
 #***(1) Parameters
 #******************************************************************************
-create  <- TRUE
+create  <- FALSE
 death   <- TRUE
-spill   <- TRUE
-combine <- TRUE
+deathXX <- FALSE
+spill   <- FALSE
+combine <- FALSE
 full    <- FALSE
 
 birth_y_range <- 2006:2011
@@ -176,6 +177,7 @@ death_pmod <- function(age_sub,deathtype,numb) {
                                          dat$femaleworkers),
                                          function(vec) {sum(na.omit(vec))})
   names(formod) <- c(Names,"failures","successes")
+  formod$meanP  <- ave(formod$pill, group=formod$dom_comuna) 
   
   x  <- glm(cbind(successes,failures) ~ factor(dom_comuna) + factor(year)      +
                  factor(dom_comuna):trend + factor(pill) + factor(party)       + 
@@ -183,19 +185,28 @@ death_pmod <- function(age_sub,deathtype,numb) {
                  educationmunicip + healthspend + healthtraining + healthstaff +
                  femalepoverty + femaleworkers + condom,
                  family="binomial", data=formod)
+  xCM <- glm(cbind(successes,failures) ~ meanP + factor(year)                  +
+                 factor(dom_comuna):trend + factor(pill) + factor(party)       + 
+                 factor(mujer) + votes + outofschool + educationspend          + 
+                 educationmunicip + healthspend + healthtraining + healthstaff +
+                 femalepoverty + femaleworkers + condom,
+                 family="binomial", data=formod)
+
   if (numb==1) {
     clusters <-mapply(paste,"dom_comuna.",dat$dom_comuna,sep="")
-    x$coefficients2 <- robust.se(x,clusters)[[2]]
+    x$coefficients2   <- robust.se(x,clusters)[[2]]
+    xCM$coefficients2 <- robust.se(xCM,clusters)[[2]]
       
     n  <- sum(formod$successes) + sum(formod$failures)
     s1 <- pillest(x, formod, n, "pill", 1)
+    s2 <- pillest(xCM, formod, n, "pill", 1)
     db <- sum(formod$successes)/sum(formod$failures)
     db <- format(round(db,3),nsmall=3)
     c  <- sum(formod$successes)
     c  <- format(c,big.mark=",",scientific=F)
 
-    return(list("beta" = s1$b, "se" = s1$s, "R2" = s1$r, "n" = s1$n, 
-                "c" = c, "db" = db))
+    return(list("beta" = s1$b, "se" = s1$s, "R2" = s1$r, "n" = s1$n, "c" = c,
+                "db" = db, "CM" = s2))
   } else {
     return(x)
   }
@@ -280,14 +291,14 @@ spillovers <- function(age_sub,deathtype) {
 #******************************************************************************
 if(death){
   p1519 <- death_pmod(age_sub = 15:19, "death",1)
-  p2034 <- death_pmod(age_sub = 20:34, "death",1)
-  p3549 <- death_pmod(age_sub = 35:49, "death",1)
+  #p2034 <- death_pmod(age_sub = 20:34, "death",1)
+  #p3549 <- death_pmod(age_sub = 35:49, "death",1)
   e1519 <- death_pmod(age_sub = 15:19,"earlyP",1)
-  e2034 <- death_pmod(age_sub = 20:34,"earlyP",1)
-  e3549 <- death_pmod(age_sub = 35:49,"earlyP",1)
+  #e2034 <- death_pmod(age_sub = 20:34,"earlyP",1)
+  #e3549 <- death_pmod(age_sub = 35:49,"earlyP",1)
   l1519 <- death_pmod(age_sub = 15:19, "lateP",1)
-  l2034 <- death_pmod(age_sub = 20:34, "lateP",1)
-  l3549 <- death_pmod(age_sub = 35:40, "lateP",1)
+  #l2034 <- death_pmod(age_sub = 20:34, "lateP",1)
+  #l3549 <- death_pmod(age_sub = 35:40, "lateP",1)
 }
 
 if(spill){
@@ -314,7 +325,7 @@ dpb  <- 'Mean (deaths/live birth)&'
 s    <- '\\\\'
 a    <- '&'
 
-if(death){
+if(deathXX){
   to <- file(paste(tab.dir,"Deaths.tex", sep=""))
   writeLines(c('\\begin{table}[htpb!] \\centering',
                '\\caption{The Effect of the Morning After Pill on Fetal Deaths}',

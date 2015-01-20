@@ -26,8 +26,8 @@ rm(list=ls())
 #=== (1) Parameters
 #==============================================================================
 create <- FALSE
-preg   <- FALSE
-Npreg  <- TRUE
+preg   <- TRUE
+Npreg  <- FALSE
 spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
@@ -228,12 +228,12 @@ runmod <- function(age_sub,order_sub,num) {
     s4 <- pillest(xfem,  formod, n, "pill", 1)
     s5 <- pillest(xcont, formod, n, "pill", 1)
     
-    betas <- paste(s1$b, "&", s2$b, "&", s4$b, "&", s5$b, "&", s0$b, sep="")
-    ses   <- paste(s1$s, "&", s2$s, "&", s4$s, "&", s5$s, "&", s0$s, sep="")
-    n     <- paste(s1$n, '&', s2$n, '&', s4$n, '&' ,s5$n, '&' ,s0$n, sep='')
-    r     <- paste(s1$r, '&', s2$r, '&', s4$r, '&', s5$r, '&', s0$r, sep='')
+    betas <- paste(s1$b, "&", s2$b, "&", s4$b, "&", s5$b, sep="")
+    ses   <- paste(s1$s, "&", s2$s, "&", s4$s, "&", s5$s, sep="")
+    n     <- paste(s1$n, '&', s2$n, '&', s4$n, '&' ,s5$n, sep='')
+    r     <- paste(s1$r, '&', s2$r, '&', s4$r, '&', s5$r, sep='')
 
-    return(list("b" = betas,"se" = ses, "n" = n, "r" = r))  
+    return(list("b" = betas,"se" = ses, "n" = n, "r" = r, "CM" = s0))  
   } else {
     return(xcont)
   }
