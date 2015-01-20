@@ -171,8 +171,17 @@ runmod <- function(age_sub,order_sub,num) {
   formod$healthtraining   <- formod$healthtraining/100000
   formod$educationspend   <- formod$educationspend/100000
   formod$educationmunicip <- formod$educationmunicip/100000
+  formod$meanP            <- ave(formod$pill, group=formod$dom_comuna)
+  
   
   if(num==1) {
+    xCM   <- glm(cbind(successes,failures) ~ meanP +
+                 factor(dom_comuna):trend + factor(year) + factor(pill), 
+                 family="binomial", data=formod)
+    clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+    xCM$coefficients2 <- robust.se(xCM,clusters)[[2]]
+
+
     xtr   <- glm(cbind(successes,failures) ~ factor(dom_comuna)        +
                  factor(dom_comuna):trend + factor(year) + factor(pill), 
                  family="binomial", data=formod)
@@ -212,16 +221,17 @@ runmod <- function(age_sub,order_sub,num) {
   if(num==1) {
     n  <- sum(formod$successes) + sum(formod$failures)
 
+    s0 <- pillest(xCM,   formod, n, "pill", 1)
     s1 <- pillest(xtr,   formod, n, "pill", 1)
     s2 <- pillest(xpol,  formod, n, "pill", 1)
     s3 <- pillest(xsh,   formod, n, "pill", 1)
     s4 <- pillest(xfem,  formod, n, "pill", 1)
     s5 <- pillest(xcont, formod, n, "pill", 1)
     
-    betas <- paste(s1$b, "&", s2$b, "&", s4$b, "&", s5$b, sep="")
-    ses   <- paste(s1$s, "&", s2$s, "&", s4$s, "&", s5$s, sep="")
-    n     <- paste(s1$n, '&', s2$n, '&', s4$n, '&' ,s5$n, sep='')
-    r     <- paste(s1$r, '&', s2$r, '&', s4$r, '&', s5$r, sep='')
+    betas <- paste(s1$b, "&", s2$b, "&", s4$b, "&", s5$b, "&", s0$b, sep="")
+    ses   <- paste(s1$s, "&", s2$s, "&", s4$s, "&", s5$s, "&", s0$s, sep="")
+    n     <- paste(s1$n, '&', s2$n, '&', s4$n, '&' ,s5$n, '&' ,s0$n, sep='')
+    r     <- paste(s1$r, '&', s2$r, '&', s4$r, '&', s5$r, '&', s0$r, sep='')
 
     return(list("b" = betas,"se" = ses, "n" = n, "r" = r))  
   } else {
@@ -279,6 +289,38 @@ NumMod <- function(age_sub,order_sub) {
   return(list("b" = betas,"se" = ses, "n" = n, "r" = r))  
 
 }
+
+OLSmod <- function(age_sub,order_sub,num) {
+  
+  dat <- orig
+  dat <- dat[dat$age %in% age_sub,]
+  dat <- dat[(dat$order %in% order_sub) | !(dat$pregnant),]
+
+  dat$failures <- (1-dat$pregnant)*dat$n
+  dat$successes <- dat$pregnant*dat$n
+
+  formod <- aggregate.data.frame(dat[,c("failures","successes")],
+                                 by=list(dat$dom_comuna,dat$year-2005         ,
+                                         (dat$year-2005)^2,dat$pill,dat$mujer ,
+                                         dat$party,dat$votop,dat$outofschool  ,
+                                         dat$healthspend,dat$healthstaff      ,
+                                         dat$healthtraining,dat$educationspend,
+                                         dat$femalepoverty,dat$urbBin,dat$year,
+                                         dat$educationmunicip,dat$condom      ,
+                                         dat$usingcont,dat$femaleworkers      ,
+                                         dat$region),
+                                         function(vec) {sum(na.omit(vec))})
+  names(formod)           <- c(Names,"failures","successes")
+  formod$healthstaff      <- formod$healthstaff/100000
+  formod$healthspend      <- formod$healthspend/100000
+  formod$healthtraining   <- formod$healthtraining/100000
+  formod$educationspend   <- formod$educationspend/100000
+  formod$educationmunicip <- formod$educationmunicip/100000
+
+  formod <- reshape(formod, varying=c("failures", "successes"), v.names="wt",
+                    timevar = "pregnant", times=c(0,1), direction="long")
+}
+
 #==============================================================================
 #=== (4b) Various functions to examine effect of spillover 
 #==============================================================================
