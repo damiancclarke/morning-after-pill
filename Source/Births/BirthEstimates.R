@@ -32,7 +32,6 @@ spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
-event  <- FALSE
 
 birth_y_range <- 2006:2011
 pill_y_range <- birth_y_range - 1
@@ -70,11 +69,11 @@ Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
 #=== (3a) Source functions
 #==============================================================================
 if(create){
-  f <- paste(code.dir,"BirthGenerate.R",sep="")
-  source(f)
+    f <- paste(code.dir,"BirthGenerate.R",sep="")
+    source(f)
 
-  filename <- paste(brth.dir, 'S1Data_granular_covars.csv' ,sep="")
-  prep_s1_data(age_range,usecom="TRUE",filename)
+    filename <- paste(brth.dir, 'S1Data_granular_covars.csv' ,sep="")
+    prep_s1_data(age_range,usecom="TRUE",filename)
 }
 
 #==============================================================================
@@ -443,23 +442,15 @@ rangeest <- function(age_sub,order_sub){
 }
 
 #==============================================================================
-#=== (4c) Event study 
-#==============================================================================
-event <- function(age_sub) {
-
-
-}
-
-#==============================================================================
 #=== (5) Estimate
 #==============================================================================
 if(preg){
-  a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1)
-  #a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1)
-  #a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1)
-  #b1519 <- runmod(age_sub = 15:19, order_sub = 1,1)
-  #b2034 <- runmod(age_sub = 20:34, order_sub = 1,1)
-  #b3549 <- runmod(age_sub = 35:49, order_sub = 1,1)
+    a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1)
+    a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1)
+    a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1)
+    b1519 <- runmod(age_sub = 15:19, order_sub = 1,1)
+    b2034 <- runmod(age_sub = 20:34, order_sub = 1,1)
+    b3549 <- runmod(age_sub = 35:49, order_sub = 1,1)
 }
 
 if(Npreg){
