@@ -454,12 +454,6 @@ lag <- function(dat, n = 1L, varname) {
     return(dat)    
  }
 
-repvar <- function(dat,var1,var2) {
-    navar  <- is.na(var1)
-    var1[navar] <- var2[navar]
-
-}
-
 event <- function(age_sub,order_sub) {
     formod <- datcollapse(age_sub, order_sub,1)
     formod <- formod[with(formod,order(dom_comuna,trend)), ]
