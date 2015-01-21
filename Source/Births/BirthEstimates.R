@@ -454,7 +454,8 @@ lag <- function(x, n = 1L, along_with){
  }
 
 event <- function(age_sub,order_sub) {
-
+    #NOTE, THIS HAS PROBLEMS, I NEED TO CREATE LAGS STILL. dplyr PACKAGE HAS
+    #DEPENDENCY ISSUES
     formod <- datcollapse(age_sub, order_sub,1)
     formod <- formod[with(formod,order(dom_comuna,trend)), ]
 #    formod %>% group_by(dom_comuna) %>% mutate(pillL1 = lag(pill, 1, along_with = trend))
