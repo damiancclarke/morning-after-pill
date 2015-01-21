@@ -32,6 +32,7 @@ spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
+events <- TRUE
 
 birth_y_range <- 2006:2011
 pill_y_range <- birth_y_range - 1
@@ -47,6 +48,7 @@ require("glmmML")
 require("sandwich")
 require("lmtest")
 require("stargazer")
+require("dplyr")
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
 
@@ -440,6 +442,26 @@ rangeest <- function(age_sub,order_sub){
 
   return(data.frame(distance,pillbeta,pillse,closebeta,closese))
 }
+
+#==============================================================================
+#=== (4c) Event study
+#==============================================================================
+lag <- function(x, n = 1L, along_with){
+     index <- match(along_with - n, along_with, incomparable = NA)
+      out <- x[index]
+      attributes(out) <- attributes(x)
+      out
+ }
+
+event <- function(age_sub,order_sub) {
+
+    formod <- datcollapse(age_sub, order_sub,1)
+    formod <- formod[with(formod,order(dom_comuna,trend)), ]
+#    formod %>% group_by(dom_comuna) %>% mutate(pillL1 = lag(pill, 1, along_with = trend))
+    return(formod)
+}
+#dataa<- event(age_sub=15:19, order_sub=1:100)
+
 
 #==============================================================================
 #=== (5) Estimate
