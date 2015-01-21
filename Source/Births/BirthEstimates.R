@@ -48,7 +48,6 @@ require("glmmML")
 require("sandwich")
 require("lmtest")
 require("stargazer")
-require("dplyr")
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
 
@@ -231,6 +230,7 @@ runmod <- function(age_sub,order_sub,num) {
                   educationmunicip + healthspend + healthtraining + healthstaff +
                   femalepoverty + femaleworkers + condom,
                   family="binomial", data=formod)
+    clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
     xcont$coefficients2 <- robust.se(xcont,clusters)[[2]]
   
     if(num==1) {
@@ -446,22 +446,59 @@ rangeest <- function(age_sub,order_sub){
 #==============================================================================
 #=== (4c) Event study
 #==============================================================================
-lag <- function(x, n = 1L, along_with){
-     index <- match(along_with - n, along_with, incomparable = NA)
-      out <- x[index]
-      attributes(out) <- attributes(x)
-      out
+lag <- function(dat, n = 1L, varname) {
+    lagD        <- dat[,c("dom_comuna","trend","pill")]
+    names(lagD) <- c("dom_comuna","trend",varname)
+    lagD$trend  <- lagD$trend + n
+    dat         <- merge(dat,lagD,by=c("dom_comuna","trend"),all.x=T,all.y=F)
+    return(dat)    
  }
 
+repvar <- function(dat,var1,var2) {
+    navar  <- is.na(var1)
+    var1[navar] <- var2[navar]
+
+}
+
 event <- function(age_sub,order_sub) {
-    #NOTE, THIS HAS PROBLEMS, I NEED TO CREATE LAGS STILL. dplyr PACKAGE HAS
-    #DEPENDENCY ISSUES
     formod <- datcollapse(age_sub, order_sub,1)
     formod <- formod[with(formod,order(dom_comuna,trend)), ]
-#    formod %>% group_by(dom_comuna) %>% mutate(pillL1 = lag(pill, 1, along_with = trend))
-    return(formod)
+
+    #LAGS
+    formod <- lag(formod,-1,"Plag1")
+    navar  <- is.na(formod$Plag1)
+    formod$Plag1[navar] <- formod$pill[navar]
+
+    formod <- lag(formod,-2,"Plag2")
+    navar  <- is.na(formod$Plag2)
+    formod$Plag2[navar] <- formod$Plag1[navar]
+
+    #LEADS
+    formod <- lag(formod,1,"Plead1")
+    formod$Plead1[is.na(formod$Plead1)] <- 0
+
+    formod <- lag(formod,2,"Plead2")
+    formod$Plead2[is.na(formod$Plead2)] <- 0
+
+
+    event  <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)       +
+                  factor(dom_comuna) + factor(region):trend + votes             +
+                  factor(party) + factor(mujer) + outofschool + educationspend  +
+                  educationmunicip + healthspend + healthtraining + healthstaff +
+                  femalepoverty + femaleworkers + condom + factor(Plag1)        +
+                  factor(Plag2) + factor(Plead1),
+                  family="binomial", data=formod)
+    clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+    event$coefficients2 <- robust.se(event,clusters)[[2]]
+    return(event)
+    
+    #n  <- sum(formod$successes) + sum(formod$failures)
+    #s1 <- pillest(event,formod,n,"pill|Plead|Plag",4)  
+    #return(list("b" = s1$b,"s" = s1$s, "n" = s1$n, "r" = s1$r))
+
+
 }
-#dataa<- event(age_sub=15:19, order_sub=1:100)
+dataa<- event(age_sub=15:19, order_sub=1:100)
 
 
 #==============================================================================
