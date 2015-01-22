@@ -1,0 +1,47 @@
+\begin{table}[htpb!] \centering
+\caption{Summary Statistics} \label{TEENtab:SumStats}
+\vspace{-4mm}
+\scalebox{0.48}{
+\begin{tabular} {@{\extracolsep{5pt}}lp{1cm}ccc}\\ [-1.8ex]
+\hline\hline\\ [-1.8ex] &&No Pill&Pill&Total \\
+&&Available&Available& \\ \midrule 
+\textsc{Municipality Characteristics} &&&& \\
+&&&& \\
+Poverty &&16.4&17.0&16.5\\
+&&(7.48)&(7.71)&(7.52) \\
+Conservative &&0.285&0.291&0.286\\
+&&(0.451)&(0.454)&(0.452) \\
+Education Spending &&4,762&5,234&4,838\\
+&&(5,479)&(5,482)&(5,482) \\
+Health Spending &&1,842&2,333&1,921\\
+&&(2,595)&(2,830)&(2,640) \\
+Out of School &&4.07&3.99&4.06\\
+&&(3.17)&(3.10)&(3.15) \\
+Female Mayor &&0.119&0.135&0.121\\
+&&(0.323)&(0.342)&(0.326) \\
+Female Poverty &&60.4&60.7&60.5\\
+&&(10.61)&( 9.64)&(10.5) \\
+Pill Distance &&5.11&0.00&4.29\\
+&&(16.2)&( 0.0)&(15) \\
+&&&& \\
+\textsc{Individual Characteristics} &&&& \\
+&&&& \\
+Live Births &&0.054&0.054&0.054\\
+&&(0.226)&(0.226)&(0.226) \\
+Fetal Deaths &&0.0562&0.0457&0.0545\\
+&&(0.27)&(0.24)&(0.266) \\
+Birthweight &&3322.7&3334.3&3324.7\\
+&&     (540.0)&     (542.3)&     (540.4)\\
+Maternal education  &&       11.92&       12.03&       11.94\\
+&&     (2.967)&     (2.894)&     (2.955)\\
+Percent working     &&       0.295&       0.395&       0.312\\
+&&     (0.456)&     (0.489)&     (0.463)\\
+Married     &&       0.340&       0.309&       0.335\\
+&&     (0.474)&     (0.462)&     (0.472)\\
+Age at Birth      &&       27.05&       27.15&       27.07\\
+&&     (6.777)&     (6.790)&     (6.779)\\ \midrule
+N Comunas && 346 &224& 346 \\
+N Fetal Deaths &&9,846&1,541&11,387\\
+N Births &&1,188,579&202,986&1,391,565\\
+\hline \hline \\[-1.8ex]
+\end{tabular}}\end{table}

@@ -1,0 +1,23 @@
+\begin{table}[!htbp] \centering
+\caption{Back of the Envelope Calculation of Effect Sizes}
+\label{TEENtab:BOE}
+\begin{tabular}{@{\extracolsep{5pt}}lcc}
+\\[-1.8ex]\hline \hline \\[-1.8ex] 
+& 18 \& Under & 19 \& Over\\ 
+&(1)&(2) \\ \hline
+ & &  \\
+Morning After Pill &$-$0.069$^{***}$&$-$0.032$^{***}$\\
+&(0.019)&(0.010)\\
+Close $<15$ km &$-$0.075$^{***}$&$-$0.032$^{***}$\\
+&(0.026)&(0.012)\\
+Close 15-30 km &$-$0.049$^{*}$&$-$0.013\\
+&(0.028)&(0.012)\\
+& & \\ \midrule
+N Preg (pill) &20,713&172,557\\
+N Preg (close 15) &10,370&100,749\\
+N Preg (close 30) &6,141&48,756\\
+Pills Disbursed & 5,736 & 11,121 \\
+\hline \hline \\[-1.8ex]
+\multicolumn{3}{p{7.2cm}}{\begin{footnotesize}\textsc{Notes:} 
+$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01\end{footnotesize}}
+\normalsize\end{tabular}\end{table}
