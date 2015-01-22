@@ -445,14 +445,6 @@ rangeest <- function(age_sub,order_sub){
 #==============================================================================
 #=== (4c) Event study
 #==============================================================================
-lag <- function(dat, n = 1L, varname) {
-    lagD        <- dat[,c("dom_comuna","trend","pill")]
-    names(lagD) <- c("dom_comuna","trend",varname)
-    lagD$trend  <- lagD$trend + n
-    dat         <- merge(dat,lagD,by=c("dom_comuna","trend"),all.x=T,all.y=F)
-    return(dat)    
-}
-
 event <- function(age_sub,order_sub,short) {
     #NOTE: REWRITE ALL THIS
     #NEW VARIABLES ARE: FOR BEING IN FIRST YEAR OF PILL PROGRAM
@@ -480,21 +472,38 @@ event <- function(age_sub,order_sub,short) {
     formod$pillp1 <- formod$pilltotal==1
     formod$pillp2 <- formod$pilltotal==2
 
-    eventS  <- glm(cbind(successes,failures) ~ factor(year) + factor(pillp1)     +
+    eventS  <- glm(cbind(successes,failures) ~ factor(year)                      +
                    factor(dom_comuna) + factor(dom_comuna):trend + votes         +
                    factor(party) + factor(mujer) + outofschool + educationspend  +
                    educationmunicip + healthspend + healthtraining + healthstaff +
-                   femalepoverty + femaleworkers + condom + factor(pillp2)       +
-                   factor(pilln1) + factor(pilln2) + factor(pilln3)              +
-                   factor(pilln4),
+                   femalepoverty + femaleworkers + condom + factor(pilln4)       +
+                   factor(pilln3) + factor(pilln2) + factor(pilln1)              +
+                   factor(pillp1) + factor(pillp2),
                    family="binomial", data=formod)
     clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
     eventS$coefficients2 <- robust.se(eventS,clusters)[[2]]
-    return(eventS)
-}
-event2034 <- event(age_sub=20:34, order_sub=1,short=1)
-#event1519 <- event(age_sub=15:19, order_sub=1,short=1)
 
+
+    pillline <- grepl("pill",rownames(summary(eventS)$coefficients))
+    beta <- summary(eventS)$coefficients[pillline,][, "Estimate"]
+    se   <- summary(eventS)$coefficients[pillline,][, "Std. Error"]
+
+    return(list("b" = beta, "s" = se, "eventyr" = c(-4,-3,-2,-1,0,1)))
+}
+e1519 <- event(age_sub=15:19, order_sub=1:100,short=1)
+
+plot(e1519$eventyr,e1519$b, type="b",ylim=c(-0.3,0.15),
+     col="darkgreen",lwd=2,pch=20, xlab="Estimate",
+     ylab="Event Year")
+points(e1519$eventyr,e1519$b+1.96*e1519$s,type="l",lty=3,pch=20)
+points(e1519$eventyr,e1519$b-1.96*e1519$s,type="l",lty=3,pch=20)
+
+event2034 <- event(age_sub=20:34, order_sub=1,short=1)
+plot(event2034$eventyr,event2034$b, type="b",ylim=c(-0.3,0.15),
+     col="darkgreen",lwd=2,pch=20, xlab="Estimate",
+     ylab="Event Year")
+points(event2034$eventyr,event2034$b+1.96*event2034$s,type="l",lty=3,pch=20)
+points(event2034$eventyr,event2034$b-1.96*event2034$s,type="l",lty=3,pch=20)
 
 #==============================================================================
 #=== (5) Estimate
