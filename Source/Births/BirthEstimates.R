@@ -467,115 +467,33 @@ event <- function(age_sub,order_sub,short) {
     formod <- formod[with(formod,order(dom_comuna,trend)), ]
 
     formod$pilltotal <- ave(formod$pill,formod$dom_comuna,FUN=cumsum)
-
-    return(formod)
+    formod <- formod[with(formod,order(dom_comuna,trend,decreasing=T)), ]
+    formod$o <- 0
+    formod$o[formod$pilltotal==0]<-1
+    formod$add <- ave(formod$o,formod$dom_comuna,FUN=cumsum)
+    formod$pilltotal <- formod$pilltotal-formod$add
     
-    #LAGS
-    formod <- lag(formod,-1,"Plag1")
-    #navar  <- is.na(formod$Plag1)
-    #formod$Plag1[navar] <- formod$pill[navar]
-    formod$Plag1[is.na(formod$Plag1)] <- 0
+    formod$pilln4 <- formod$pilltotal==-4
+    formod$pilln3 <- formod$pilltotal==-3
+    formod$pilln2 <- formod$pilltotal==-2
+    formod$pilln1 <- formod$pilltotal==-1
+    formod$pillp1 <- formod$pilltotal==1
+    formod$pillp2 <- formod$pilltotal==2
 
-    formod <- lag(formod,-2,"Plag2")
-    #navar  <- is.na(formod$Plag2)
-    #formod$Plag2[navar] <- formod$Plag1[navar]
-    formod$Plag2[is.na(formod$Plag2)] <- 0
-
-    formod <- lag(formod,-3,"Plag3")
-    formod$Plag3[is.na(formod$Plag3)] <- 0
-    formod <- lag(formod,-4,"Plag4")
-    formod$Plag4[is.na(formod$Plag4)] <- 0
-    formod <- lag(formod,-5,"Plag5")
-    formod$Plag5[is.na(formod$Plag5)] <- 0
-
-    #LEADS
-    formod <- lag(formod,1,"Plead1")
-    formod$Plead1[is.na(formod$Plead1)] <- 0
-    formod <- lag(formod,2,"Plead2")
-    formod$Plead2[is.na(formod$Plead1)] <- 0
-
-
-    #EVENT STUDY WITH ONLY AS MANY AS LEADS, LAGS AS WORK IN FULL DATA
-    if(short==1) {
-        eventS  <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)       +
-                       factor(dom_comuna) + factor(dom_comuna):trend + votes             +
-                       factor(party) + factor(mujer) + outofschool + educationspend  +
-                       educationmunicip + healthspend + healthtraining + healthstaff +
-                       femalepoverty + femaleworkers + condom + factor(Plag1)        +
-                       factor(Plag2) +
-                       factor(Plead1),
-                       family="binomial", data=formod)
-        clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
-        eventS$coefficients2 <- robust.se(eventS,clusters)[[2]]
-        return(eventS)
-    }
-    if (short==0) {
-        #APPEND EARLIER YEARS TO orig (BUT NO CONTROLS)
-        appen  <- read.csv(paste(brth.dir, "S1Data_covars_20002011.csv", sep=""))
-        appen  <- appen[appen$year<2006,]
-        appen  <- appen[appen$age %in% age_sub,]
-        appen  <- appen[(appen$order %in% order_sub) | !(appen$pregnant),] 
-
-        appen$failures <- (1-appen$pregnant)*appen$n
-        appen$successes <- appen$pregnant*appen$n
-
-        appen <- aggregate.data.frame(appen[,c("failures","successes")],
-                                      by=list(appen$dom_comuna,appen$year-1999,
-                                          appen$pill,appen$year)              ,
-                                      function(vec) {sum(na.omit(vec))}       )
-        names(appen) <- c("dom_comuna","trend","pill","year","failures","successes")
-        subst<-formod[, c("dom_comuna","trend","pill","year","failures","successes")]
-        subst$trend=subst$trend+6
-        fulldt <- rbind(subst,appen)
-
-        #LAGS
-        fulldt <- lag(fulldt,-1,"Plag1")
-        fulldt <- lag(fulldt,-2,"Plag2")
-        fulldt <- lag(fulldt,-3,"Plag3")
-        fulldt <- lag(fulldt,-4,"Plag4")
-        fulldt <- lag(fulldt,-5,"Plag5")
-        fulldt <- lag(fulldt,-6,"Plag6")
-        fulldt <- lag(fulldt,-7,"Plag7")
-        fulldt <- lag(fulldt,-8,"Plag8")
-        fulldt <- lag(fulldt,-9,"Plag9")
-        fulldt$Plag1[is.na(fulldt$Plag1)] <- 0
-        fulldt$Plag2[is.na(fulldt$Plag2)] <- 0
-        fulldt$Plag3[is.na(fulldt$Plag3)] <- 0
-        fulldt$Plag4[is.na(fulldt$Plag4)] <- 0
-        fulldt$Plag5[is.na(fulldt$Plag5)] <- 0
-        fulldt$Plag6[is.na(fulldt$Plag6)] <- 0
-        fulldt$Plag7[is.na(fulldt$Plag7)] <- 0
-
-        #navar  <- is.na(fulldt$Plag1)
-        #fulldt$Plag1[navar] <- fulldt$pill[navar]
-        #navar  <- is.na(fulldt$Plag2)
-        #fulldt$Plag2[navar] <- fulldt$Plag1[navar]
-        #navar  <- is.na(fulldt$Plag3)
-        #fulldt$Plag3[navar] <- fulldt$Plag2[navar]
-        #navar  <- is.na(fulldt$Plag4)
-        #fulldt$Plag4[navar] <- fulldt$Plag3[navar]
-        #navar  <- is.na(fulldt$Plag5)
-        #fulldt$Plag5[navar] <- fulldt$Plag4[navar]
-        #navar  <- is.na(fulldt$Plag6)
-        #fulldt$Plag6[navar] <- fulldt$Plag5[navar]
-
-        #LEADS
-        fulldt <- lag(fulldt,1,"Plead1")
-        fulldt$Plead1[is.na(fulldt$Plead1)] <- 0
-
-        eventS  <- glm(cbind(successes,failures) ~ factor(year) + factor(pill) +
-                       factor(dom_comuna) + factor(dom_comuna):trend           +
-                       factor(Plag1) + factor(Plag2) + factor(Plag3)           +
-                       factor(Plag4) + factor(Plag5) + factor(Plag6)           +
-                       factor(Plag7) + factor(Plead1),
-                       family="binomial", data=fulldt)
-        clusters <-mapply(paste,"dom_comuna.",fulldt$dom_comuna,sep="")
-        eventS$coefficients2 <- robust.se(eventS,clusters)[[2]]
-        return(eventS)
-
-    }
+    eventS  <- glm(cbind(successes,failures) ~ factor(year) + factor(pillp1)     +
+                   factor(dom_comuna) + factor(dom_comuna):trend + votes         +
+                   factor(party) + factor(mujer) + outofschool + educationspend  +
+                   educationmunicip + healthspend + healthtraining + healthstaff +
+                   femalepoverty + femaleworkers + condom + factor(pillp2)       +
+                   factor(pilln1) + factor(pilln2) + factor(pilln3)              +
+                   factor(pilln4),
+                   family="binomial", data=formod)
+    clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+    eventS$coefficients2 <- robust.se(eventS,clusters)[[2]]
+    return(eventS)
 }
-dataa<- event(age_sub=15:19, order_sub=1:100,short=1)
+event2034 <- event(age_sub=20:34, order_sub=1,short=1)
+#event1519 <- event(age_sub=15:19, order_sub=1,short=1)
 
 
 #==============================================================================
