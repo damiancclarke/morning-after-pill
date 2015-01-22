@@ -423,9 +423,9 @@ also have:
 \input{./tables/Births.tex}
 }
 
-%\frame{\frametitle{Births}
-%\input{./tables/BirthsA.tex}
-%}
+\frame{\frametitle{Births (15-19 Year Old)}
+\input{./tables/BirthsA.tex}
+}
 
 %\frame{\frametitle{Births}
 %\input{./tables/BirthsB.tex}
@@ -433,6 +433,10 @@ also have:
 
 \frame{\frametitle{Fetal Deaths}
 \input{./tables/Deaths.tex}
+}
+
+\frame{\frametitle{Fetal Deaths (15-19 Year Olds)}
+\input{./tables/DeathsA.tex}
 }
 
 \frame{\frametitle{Spillovers}
@@ -505,6 +509,19 @@ birth_{ijt-l} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt}\} + \phi_t + \eta_j +
 \end{figure}
 }
 
+\begin{frame}[label=robust]
+\frametitle{Robustness?}
+A number of concerns regarding form and estimation...
+\vspace{5mm}
+\begin{enumerate}
+\item Logit? We also \hyperlink{agg}{\textcolor{blue}{estimate using OLS}} with number of pregnancies per comuna (ie aggregate
+data)
+\item Incidental parameters problem?  We re-estimate logit with the \hyperlink{CM}{\textcolor{blue}{Chamberlain--Mundlak}} device
+\item We test with comuna FE (always), \hyperlink{trends}{\textcolor{blue}{region trends, comuna trends}}
+\item \hyperlink{propensity}{\textcolor{blue}{Re-estimate}} with inverse propensity score weighting DD methods
+\item Standard errors?  Always clustered by comuna, but robust to spatial correlation
+\end{enumerate}
+\end{frame}
 
 \section{Conclusion}
 \frame{
@@ -604,6 +621,26 @@ Arica & 2011 & 0 & 1418 \\ \bottomrule
 \end{center}
 \end{figure}
 \hyperlink{dist1519}{\beamergotobutton{Back}}
+\end{frame}
+
+\begin{frame}[label=agg]
+\frametitle{Aggregate Results (OLS)}
+\hyperlink{robust}{\beamergotobutton{Back}}
+\end{frame}
+
+\begin{frame}[label=CM]
+\frametitle{Re-estimating Logit with Chamberlain--Mundlak Device}
+\hyperlink{robust}{\beamergotobutton{Back}}
+\end{frame}
+
+\begin{frame}[label=trends]
+\frametitle{Robustness to the Inclusion of Linear Trends}
+\hyperlink{robust}{\beamergotobutton{Back}}
+\end{frame}
+
+\begin{frame}[label=propensity]
+\frametitle{Inverse Propensity Score Matching}
+\hyperlink{robust}{\beamergotobutton{Back}}
 \end{frame}
 
 
