@@ -27,13 +27,14 @@ rm(list=ls())
 #==============================================================================
 create <- FALSE
 preg   <- FALSE
-Npreg  <- TRUE
+Npreg  <- FALSE
 spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
 events <- FALSE
-
+ChMund <- TRUE
+    
 birth_y_range <- 2006:2011
 pill_y_range <- birth_y_range - 1
 age_range <- c(15,49)
@@ -41,13 +42,13 @@ age_range <- c(15,49)
 #==============================================================================
 #=== (2) Libraries, directories
 #==============================================================================
-require("xtable")
-require("rms")
-require("plyr")
-require("glmmML")
-require("sandwich")
+require("xtable"   )
+require("rms"      )
+require("plyr"     )
+require("glmmML"   )
+require("sandwich" )
 require("stargazer")
-require("lmtest")
+require("lmtest"   )
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
 
@@ -88,15 +89,15 @@ orig <- read.csv(f)
 #=== (4) Main Functions
 #==============================================================================
 stars <- function(p,B) {
-  b <- ifelse(p < 0.01,
-              paste(format(round(B,3),nsmall=3),"$^{***}$",sep=""),
-              ifelse(p < 0.05,
-                     paste(format(round(B,3),nsmall=3),"$^{**}$",sep=""),
-                     ifelse(p < 0.1,
-                            paste(format(round(B,3),nsmall=3),"$^{*}$",sep=""),
-                            format(round(B,3),nsmall=3))))
-  b  <- sub('-', '$-$', b)  
-  return(b)
+    b <- ifelse(p < 0.01,
+                paste(format(round(B,3),nsmall=3),"$^{***}$",sep=""),
+                ifelse(p < 0.05,
+                       paste(format(round(B,3),nsmall=3),"$^{**}$",sep=""),
+                       ifelse(p < 0.1,
+                              paste(format(round(B,3),nsmall=3),"$^{*}$",sep=""),
+                              format(round(B,3),nsmall=3))))
+    b  <- sub('-', '$-$', b)  
+    return(b)
 }
 
 pillest <- function(outresults,d,n,regex,dim) {
@@ -134,14 +135,14 @@ pillest <- function(outresults,d,n,regex,dim) {
 }
 
 robust.se <- function(model, cluster) {
-  M <- length(unique(cluster))
-  N <- length(cluster)
-  K <- model$rank
-  dfc <- (M/(M - 1)) * ((N - 1)/(N - K))
-  uj <- apply(estfun(model), 2, function(x) tapply(x, cluster, sum));
-  rcse.cov <- dfc * sandwich(model, meat = crossprod(uj)/N)
-  rcse.se <- coeftest(model, rcse.cov)
-  return(list(rcse.cov, rcse.se))
+    M <- length(unique(cluster))
+    N <- length(cluster)
+    K <- model$rank
+    dfc <- (M/(M - 1)) * ((N - 1)/(N - K))
+    uj <- apply(estfun(model), 2, function(x) tapply(x, cluster, sum));
+    rcse.cov <- dfc * sandwich(model, meat = crossprod(uj)/N)
+    rcse.se <- coeftest(model, rcse.cov)
+    return(list(rcse.cov, rcse.se))
 }
 
 datcollapse <- function(age_sub,order_sub,ver,dat) {
@@ -194,7 +195,7 @@ runmod <- function(age_sub,order_sub,num) {
                     family="binomial", data=formod)
   
         xCM <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
-                    meanP + factor(dom_comuna):trend,
+                    meanP + factor(region):trend,
                     family="binomial", data=formod)
 
         xtr <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)      +
@@ -219,7 +220,7 @@ runmod <- function(age_sub,order_sub,num) {
                     healthstaff + femalepoverty + femaleworkers,
                     family="binomial", data=formod)
 
-        clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+        clusters <- mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
         xnT$coefficients2  <- robust.se(xnT,clusters)[[2]]
         xCM$coefficients2  <- robust.se(xCM,clusters)[[2]]
         xtr$coefficients2  <- robust.se(xtr,clusters)[[2]]
@@ -264,13 +265,13 @@ NumMod <- function(age_sub,order_sub) {
     formod <- datcollapse(age_sub, order_sub,2,orig)
     names(formod)[25] <- "births"
 
-    xba   <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)  +
-                factor(dom_comuna):trend, data=formod)
-    xct  <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend      +
-               factor(year) + factor(pill) + factor(party) + factor(mujer) +
-               votes + outofschool + educationspend + educationmunicip     +
-               healthspend + healthtraining + healthstaff + femalepoverty  + 
-                 femaleworkers + condom, data=formod  )
+    xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)    +
+              factor(dom_comuna):trend, data=formod)
+    xct <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend       +
+              factor(year) + factor(pill) + factor(party) + factor(mujer)  +
+              votes + outofschool + educationspend + educationmunicip      +
+              healthspend + healthtraining + healthstaff + femalepoverty   + 
+              femaleworkers + condom, data=formod  )
     xsp <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend       +
               factor(year) + factor(pill) + factor(party) + factor(mujer)  +
               votes + outofschool + educationspend + educationmunicip      +
@@ -483,13 +484,15 @@ if(events){
 #==============================================================================
 #=== (5) Estimate
 #==============================================================================
-if(preg){
+if(preg|ChMund){
     a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1)
     a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1)
     a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1)
-    b1519 <- runmod(age_sub = 15:19, order_sub = 1,1)
-    b2034 <- runmod(age_sub = 20:34, order_sub = 1,1)
-    b3549 <- runmod(age_sub = 35:49, order_sub = 1,1)
+    if(preg) {
+        b1519 <- runmod(age_sub = 15:19, order_sub = 1,1)
+        b2034 <- runmod(age_sub = 20:34, order_sub = 1,1)
+        b3549 <- runmod(age_sub = 35:49, order_sub = 1,1)
+    }
 }
 
 if(Npreg){
@@ -573,7 +576,7 @@ obs  <- 'Observations&'
 R2   <- 'McFadden\'s $R^2$&'
 sig  <- '$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01'
 
-if(preg){
+if(Npreg){
 to <-file(paste(tab.dir,"Births.tex", sep=""))
 writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
            '\\caption{The Effect of the Morning After Pill on Pregnancy}',
@@ -782,6 +785,32 @@ if(Npreg){
                  'group in each municipality.  All models are estimated by OLS',
                  'and standard errors are clustered at the level of the comuna.',
                  'Controls are described in table \\ref{TEENtab:PillPreg}.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
+}
+
+if(ChMund){
+    to <-file(paste(tab.dir,"ChamberlainMundlak.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{Logit Results with Chamberlian-Mundlak Device}',
+                 '\\label{TEENtab:ChamberlainMundlak}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '& 15--19 & 20--34 & 35--49 \\\\',
+                 '&(1)&(2)&(3) \\\\ \\hline',
+                 ' & & & \\\\',
+                 paste(xvar,a1519$CM$b,'&',a2034$CM$b,'&',a3549$CM$b,'\\\\', sep=""), 
+                 paste(' &',a1519$CM$s,'&',a2034$CM$s,'&',a3549$CM$s,'\\\\', sep=""), 
+                 ' & & & \\\\',
+                 paste(obs, a1519$CM$n,'&',a2034$CM$n,'&',a3549$CM$n,'\\\\', sep=""), 
+                 paste('$R^2$&',a1519$CM$r,'&',a2034$CM$r,'&',a3549$CM$r,'\\\\', sep=""), 
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{4}{p{9.4cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+                 'Regression results estimated using logit with the Chamberlain--%' ,
+                 'Mundlak device.  Specification identical to logit estimates from',
+                 'column 1 in table \\ref{TEENtab:PillPreg}, using Chamberlain--%' ,
+                 'Mundlak rather than comuna fixed effects.',
                  paste(sig, '\\end{footnotesize}}', sep=""),
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
