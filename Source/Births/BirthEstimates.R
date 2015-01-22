@@ -100,37 +100,37 @@ stars <- function(p,B) {
 }
 
 pillest <- function(outresults,d,n,regex,dim) {
-  pillline <- grepl(regex,rownames(summary(outresults)$coefficients))
+    pillline <- grepl(regex,rownames(summary(outresults)$coefficients))
   
-  if(dim==1|dim==3|dim==10) {
-    beta <- summary(outresults)$coefficients[pillline,]["Estimate"]
-    se   <- outresults$coefficients2[pillline,]["Std. Error"]
-    if (dim==1) {p <- outresults$coefficients2[pillline,]["Pr(>|z|)"]}
-    else {p <- outresults$coefficients2[pillline,]["Pr(>|t|)"]}
-  }
-  else {
-    beta <- summary(outresults)$coefficients[pillline,][, "Estimate"]
-    se   <- outresults$coefficients2[pillline,][, "Std. Error"]
-    if (dim==11) {p <- outresults$coefficients2[pillline,]["Pr(>|t|)"]}
-    else {p    <- outresults$coefficients2[pillline,][, "Pr(>|z|)"]}
-  }
+    if(dim==1|dim==3|dim==10) {
+        beta <- summary(outresults)$coefficients[pillline,]["Estimate"]
+        se   <- outresults$coefficients2[pillline,]["Std. Error"]
+        if (dim==1) {p <- outresults$coefficients2[pillline,]["Pr(>|z|)"]}
+        else {p <- outresults$coefficients2[pillline,]["Pr(>|t|)"]}
+    }
+    else {
+        beta <- summary(outresults)$coefficients[pillline,][, "Estimate"]
+        se   <- outresults$coefficients2[pillline,][, "Std. Error"]
+        if (dim==11) {p <- outresults$coefficients2[pillline,][,"Pr(>|t|)"]}
+        else {p    <- outresults$coefficients2[pillline,][, "Pr(>|z|)"]}
+    }
   
-  if (dim==1) {
-      null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
-      Lfull <- as.numeric(logLik(outresults))
-      Lnull <- as.numeric(logLik(null))
-      R2    <- 1 - Lfull/Lnull
-  }
-  if(dim==10|dim==11) {
-      R2 <- summary(outresults)$r.squared
-  }
-  beta  <- stars(p,beta)
-  se    <- paste("(", format(round(se,3),nsmall=3),")", sep="")
-  R2    <- format(round(R2,3),nsmall=3)
-  n     <- format(n,big.mark=",",scientific=F)
-
+    if (dim==1) {
+        null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
+        Lfull <- as.numeric(logLik(outresults))
+        Lnull <- as.numeric(logLik(null))
+        R2    <- 1 - Lfull/Lnull
+    }
+    if(dim==10|dim==11) {
+        R2 <- summary(outresults)$r.squared
+    }
+    beta  <- stars(p,beta)
+    se    <- paste("(", format(round(se,3),nsmall=3),")", sep="")
+    R2    <- format(round(R2,3),nsmall=3)
+    n     <- format(n,big.mark=",",scientific=F)
+    
   
-  return(list("b" = beta, "s" = se, "p" = p, "r" = R2, "n" = n))
+    return(list("b" = beta, "s" = se, "p" = p, "r" = R2, "n" = n))
 }
 
 robust.se <- function(model, cluster) {
@@ -264,8 +264,8 @@ NumMod <- function(age_sub,order_sub) {
     formod <- datcollapse(age_sub, order_sub,2,orig)
     names(formod)[25] <- "births"
 
-    xtr   <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend     +
-               factor(year) + factor(pill), data=formod)
+    xba   <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)  +
+                factor(dom_comuna):trend, data=formod)
     xct  <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend      +
                factor(year) + factor(pill) + factor(party) + factor(mujer) +
                votes + outofschool + educationspend + educationmunicip     +
@@ -280,15 +280,15 @@ NumMod <- function(age_sub,order_sub) {
 
 
     clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
-    xtr$coefficients2 <- robust.se(xtr,clusters)[[2]]
+    xba$coefficients2 <- robust.se(xba,clusters)[[2]]
     xct$coefficients2 <- robust.se(xct,clusters)[[2]]
     xsp$coefficients2 <- robust.se(xsp,clusters)[[2]]
  
  
     n  <- nrow(formod)
-    s1 <- pillest(xtr, formod, n, "pill", 10)
+    s1 <- pillest(xba, formod, n, "pill", 10)
     s2 <- pillest(xct, formod, n, "pill", 10)
-    s3 <- pillest(xsp, formod, n, "pill|close", 11)
+    s3 <- pillest(xsp, formod, n, "pill", 10)
     
     betas <- paste(s1$b, "&", s2$b, "&", s3$b, sep="")
     ses   <- paste(s1$s, "&", s2$s, "&", s3$s, sep="")
@@ -740,4 +740,49 @@ writeLines(c('\\begin{table}[!htbp] \\centering',
             '\\normalsize\\end{tabular}\\end{table}'),to)
 
 close(to)             
+}
+
+
+
+if(Npreg){
+    to <-file(paste(tab.dir,"aggregateBirths.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{Estimates Based on Aggregate Comunal Data}',
+                 '\\label{TEENtab:aggregate}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '& N Births & N Births & N Births \\\\',
+                 '&(1)&(2)&(3) \\\\ \\hline',
+                 ' & & & \\\\',
+                 paste('Pill (15-19 yo) &',N1519$b,'\\\\',sep=""),
+                 paste('                &',N1519$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations    &',N1519$n,'\\\\',sep=""),
+                 paste('R-squared       &',N1519$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (20-34 yo) &',N2034$b,'\\\\',sep=""),
+                 paste('                &',N2034$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations    &',N2034$n,'\\\\',sep=""),
+                 paste('R-squared       &',N2034$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (35-49 yo) &',N3549$b,'\\\\',sep=""),
+                 paste('                &',N3549$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations    &',N3549$n,'\\\\',sep=""),
+                 paste('R-squared       &',N3549$r,'\\\\',sep=""),
+                 '\\hline \\\\[-1.8ex] ', 
+                 '{\\small Year \\& Comuna FEs} & Y & Y & Y \\\\',
+                 '{\\small Trend, Controls} & & Y & Y \\\\', 
+                 '{\\small Spillovers} & & & Y \\\\',
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+                 'Each panel presents difference-in-difference results for a',
+                 'regression of the total count of pregnancies for the age',
+                 'group in each municipality.  All models are estimated by OLS',
+                 'and standard errors are clustered at the level of the comuna.',
+                 'Controls are described in table \\ref{TEENtab:PillPreg}.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
 }
