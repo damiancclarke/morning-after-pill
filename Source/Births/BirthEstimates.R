@@ -14,6 +14,8 @@
 # be run.  Note that the user-contributed stargazer library is very slow, so the
 # "full" section is best avoided, or run only once.
 #
+# NOTE: CBPS and CBMSM should be checked out for PS match
+#
 # aboe refers to appended back of the envelope calculation which examines
 # whether effect sizes look reasonable
 #
@@ -33,7 +35,8 @@ full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
 events <- FALSE
-ChMund <- TRUE
+ChMund <- FALSE
+invPS  <- TRUE
     
 birth_y_range <- 2006:2011
 pill_y_range <- birth_y_range - 1
@@ -42,6 +45,7 @@ age_range <- c(15,49)
 #==============================================================================
 #=== (2) Libraries, directories
 #==============================================================================
+require("MatchIt"  )
 require("xtable"   )
 require("rms"      )
 require("plyr"     )
@@ -185,40 +189,54 @@ datcollapse <- function(age_sub,order_sub,ver,dat) {
 #==============================================================================
 #=== (4a) Run various models to test effect of PAE on pregnancy 
 #==============================================================================
-runmod <- function(age_sub,order_sub,num) {
+runmod <- function(age_sub,order_sub,num,PSwt) {
   
     formod <- datcollapse(age_sub,order_sub,1,orig)
-  
+    if(PSwt) {
+        PSc <- glm(pill ~ factor(party) + factor(mujer) + votes + outofschool + 
+                   educationspend + educationmunicip + healthspend            + 
+                   healthtraining + healthstaff + femalepoverty               + 
+                   femaleworkers, family=binomial(link=probit), data=formod)
+
+        formod$predict <- predict(PSc, type="response")
+        formod$WT <- 1/formod$predict
+    } else {
+        formod$WT <- 1
+    }
+    
+
+    
     if(num==1) {
         xnT <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
                     factor(dom_comuna) + factor(region):trend,
-                    family="binomial", data=formod)
+                    family="binomial", data=formod, weights=WT)
   
         xCM <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
                     meanP + factor(region):trend,
-                    family="binomial", data=formod)
+                    family="binomial", data=formod, weights=WT)
 
         xtr <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)      +
                    factor(dom_comuna) + factor(dom_comuna):trend,
-                   family="binomial", data=formod)
+                   family="binomial", data=formod, weights=WT)
 
         xpol <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
                     factor(dom_comuna) + factor(dom_comuna):trend + votes       +
-                    factor(party) + factor(mujer), family="binomial", data=formod)
+                    factor(party) + factor(mujer)                               ,
+                    family="binomial", data=formod, weights=WT)
 
 
         xsh  <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
                     factor(dom_comuna) + factor(dom_comuna):trend + votes       +
                     factor(party) + factor(mujer) + outofschool + educationspend+
                     educationmunicip + healthspend + healthtraining + healthstaff,
-                    family="binomial", data=formod)
+                    family="binomial", data=formod, weights=WT)
 
         xfem <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
                     factor(dom_comuna) + factor(dom_comuna):trend + votes       +
                     factor(party) + factor(mujer) + outofschool + educationspend+
                     educationmunicip + healthspend + healthtraining             +
                     healthstaff + femalepoverty + femaleworkers,
-                    family="binomial", data=formod)
+                    family="binomial", data=formod, weights=WT)
 
         clusters <- mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
         xnT$coefficients2  <- robust.se(xnT,clusters)[[2]]
@@ -234,7 +252,7 @@ runmod <- function(age_sub,order_sub,num) {
                   factor(party) + factor(mujer) + outofschool + educationspend  +
                   educationmunicip + healthspend + healthtraining + healthstaff +
                   femalepoverty + femaleworkers + condom,
-                  family="binomial", data=formod)
+                  family="binomial", data=formod, weights=WT)
     clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
     xcont$coefficients2 <- robust.se(xcont,clusters)[[2]]
   
@@ -310,7 +328,7 @@ closegen <- function(d1,d2,dat) {
     dat2$newvar[is.na(dat2$newvar)]<-0
     names(dat2)<-c(names(dat),paste('close',d2,sep=""))
     return(dat2)
-}
+    a}
 
 spillovers <- function(age_sub,order_sub) {
 
@@ -426,7 +444,7 @@ rangeest <- function(age_sub,order_sub){
 #=== (4c) Event study
 #==============================================================================
 event <- function(age_sub,order_sub,short) {
-    
+  
     formod <- datcollapse(age_sub, order_sub,1,orig)
     formod <- formod[with(formod,order(dom_comuna,trend)), ]
 
@@ -485,13 +503,13 @@ if(events){
 #=== (5) Estimate
 #==============================================================================
 if(preg|ChMund){
-    a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1)
-    a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1)
-    a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1)
+    a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1,PSwt=FALSE)
+    a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1,PSwt=FALSE)
+    a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1,PSwt=FALSE)
     if(preg) {
-        b1519 <- runmod(age_sub = 15:19, order_sub = 1,1)
-        b2034 <- runmod(age_sub = 20:34, order_sub = 1,1)
-        b3549 <- runmod(age_sub = 35:49, order_sub = 1,1)
+        b1519 <- runmod(age_sub = 15:19, order_sub = 1,1,PSwt=FALSE)
+        b2034 <- runmod(age_sub = 20:34, order_sub = 1,1,PSwt=FALSE)
+        b3549 <- runmod(age_sub = 35:49, order_sub = 1,1,PSwt=FALSE)
     }
 }
 
@@ -501,12 +519,17 @@ if(Npreg){
   N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100)
 }
 
-
 if(spill){
   c1519 <- spillovers(age_sub = 15:19, order_sub = 1:100)
   c2034 <- spillovers(age_sub = 20:34, order_sub = 1:100)
   c3549 <- spillovers(age_sub = 35:44, order_sub = 1:100)
 }  
+
+if(invPS){
+    ps1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1,PSwt=TRUE)
+    ps2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1,PSwt=TRUE)
+    ps3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1,PSwt=TRUE)
+}
 
 if(full) {
   full1519 <- runmod(age_sub = 15:19, order_sub = 1:100,2)
@@ -757,23 +780,23 @@ if(Npreg){
                  '& N Births & N Births & N Births \\\\',
                  '&(1)&(2)&(3) \\\\ \\hline',
                  ' & & & \\\\',
-                 paste('Pill (15-19 yo) &',N1519$b,'\\\\',sep=""),
-                 paste('                &',N1519$s,'\\\\',sep=""),
+                 paste('Pill (15-19 years) &',N1519$b,'\\\\',sep=""),
+                 paste('                   &',N1519$s,'\\\\',sep=""),
                  ' & & & \\\\',
-                 paste('Observations    &',N1519$n,'\\\\',sep=""),
-                 paste('R-squared       &',N1519$r,'\\\\',sep=""),
+                 paste('Observations       &',N1519$n,'\\\\',sep=""),
+                 paste('R-squared          &',N1519$r,'\\\\',sep=""),
                  ' & & & \\\\',
-                 paste('Pill (20-34 yo) &',N2034$b,'\\\\',sep=""),
-                 paste('                &',N2034$s,'\\\\',sep=""),
+                 paste('Pill (20-34 years) &',N2034$b,'\\\\',sep=""),
+                 paste('                   &',N2034$s,'\\\\',sep=""),
                  ' & & & \\\\',
-                 paste('Observations    &',N2034$n,'\\\\',sep=""),
-                 paste('R-squared       &',N2034$r,'\\\\',sep=""),
+                 paste('Observations       &',N2034$n,'\\\\',sep=""),
+                 paste('R-squared          &',N2034$r,'\\\\',sep=""),
                  ' & & & \\\\',
-                 paste('Pill (35-49 yo) &',N3549$b,'\\\\',sep=""),
-                 paste('                &',N3549$s,'\\\\',sep=""),
+                 paste('Pill (35-49 years) &',N3549$b,'\\\\',sep=""),
+                 paste('                   &',N3549$s,'\\\\',sep=""),
                  ' & & & \\\\',
-                 paste('Observations    &',N3549$n,'\\\\',sep=""),
-                 paste('R-squared       &',N3549$r,'\\\\',sep=""),
+                 paste('Observations       &',N3549$n,'\\\\',sep=""),
+                 paste('R-squared          &',N3549$r,'\\\\',sep=""),
                  '\\hline \\\\[-1.8ex] ', 
                  '{\\small Year \\& Comuna FEs} & Y & Y & Y \\\\',
                  '{\\small Trend, Controls} & & Y & Y \\\\', 
@@ -797,7 +820,7 @@ if(ChMund){
                  '\\label{TEENtab:ChamberlainMundlak}',
                  '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
                  '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '& 15--19 & 20--34 & 35--49 \\\\',
+                 '& 15--19 years & 20--34 years & 35--49 years \\\\',
                  '&(1)&(2)&(3) \\\\ \\hline',
                  ' & & & \\\\',
                  paste(xvar,a1519$CM$b,'&',a2034$CM$b,'&',a3549$CM$b,'\\\\', sep=""), 
@@ -814,4 +837,29 @@ if(ChMund){
                  paste(sig, '\\end{footnotesize}}', sep=""),
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
+
+
+    to <-file(paste(tab.dir,"noComunaTrends.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{Estimates without Comuna-Specific Linear Trends}',
+                 '\\label{TEENtab:NoTrend}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '& 15--19 years & 20--34 years & 35--49 years \\\\',
+                 '&(1)&(2)&(3) \\\\ \\hline',
+                 ' & & & \\\\',
+                 paste(xvar,a1519$NT$b,'&',a2034$NT$b,'&',a3549$NT$b,'\\\\', sep=""), 
+                 paste(' &',a1519$NT$s,'&',a2034$NT$s,'&',a3549$NT$s,'\\\\', sep=""), 
+                 ' & & & \\\\',
+                 paste(obs, a1519$NT$n,'&',a2034$NT$n,'&',a3549$NT$n,'\\\\', sep=""), 
+                 paste('$R^2$&',a1519$NT$r,'&',a2034$NT$r,'&',a3549$NT$r,'\\\\', sep=""), 
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{4}{p{9.4cm}}{\\begin{footnotesize}\\textsc{Notes:}' ,
+                 'Regression results estimated using comuna fixed effects.        ' ,
+                 'Specification identical to logit estimates from column 1 in table',
+                 '\\ref{TEENtab:PillPreg}, omitting comuna specific trends.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
+
 }
