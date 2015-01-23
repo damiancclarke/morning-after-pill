@@ -1,0 +1,36 @@
+\begin{table}[!htbp] \centering
+\caption{Inverse Propensity Score Weighting}
+\label{TEENtab:inversePS}
+\scalebox{0.64}{
+\begin{tabular}{@{\extracolsep{5pt}}lcccc}
+\\[-1.8ex]\hline \hline \\[-1.8ex] 
+&Pr(Birth)&Pr(Birth)&Pr(Birth)&Pr(Birth)\\
+&(1)&(2)&(3)&(4)\\ \hline
+\multicolumn{5}{l}{\textsc{\noindent 15-19 year olds}} \\
+ & & & & \\
+Morning After Pill &$-$0.117$^{***}$&$-$0.083$^{***}$&$-$0.086$^{**}$&$-$0.073$^{*}$\\
+ &(0.031)&(0.029)&(0.038)&(0.039)\\
+ & & & & \\
+\multicolumn{5}{l}{\textsc{\noindent 20-34 year olds}} \\
+ & & & & \\
+Morning After Pill &$-$0.075$^{***}$&$-$0.060$^{***}$&$-$0.053$^{***}$&$-$0.047$^{***}$\\
+ &(0.019)&(0.014)&(0.015)&(0.017)\\
+ & & & &\\
+\multicolumn{5}{l}{\textsc{\noindent 35-49 year olds}} \\
+ & & & & \\
+Morning After Pill &0.007&0.003&$-$0.027&$-$0.014\\
+ &(0.035)&(0.020)&(0.035)&(0.036)\\
+ & & & & \\
+\hline \\[-1.8ex] 
+{\small Trends \& FEs} & Y & Y & Y & Y \\
+{\small Political Controls} & & Y & Y & Y \\
+{\small Health, Educ, Gender Controls} & & & Y & Y \\
+{\small Condom Availability} & & & & Y \\
+\hline \hline \\[-1.8ex]
+\multicolumn{5}{p{12.6cm}}{\begin{footnotesize}\textsc{Notes:}
+Regression results estimated using inverse propensity score 
+weighting based on Pr(treatment) on full observables.
+Specifications and controls identical to those described in table
+\ref{TEENtab:PillPreg}.
+$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01\end{footnotesize}}
+\normalsize\end{tabular}}\end{table}
