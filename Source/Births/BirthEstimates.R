@@ -29,14 +29,15 @@ rm(list=ls())
 #==============================================================================
 create <- FALSE
 preg   <- FALSE
-Npreg  <- FALSE
+Npreg  <- TRUE
+prTab  <- FALSE
 spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
 events <- FALSE
 ChMund <- FALSE
-invPS  <- TRUE
+invPS  <- FALSE
     
 birth_y_range <- 2006:2011
 pill_y_range <- birth_y_range - 1
@@ -193,13 +194,20 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
   
     formod <- datcollapse(age_sub,order_sub,1,orig)
     if(PSwt) {
+        preddat <- datcollapse(age_sub,order_sub,2,orig)
+        
         PSc <- glm(pill ~ factor(party) + factor(mujer) + votes + outofschool + 
                    educationspend + educationmunicip + healthspend            + 
-                   healthtraining + healthstaff + femalepoverty               + 
-                   femaleworkers, family=binomial(link=probit), data=formod)
+                   healthtraining + healthstaff + femalepoverty + condom      +
+                   femaleworkers,
+                   family=binomial, data=preddat)
+        preddat$predict <- predict(PSc, type="response")
+        preddat$WT      <- 1/preddat$predict
+        #preddat$WT[preddat$pill==1] <- 1/preddat$predict
+        #preddat$WT[preddat$pill==0] <- 1/(1-preddat$predict)
 
-        formod$predict <- predict(PSc, type="response")
-        formod$WT <- 1/formod$predict
+        wts    <- preddat[,(names(preddat) %in% c("dom_comuna","WT","trend"))]
+        formod <- merge(formod,wts,by=c("dom_comuna","trend"))        
     } else {
         formod$WT <- 1
     }
@@ -506,6 +514,7 @@ if(preg|ChMund){
     a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1,PSwt=FALSE)
     a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1,PSwt=FALSE)
     a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1,PSwt=FALSE)
+    aAll  <- runmod(age_sub = 15:49, order_sub = 1:100,1,PSwt=FALSE)
     if(preg) {
         b1519 <- runmod(age_sub = 15:19, order_sub = 1,1,PSwt=FALSE)
         b2034 <- runmod(age_sub = 20:34, order_sub = 1,1,PSwt=FALSE)
@@ -517,6 +526,7 @@ if(Npreg){
   N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100)
   N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100)
   N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100)
+  NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100)
 }
 
 if(spill){
@@ -599,7 +609,7 @@ obs  <- 'Observations&'
 R2   <- 'McFadden\'s $R^2$&'
 sig  <- '$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01'
 
-if(Npreg){
+if(prTab){
 to <-file(paste(tab.dir,"Births.tex", sep=""))
 writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
            '\\caption{The Effect of the Morning After Pill on Pregnancy}',
@@ -770,7 +780,7 @@ close(to)
 
 
 
-if(Npreg){
+if(prTab){
     to <-file(paste(tab.dir,"aggregateBirths.tex", sep=""))
     writeLines(c('\\begin{table}[!htbp] \\centering',
                  '\\caption{Estimates Based on Aggregate Comunal Data}',
@@ -862,4 +872,44 @@ if(ChMund){
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
 
+}
+
+if(invPS){
+    to <-file(paste(tab.dir,"inversePS.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{Inverse Propensity Score Weighting}',
+                 '\\label{TEENtab:inversePS}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lcccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '&Pr(Birth)&Pr(Birth)&Pr(Birth)&Pr(Birth)\\\\',
+                 '&(1)&(2)&(3)&(4)\\\\ \\hline',
+                 '\\multicolumn{5}{l}{\\textsc{\\noindent 15-19 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste(xvar,ps1519$b,'\\\\', sep=""), 
+                 paste(' &',ps1519$se, '\\\\', sep=""), 
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\textsc{\\noindent 20-34 year olds}} \\\\',
+                 ' & & & & \\\\', 
+                 paste(xvar,ps2034$b,'\\\\', sep=""), 
+                 paste(' &',ps2034$se,'\\\\', sep=""), 
+                 ' & & & &\\\\',
+                 '\\multicolumn{5}{l}{\\textsc{\\noindent 35-49 year olds}} \\\\',
+                 ' & & & & \\\\', 
+                 paste(xvar,ps3549$b,'\\\\', sep=""), 
+                 paste(' &',ps3549$se,'\\\\', sep=""), 
+                 ' & & & & \\\\',
+                 '\\hline \\\\[-1.8ex] ', 
+                 '{\\small Trends \\& FEs} & Y & Y & Y & Y \\\\',
+                 '{\\small Political Controls} & & Y & Y & Y \\\\', 
+                 '{\\small Health, Educ, Gender Controls} & & & Y & Y \\\\',
+                 '{\\small Condom Availability} & & & & Y \\\\', 
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{5}{p{12.6cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+                 'Regression results estimated using inverse propensity score ',
+                 'weighting based on Pr(treatment) on full observables.',
+                 'Specifications and controls identical to those described in table',
+                 '\\ref{TEENtab:PillPreg}.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
 }
