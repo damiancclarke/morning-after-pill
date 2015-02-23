@@ -29,19 +29,19 @@ rm(list=ls())
 #==============================================================================
 create <- FALSE
 preg   <- FALSE
-Npreg  <- TRUE
+Npreg  <- FALSE
 prTab  <- FALSE
 spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
-events <- FALSE
+events <- TRUE
 ChMund <- FALSE
 invPS  <- FALSE
     
-birth_y_range <- 2006:2011
-pill_y_range <- birth_y_range - 1
-age_range <- c(15,49)
+birth_y_range <- 2006:2012
+pill_y_range  <- birth_y_range - 1
+age_range     <- c(15,49)
 
 #==============================================================================
 #=== (2) Libraries, directories
@@ -290,7 +290,7 @@ NumMod <- function(age_sub,order_sub) {
   
     formod <- datcollapse(age_sub, order_sub,2,orig)
     names(formod)[25] <- "births"
-
+    return(formod)
     xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)    +
               factor(dom_comuna):trend, data=formod)
     xct <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend       +
@@ -451,32 +451,48 @@ rangeest <- function(age_sub,order_sub){
 #==============================================================================
 #=== (4c) Event study
 #==============================================================================
-event <- function(age_sub,order_sub,short) {
+event <- function(age_sub,order_sub) {
   
     formod <- datcollapse(age_sub, order_sub,1,orig)
     formod <- formod[with(formod,order(dom_comuna,trend)), ]
 
+    formod$pillbinary <- ave(formod$pill,formod$dom_comuna,FUN=sum)
+    formod$treatCom[formod$pillbinary>0]  <- 1
+    formod$treatCom[formod$pillbinary==0] <- 0
     formod$pilltotal <- ave(formod$pill,formod$dom_comuna,FUN=cumsum)
-    formod <- formod[with(formod,order(dom_comuna,trend,decreasing=T)), ]
-    formod$o <- 0
-    formod$o[formod$pilltotal==0]<-1
-    formod$add <- ave(formod$o,formod$dom_comuna,FUN=cumsum)
-    formod$pilltotal <- formod$pilltotal-formod$add
-    
-    formod$pilln4 <- formod$pilltotal==-4
-    formod$pilln3 <- formod$pilltotal==-3
-    formod$pilln2 <- formod$pilltotal==-2
-    formod$pilln1 <- formod$pilltotal==-1
-    formod$pillp1 <- formod$pilltotal==1
-    formod$pillp2 <- formod$pilltotal==2
+
+    formod$nopill <- 0
+    formod$nopill[formod$pilltotal==0] <- 1
+    formod           <- formod[with(formod,order(dom_comuna,trend,decreasing=T)), ]
+    formod$add       <- ave(formod$nopill,formod$dom_comuna,FUN=cumsum)
+
+    formod$pilln5[formod$add==5 & formod$treatCom==1] <- 1
+    formod$pilln5[is.na(formod$pilln5)]               <- 0
+    formod$pilln4[formod$add==4 & formod$treatCom==1] <- 1
+    formod$pilln4[is.na(formod$pilln4)]               <- 0
+    formod$pilln3[formod$add==3 & formod$treatCom==1] <- 1
+    formod$pilln3[is.na(formod$pilln3)]               <- 0
+    formod$pilln2[formod$add==2 & formod$treatCom==1] <- 1
+    formod$pilln2[is.na(formod$pilln2)]               <- 0
+    formod$pilln1[formod$add==1 & formod$treatCom==1] <- 1
+    formod$pilln1[is.na(formod$pilln1)]               <- 0
+    formod$pillp0[formod$pill==1 & formod$pilltotal==1] <- 1
+    formod$pillp0[is.na(formod$pillp0)]                 <- 0
+    formod$pillp1[formod$pill==1 & formod$pilltotal==2] <- 1
+    formod$pillp1[is.na(formod$pillp1)]                 <- 0
+    formod$pillp2[formod$pill==1 & formod$pilltotal==3] <- 1
+    formod$pillp2[is.na(formod$pillp2)]                 <- 0
+
+
+
 
     eventS  <- glm(cbind(successes,failures) ~ factor(year)                      +
                    factor(dom_comuna) + factor(dom_comuna):trend + votes         +
                    factor(party) + factor(mujer) + outofschool + educationspend  +
                    educationmunicip + healthspend + healthtraining + healthstaff +
-                   femalepoverty + femaleworkers + condom + factor(pilln4)       +
-                   factor(pilln3) + factor(pilln2) + factor(pilln1)              +
-                   factor(pillp1) + factor(pillp2),
+                   femalepoverty + femaleworkers + condom + factor(pilln5)       +
+                   factor(pilln4) + factor(pilln2) + factor(pilln1)              +
+                   factor(pillp0) + factor(pillp1) + factor(pillp2),
                    family="binomial", data=formod)
     clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
     eventS$coefficients2 <- robust.se(eventS,clusters)[[2]]
@@ -486,24 +502,54 @@ event <- function(age_sub,order_sub,short) {
     beta <- summary(eventS)$coefficients[pillline,][, "Estimate"]
     se   <- summary(eventS)$coefficients[pillline,][, "Std. Error"]
 
-    return(list("b" = beta, "s" = se, "eventyr" = c(-4,-3,-2,-1,0,1)))
+    return(list("b" = beta, "s" = se, "eventyr" = c(-5,-4,-2,-1,0,1,2)))
 }
 
 if(events){
+    note <- "Points and confidence intervals represent etimates for a
+    full event study. Each point represents treatment interacted with n years
+    prior/posterior to the reform. Lag 3 is omitted as the arbitrary base category."
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)
+                  
+    
     e1519 <- event(age_sub=15:19, order_sub=1:100)
 
-    plot(e1519$eventyr,e1519$b, type="b",ylim=c(-0.3,0.15),
-         col="darkgreen",lwd=2,pch=20, xlab="Estimate",
-         ylab="Event Year")
+    postscript(paste(graf.dir,"Event1519.eps",sep=""),
+             horizontal = FALSE, onefile = FALSE, paper = "special",
+             height=7, width=9)
+    plot(e1519$eventyr,e1519$b, type="b",ylim=c(-0.2,0.10),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
     points(e1519$eventyr,e1519$b+1.96*e1519$s,type="l",lty=3,pch=20)
     points(e1519$eventyr,e1519$b-1.96*e1519$s,type="l",lty=3,pch=20)
-
+    dev.off()
+    
     event2034 <- event(age_sub=20:34, order_sub=1)
-    plot(event2034$eventyr,event2034$b, type="b",ylim=c(-0.3,0.15),
-         col="darkgreen",lwd=2,pch=20, xlab="Estimate",
-         ylab="Event Year")
+
+    postscript(paste(graf.dir,"Event2034.eps",sep=""),
+             horizontal = FALSE, onefile = FALSE, paper = "special",
+             height=7, width=9)
+    plot(event2034$eventyr,event2034$b, type="b",ylim=c(-0.2,0.1),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
     points(event2034$eventyr,event2034$b+1.96*event2034$s,type="l",lty=3,pch=20)
     points(event2034$eventyr,event2034$b-1.96*event2034$s,type="l",lty=3,pch=20)
+    dev.off()
+
+    event3549 <- event(age_sub=35:49, order_sub=1)
+    postscript(paste(graf.dir,"Event3549.eps",sep=""),
+             horizontal = FALSE, onefile = FALSE, paper = "special",
+             height=7, width=9)
+    plot(event3549$eventyr,event3549$b, type="b",ylim=c(-0.2,0.1),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
+    points(event3549$eventyr,event3549$b+1.96*event3549$s,type="l",lty=3,pch=20)
+    points(event3549$eventyr,event3549$b-1.96*event3549$s,type="l",lty=3,pch=20)
+    dev.off()
 }
 
 
@@ -524,9 +570,9 @@ if(preg|ChMund){
 
 if(Npreg){
   N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100)
-  N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100)
-  N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100)
-  NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100)
+  #N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100)
+  #N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100)
+  #NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100)
 }
 
 if(spill){
