@@ -22,7 +22,7 @@
 # Last update v1.20: Refactorise
 
 prep_s1_data <- function(age_range,usecom,filename) {
-    
+
   #=============================================================================
   # (1) libraries
   #=============================================================================
@@ -105,6 +105,7 @@ prep_s1_data <- function(age_range,usecom,filename) {
   }
   
   #Run over each region and stack into flat file
+  
   tab.lst <- lapply(f.vec,clean_pop_csv) 
   tot <- do.call("rbind",tab.lst)
   tot <- as.data.frame(tot)
@@ -125,7 +126,7 @@ prep_s1_data <- function(age_range,usecom,filename) {
   #=============================================================================
   # (6) Birth data
   #=============================================================================
-  f <- paste(brth.dir,"Nacimientos_Chile_20002011.dta",sep="")
+  f <- paste(brth.dir,"Nacimientos_Chile_20002012.dta",sep="")
   tmp <- read.dta(f)
 
   # keep appropriate age groups and years of birth
