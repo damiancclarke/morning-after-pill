@@ -224,25 +224,25 @@ death_pmod <- function(age_sub,deathtype,numb) {
 }
 
 NumDeath <- function(age_sub,deathtype) {
-    dat       <- orig
-    dat       <- dat[dat$age %in% age_sub,]
-    dat       <- dat[dat$pregnant == 1,]
+    dat <- orig
+    dat <- dat[dat$age %in% age_sub,]
+    dat <- dat[dat$pregnant == 1,]
   
     dat <- aggregate.data.frame(dat[,c("n",deathtype)],
-                                by=list(dat$dom_comuna,dat$year-2005         ,
-                                    (dat$year-2005)^2,dat$pill,dat$mujer ,
-                                    dat$party,dat$votop,dat$outofschool  ,
-                                    dat$healthspend,dat$healthstaff      ,
-                                    dat$healthtraining,dat$educationspend,
-                                    dat$femalepoverty,dat$urbBin,dat$year,
-                                    dat$educationmunicip,dat$condom      ,
-                                    dat$usingcont,dat$femaleworkers),
+                                by=list(dat$dom_comuna,dat$year-2005       ,
+                                    (dat$year-2005)^2,dat$pill,dat$mujer   ,
+                                    dat$party,dat$votop,dat$outofschool    ,
+                                    dat$healthspend,dat$healthstaff        ,
+                                    dat$healthtraining,dat$educationspend  ,
+                                    dat$femalepoverty,dat$urbBin,dat$year  ,
+                                    dat$educationmunicip,dat$condom        ,
+                                    dat$usingcont,dat$femaleworkers)       ,
                                 function(vec) {sum(na.omit(vec))})
-    names(dat)              <- c(Names,"n","death")
+    names(dat) <- c(Names,"n","death")
 
     dat$FDbirth <- (dat$death/dat$n)*1000
     
-    xFl  <- lm(FDbirth ~ factor(dom_comuna) + factor(year)                     +
+    xFl  <- lm(FDbirth ~ factor(dom_comuna) + factor(year)                   +
                factor(dom_comuna):trend + factor(pill) + factor(party)       + 
                factor(mujer) + votes + outofschool + educationspend          + 
                educationmunicip + healthspend + healthtraining + healthstaff +
@@ -484,7 +484,7 @@ if(deathTab) {
                  paste(xvar,n3549$beta,a,ne3549$beta,a,nl3549$beta,s,sep=""),
                  paste(a,n3549$s,a,ne3549$s,a,nl3549$s,s,sep=""),'&&&\\\\',
                  paste(obs,n3549$n,a,ne3549$n,a,nl3549$n,s,sep=""),
-                 paste('R-squared&',n3549$R2,a,ne3549$R2,a,nl3549$R2,s,sep=""),
+                 paste('R-squared&',n3549$R2,a,ne3549$R2,a,ne3549$R2,s,sep=""),
                  '\\hline \\hline \\\\[-1.8ex]',
                  '\\multicolumn{4}{p{10cm}}{\\begin{footnotesize}\\textsc{Notes:}',
                  'Each regression uses as its dependent variable fetal deaths ',
