@@ -1,4 +1,4 @@
-# BirthsEstimates.R v1.23          KEL / DCC               yyyy-mm-dd:2013-12-29
+# BirthsEstimates.R v2.00          KEL / DCC               yyyy-mm-dd:2013-12-29
 #---|----1----|----2----|----3----|----4----|----5----|----6----|----7----|----8
 #
 # Import data from S1Data_granular_covars.csv to run various models.  Initial 
@@ -8,18 +8,19 @@
 # Principal model is of the form:
 #   preg_{ijt} = alpha + delta*PAE_{jt} + theta_j + i.eta**g(year_t) + u_{ijt}
 #
-# This code has been written by KEL, with updates by DCC to incorporate additio-
-# nal time varying controls and export results to TeX.  When running, the switc-
+# This code was first written by KEL, with updates by DCC to incorporate additi-
+# onal time varying controls and export results to TeX. When running, the switc-
 # hes in section (1) determine whether or not specific sections of the code will
 # be run.  Note that the user-contributed stargazer library is very slow, so the
 # "full" section is best avoided, or run only once.
 #
-# NOTE: CBPS and CBMSM should be checked out for PS match
 #
 # aboe refers to appended back of the envelope calculation which examines
 # whether effect sizes look reasonable
 #
-# last edit v1.23: Clean directory structure.
+# last edit
+#          v2.00: Respond to referrees -- event study + OLS
+#          v1.23: Clean directory structure.
 # contact: damian.clarke@economics.ox.ac.uk
 
 rm(list=ls())
@@ -28,16 +29,16 @@ rm(list=ls())
 #=== (1) Parameters
 #==============================================================================
 create <- FALSE
-preg   <- FALSE
-Npreg  <- FALSE
-prTab  <- FALSE
-spill  <- FALSE
+preg   <- TRUE
+Npreg  <- TRUE
+prTab  <- TRUE
+spill  <- TRUE
 full   <- FALSE
-aboe   <- FALSE
-ranges <- FALSE
+aboe   <- TRUE
+ranges <- TRUE
 events <- TRUE
-ChMund <- FALSE
-invPS  <- FALSE
+ChMund <- TRUE
+invPS  <- TRUE
     
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -465,9 +466,7 @@ event <- function(age_sub,order_sub) {
     formod$nopill[formod$pilltotal==0] <- 1
     formod           <- formod[with(formod,order(dom_comuna,trend,decreasing=T)), ]
     formod$add       <- ave(formod$nopill,formod$dom_comuna,FUN=cumsum)
-
-    formod$pilln5[formod$add==5 & formod$treatCom==1] <- 1
-    formod$pilln5[is.na(formod$pilln5)]               <- 0
+    
     formod$pilln4[formod$add==4 & formod$treatCom==1] <- 1
     formod$pilln4[is.na(formod$pilln4)]               <- 0
     formod$pilln3[formod$add==3 & formod$treatCom==1] <- 1
@@ -500,56 +499,9 @@ event <- function(age_sub,order_sub) {
 
     pillline <- grepl("pill",rownames(summary(eventS)$coefficients))
     beta <- summary(eventS)$coefficients[pillline,][, "Estimate"]
-    se   <- summary(eventS)$coefficients[pillline,][, "Std. Error"]
+    se   <- eventS$coefficients2[pillline,][, "Std. Error"]
 
     return(list("b" = beta, "s" = se, "eventyr" = c(-5,-4,-2,-1,0,1,2)))
-}
-
-if(events){
-    note <- "Points and confidence intervals represent etimates for a
-    full event study. Each point represents treatment interacted with n years
-    prior/posterior to the reform. Lag 3 is omitted as the arbitrary base category."
-    note <- sub("\n","",note)
-    note <- gsub("  "," ",note)
-                  
-    
-    e1519 <- event(age_sub=15:19, order_sub=1:100)
-
-    postscript(paste(graf.dir,"Event1519.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-    plot(e1519$eventyr,e1519$b, type="b",ylim=c(-0.2,0.10),
-         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
-         xlab="Event Year")
-    abline(h = 0, lwd=2, col="gray60")
-    points(e1519$eventyr,e1519$b+1.96*e1519$s,type="l",lty=3,pch=20)
-    points(e1519$eventyr,e1519$b-1.96*e1519$s,type="l",lty=3,pch=20)
-    dev.off()
-    
-    event2034 <- event(age_sub=20:34, order_sub=1)
-
-    postscript(paste(graf.dir,"Event2034.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-    plot(event2034$eventyr,event2034$b, type="b",ylim=c(-0.2,0.1),
-         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
-         xlab="Event Year")
-    abline(h = 0, lwd=2, col="gray60")
-    points(event2034$eventyr,event2034$b+1.96*event2034$s,type="l",lty=3,pch=20)
-    points(event2034$eventyr,event2034$b-1.96*event2034$s,type="l",lty=3,pch=20)
-    dev.off()
-
-    event3549 <- event(age_sub=35:49, order_sub=1)
-    postscript(paste(graf.dir,"Event3549.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-    plot(event3549$eventyr,event3549$b, type="b",ylim=c(-0.2,0.1),
-         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
-         xlab="Event Year")
-    abline(h = 0, lwd=2, col="gray60")
-    points(event3549$eventyr,event3549$b+1.96*event3549$s,type="l",lty=3,pch=20)
-    points(event3549$eventyr,event3549$b-1.96*event3549$s,type="l",lty=3,pch=20)
-    dev.off()
 }
 
 
@@ -640,6 +592,54 @@ if(ranges) {
          col=c("darkgreen","black"))
   dev.off()
 }
+
+if(events){
+    note <- "Points and confidence intervals represent etimates for a
+    full event study. Each point represents treatment interacted with n years
+    prior/posterior to the reform. Lag 3 is omitted as the arbitrary base category."
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)
+                  
+    
+    e1519 <- event(age_sub=15:19, order_sub=1:100)
+
+    postscript(paste(graf.dir,"Event1519.eps",sep=""),
+             horizontal = FALSE, onefile = FALSE, paper = "special",
+             height=7, width=9)
+    plot(e1519$eventyr,e1519$b, type="b",ylim=c(-0.2,0.10),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
+    points(e1519$eventyr,e1519$b+1.96*e1519$s,type="l",lty=5,pch=20)
+    points(e1519$eventyr,e1519$b-1.96*e1519$s,type="l",lty=5,pch=20)
+    dev.off()
+    
+    e2034 <- event(age_sub=20:34, order_sub=1)
+
+    postscript(paste(graf.dir,"Event2034.eps",sep=""),
+             horizontal = FALSE, onefile = FALSE, paper = "special",
+             height=7, width=9)
+    plot(e2034$eventyr,e2034$b, type="b",ylim=c(-0.2,0.1),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
+    points(e2034$eventyr,e2034$b+1.96*e2034$s,type="l",lty=5,pch=20)
+    points(e2034$eventyr,e2034$b-1.96*e2034$s,type="l",lty=5,pch=20)
+    dev.off()
+
+    e3549 <- event(age_sub=35:49, order_sub=1)
+    postscript(paste(graf.dir,"Event3549.eps",sep=""),
+             horizontal = FALSE, onefile = FALSE, paper = "special",
+             height=7, width=9)
+    plot(e3549$eventyr,e3549$b, type="b",ylim=c(-0.2,0.1),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
+    points(e3549$eventyr,e3549$b+1.96*e3549$s,type="l",lty=5,pch=20)
+    points(e3549$eventyr,e3549$b-1.96*e3549$s,type="l",lty=5,pch=20)
+    dev.off()
+}
+
 
 #==============================================================================
 #=== (6) Export results
