@@ -25,11 +25,12 @@ rm(list=ls())
 #******************************************************************************
 create   <- FALSE
 death    <- FALSE
-Ndeath   <- TRUE
+Ndeath   <- FALSE
 deathTab <- FALSE
 spill    <- FALSE
 combine  <- FALSE
 full     <- FALSE
+events   <- TRUE
 
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -56,6 +57,7 @@ ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
 pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
 pop.dir  <- paste(proj.dir, "Data/Population/",sep="")
 tab.dir  <- paste(proj.dir, "Tables/", sep="")
+graf.dir <- paste(proj.dir, "Figures/", sep="")
 
 Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
            "outofschool","healthspend","healthstaff","healthtraining"        , 
@@ -297,7 +299,71 @@ spillovers <- function(age_sub,deathtype) {
 #==============================================================================
 event <- function(age_sub,deathtype) {
 
+    dat <- orig
+    dat <- dat[dat$age %in% age_sub,]
+    dat <- dat[dat$pregnant == 1,]
+  
+    formod <- aggregate.data.frame(dat[,c("n",deathtype)],
+                                   by=list(dat$dom_comuna,dat$year-2005        ,
+                                       (dat$year-2005)^2,dat$pill,dat$mujer ,
+                                       dat$party,dat$votop,dat$outofschool  ,
+                                       dat$healthspend,dat$healthstaff         ,
+                                       dat$healthtraining,dat$educationspend   ,
+                                       dat$femalepoverty,dat$urbBin,dat$year,
+                                       dat$educationmunicip,dat$condom         ,
+                                       dat$usingcont,dat$femaleworkers)        ,
+                                   function(vec) {sum(na.omit(vec))})
+    names(formod) <- c(Names,"n","death")
+
+    formod$FDbirth <- (formod$death/formod$n)*1000
+
+    formod <- formod[with(formod,order(dom_comuna,trend)), ]
+
+    formod$pillbinary <- ave(formod$pill,formod$dom_comuna,FUN=sum)
+    formod$treatCom[formod$pillbinary>0]  <- 1
+    formod$treatCom[formod$pillbinary==0] <- 0
+    formod$pilltotal <- ave(formod$pill,formod$dom_comuna,FUN=cumsum)
+
+    formod$nopill <- 0
+    formod$nopill[formod$pilltotal==0] <- 1
+    formod           <- formod[with(formod,order(dom_comuna,trend,decreasing=T)), ]
+    formod$add       <- ave(formod$nopill,formod$dom_comuna,FUN=cumsum)
+
+    formod$pilln5[formod$add==5 & formod$treatCom==1]   <- 1
+    formod$pilln5[is.na(formod$pilln5)]                 <- 0
+    formod$pilln4[formod$add==4 & formod$treatCom==1]   <- 1
+    formod$pilln4[is.na(formod$pilln4)]                 <- 0
+    formod$pilln3[formod$add==3 & formod$treatCom==1]   <- 1
+    formod$pilln3[is.na(formod$pilln3)]                 <- 0
+    formod$pilln2[formod$add==2 & formod$treatCom==1]   <- 1
+    formod$pilln2[is.na(formod$pilln2)]                 <- 0
+    formod$pilln1[formod$add==1 & formod$treatCom==1]   <- 1
+    formod$pilln1[is.na(formod$pilln1)]                 <- 0
+    formod$pillp0[formod$pill==1 & formod$pilltotal==1] <- 1
+    formod$pillp0[is.na(formod$pillp0)]                 <- 0
+    formod$pillp1[formod$pill==1 & formod$pilltotal==2] <- 1
+    formod$pillp1[is.na(formod$pillp1)]                 <- 0
+    formod$pillp2[formod$pill==1 & formod$pilltotal==3] <- 1
+    formod$pillp2[is.na(formod$pillp2)]                 <- 0
+
+    eventS  <- lm(FDbirth ~ factor(year)                                         +
+                   factor(dom_comuna) + factor(dom_comuna):trend + votes         +
+                   factor(party) + factor(mujer) + outofschool + educationspend  +
+                   educationmunicip + healthspend + healthtraining + healthstaff +
+                   femalepoverty + femaleworkers + condom + factor(pilln5)       +
+                   factor(pilln4) + factor(pilln2) + factor(pilln1)              +
+                   factor(pillp0) + factor(pillp1) + factor(pillp2),  data=formod)
+    clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+    eventS$coefficients2 <- robust.se(eventS,clusters)[[2]]
+
+
+    pillline <- grepl("pill",rownames(summary(eventS)$coefficients))
+    beta <- summary(eventS)$coefficients[pillline,][, "Estimate"]
+    se   <- eventS$coefficients2[pillline,][, "Std. Error"]
+    
+    return(list("b" = beta, "s" = se, "eventyr" = c(-5,-4,-2,-1,0,1,2)))    
 }
+
 
 #******************************************************************************
 #***(5) Estimate
@@ -499,4 +565,43 @@ if(deathTab) {
                  '\\normalsize\\end{tabular}\\end{table}'),to)
 
     close(to)
+}
+
+if(events){
+    e1519 <- event(age_sub=15:19, "earlyP")
+
+    postscript(paste(graf.dir,"Event1519_fetaldeath.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    plot(e1519$eventyr,e1519$b, type="b",ylim=c(-10,10),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
+    points(e1519$eventyr,e1519$b+1.96*e1519$s,type="l",lty=5,pch=20)
+    points(e1519$eventyr,e1519$b-1.96*e1519$s,type="l",lty=5,pch=20)
+    dev.off()
+
+    e2034 <- event(age_sub=20:34, "earlyP")
+    postscript(paste(graf.dir,"Event2034_fetaldeath.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    plot(e2034$eventyr,e2034$b, type="b",ylim=c(-10,10),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
+    points(e2034$eventyr,e2034$b+1.96*e2034$s,type="l",lty=5,pch=20)
+    points(e2034$eventyr,e2034$b-1.96*e2034$s,type="l",lty=5,pch=20)
+    dev.off()
+
+    e3549 <- event(age_sub=35:49, "earlyP")
+    postscript(paste(graf.dir,"Event3549.eps_fetaldeath",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    plot(e3549$eventyr,e3549$b, type="b",ylim=c(-10,10),
+         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
+         xlab="Event Year")
+    abline(h = 0, lwd=2, col="gray60")
+    points(e3549$eventyr,e3549$b+1.96*e3549$s,type="l",lty=5,pch=20)
+    points(e3549$eventyr,e3549$b-1.96*e3549$s,type="l",lty=5,pch=20)
+    dev.off()
 }
