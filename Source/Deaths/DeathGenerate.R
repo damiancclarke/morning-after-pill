@@ -129,7 +129,7 @@ prep_s1_data_deaths <- function(age_range,week,regex,usecom,filename) {
   #*****************************************************************************
   # (6) Birth data for denominator of probability model
   #*****************************************************************************  
-  f <- paste(brth.dir,"Nacimientos_Chile_20002011.dta",sep="")
+  f <- paste(brth.dir,"Nacimientos_Chile_20002012.dta",sep="")
   tmp <- read.dta(f)
 
   tmp <- tmp[tmp$edad_m <= age_range[2],]
@@ -163,7 +163,7 @@ prep_s1_data_deaths <- function(age_range,week,regex,usecom,filename) {
     return(tmp)
   }
   
-  lst <- lapply(2002:2011,read_death_data)
+  lst <- lapply(2002:2012,read_death_data)
   tmp <- do.call("rbind",lst)
   
   #aggregate to comuna

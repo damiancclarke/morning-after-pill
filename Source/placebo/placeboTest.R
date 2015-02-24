@@ -38,7 +38,7 @@ require(foreign)
 require(reshape)
 require(gdata)
 
-create <- TRUE
+create <- FALSE
 birthM <- TRUE
 deathM <- TRUE
 export <- TRUE
@@ -47,243 +47,242 @@ export <- TRUE
 #=== (2) Import Raw Data with Pill comuna and all births/gestational deaths
 #===============================================================================
 if(create) {
-  birth_y_range <- 2000:2011
-  pill_y_range  <- birth_y_range - 1
-  age_range     <- c(15,49)  
-  week          <- 20
-  pat           <- "P"
-  filenameB     <- paste(brth.dir, 'S1Data_covars_20002011.csv', sep="")
-  filenameD     <- paste(deth.dir, 'S1Data_20002011.csv', sep="")
+    birth_y_range <- 2000:2012
+    pill_y_range  <- birth_y_range - 1
+    age_range     <- c(15,49)  
+    week          <- 20
+    pat           <- "P"
+    filenameB     <- paste(brth.dir, 'S1Data_covars_20002012.csv', sep="")
+    filenameD     <- paste(deth.dir, 'S1Data_20002012.csv', sep="")
   
-  fb <- paste(codB.dir,"BirthGenerate.R",sep="")
-  fd <- paste(codD.dir,"DeathGenerate.R",sep="")
-  source(fb)
-  source(fd)
+    fb <- paste(codB.dir,"BirthGenerate.R",sep="")
+    fd <- paste(codD.dir,"DeathGenerate.R",sep="")
+    source(fb)
+    source(fd)
 
-  prep_s1_data(age_range,usecom="FALSE",filenameB)
-  prep_s1_data_deaths(age_range,week,pat,FALSE,filenameD)
+    prep_s1_data(age_range,usecom="FALSE",filenameB)
+    prep_s1_data_deaths(age_range,week,pat,FALSE,filenameD)
 }
 
 
-birth.dat <- read.csv(paste(brth.dir, "S1Data_covars_20002011.csv", sep=""))
-death.dat <- read.csv(paste(deth.dir, "S1Data_20002011.csv", sep=""))
+birth.dat <- read.csv(paste(brth.dir, "S1Data_covars_20002012.csv", sep=""))
+death.dat <- read.csv(paste(deth.dir, "S1Data_20002012.csv", sep=""))
 
 #===============================================================================
 #=== (3) Functions for changing actual outcome year for pre-pill outcome
 #===============================================================================
 birthlag <- function(dat,lag) {
-  dat$failures <- (1-dat$pregnant)*dat$n
-  dat$successes <- dat$pregnant*dat$n
+    dat$failures <- (1-dat$pregnant)*dat$n
+    dat$successes <- dat$pregnant*dat$n
 
-  dat<-aggregate.data.frame(dat[,c("failures","successes")],
-                            by=list(dat$dom_comuna, dat$year, dat$age,
-                                    dat$pill, dat$pilldistance      ),
-                            function(vec) {sum(na.omit(vec))}       )
-  names(dat) <- c("Com","year","age","pill","pilldist","failures","successes")
+    dat<-aggregate.data.frame(dat[,c("failures","successes")],
+                              by=list(dat$dom_comuna, dat$year,dat$age,
+                                  dat$pill, dat$pilldistance         ),
+                              function(vec) {sum(na.omit(vec))}      )
+    names(dat) <- c("Com","year","age","pill","pilldist","failures","successes")
 
-  births      <- dat[,c("Com","year","age","failures","successes")]
-  pills       <- dat[,c("Com","year","age","pill","pilldist")]
-  births$year <- births$year + lag
+    births      <- dat[,c("Com","year","age","failures","successes")]
+    pills       <- dat[,c("Com","year","age","pill","pilldist")]
+    births$year <- births$year + lag
 
-  out <- merge(births,pills,by=c("Com","year","age"),all.x=T,all.y=F)
-  out <- out[!(is.na(out$pill)),]
-  return(out)  
+    out <- merge(births,pills,by=c("Com","year","age"),all.x=T,all.y=F)
+    out <- out[!(is.na(out$pill)),]
+    return(out)  
 } 
 
 
 deathlag <- function(dat,lag,deathtype) {
-  dat <- dat[dat$pregnant == 1,]
-  dat <- aggregate.data.frame(dat[,c("n",deathtype)],
-                              by=list(dat$dom_comuna, dat$year,dat$age,
-                                      dat$pill,dat$pilldistance      ),
-                              sum)
-  names(dat) <- c("Com","year","age","pill","pilldist","successes","failures")  
-
-  deaths      <- dat[,c("Com","year","age","failures","successes")]
-  pills       <- dat[,c("Com","year","age","pill","pilldist")]
-  deaths$year <- deaths$year + lag
+    dat <- dat[dat$pregnant == 1,]
+    dat <- aggregate.data.frame(dat[,c("n",deathtype)],
+                                by=list(dat$dom_comuna, dat$year,dat$age,
+                                    dat$pill,dat$pilldistance      ),
+                                sum)
+    names(dat) <- c("Com","year","age","pill","pilldist","successes","failures")  
+    
+    deaths      <- dat[,c("Com","year","age","failures","successes")]
+    pills       <- dat[,c("Com","year","age","pill","pilldist")]
+    deaths$year <- deaths$year + lag
   
-  out <- merge(deaths,pills,by=c("Com","year","age"),all.x=T,all.y=F)
-  out <- out[!(is.na(out$pill)),]
-  return(out)
+    out <- merge(deaths,pills,by=c("Com","year","age"),all.x=T,all.y=F)
+    out <- out[!(is.na(out$pill)),]
+    return(out)
 } 
 
 #===============================================================================
 #=== (4) Auxiliary functions (cluster SEs, LaTeX stars, etc.)
 #===============================================================================
 stars <- function(p,B) {
-  b <- ifelse(p < 0.01,
-              paste(format(round(B,3),nsmall=3),"$^{***}$",sep=""),
-              ifelse(p < 0.05,
-                     paste(format(round(B,3),nsmall=3),"$^{**}$",sep=""),
-                     ifelse(p < 0.1,
-                            paste(format(round(B,3),nsmall=3),"$^{*}$",sep=""),
-                            format(round(B,3),nsmall=3))))
-  b  <- sub('-', '$-$', b)  
-  return(b)
+    b <- ifelse(p < 0.01,
+                paste(format(round(B,3),nsmall=3),"$^{***}$",sep=""),
+                ifelse(p < 0.05,
+                       paste(format(round(B,3),nsmall=3),"$^{**}$",sep=""),
+                       ifelse(p < 0.1,
+                              paste(format(round(B,3),nsmall=3),"$^{*}$",sep=""),
+                              format(round(B,3),nsmall=3))))
+    b  <- sub('-', '$-$', b)  
+    return(b)
 }
 
 pillest <- function(outresults,d,n,regex,dim) {
-  pillline <- grepl(regex,rownames(summary(outresults)$coefficients))
+    pillline <- grepl(regex,rownames(summary(outresults)$coefficients))
   
-  if(dim==1) {
-    beta <- summary(outresults)$coefficients[pillline,]["Estimate"]
-    se   <- outresults$coefficients2[pillline,]["Std. Error"]
-    p    <- outresults$coefficients2[pillline,]["Pr(>|z|)"]    
-  }
-  else {
-    beta <- summary(outresults)$coefficients[pillline,][, "Estimate"]
-    se   <- outresults$coefficients2[pillline,][, "Std. Error"]
-    p    <- outresults$coefficients2[pillline,][, "Pr(>|z|)"]    
-  }
+    if(dim==1) {
+        beta <- summary(outresults)$coefficients[pillline,]["Estimate"]
+        se   <- outresults$coefficients2[pillline,]["Std. Error"]
+        p    <- outresults$coefficients2[pillline,]["Pr(>|z|)"]    
+    }
+    else {
+        beta <- summary(outresults)$coefficients[pillline,][, "Estimate"]
+        se   <- outresults$coefficients2[pillline,][, "Std. Error"]
+        p    <- outresults$coefficients2[pillline,][, "Pr(>|z|)"]    
+    }
   
-  null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
-  Lfull <- as.numeric(logLik(outresults))
-  Lnull <- as.numeric(logLik(null))
-  R2    <- 1 - Lfull/Lnull
-  beta  <- stars(p,beta)
-  se    <- paste("(", format(round(se,3),nsmall=3),")", sep="")
-  R2    <- format(round(R2,3),nsmall=3)
-  n     <- format(n,big.mark=",",scientific=F)
-  
-  
-  return(list("b" = beta, "s" = se, "p" = p, "r" = R2, "n" = n))
+    null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
+    Lfull <- as.numeric(logLik(outresults))
+    Lnull <- as.numeric(logLik(null))
+    R2    <- 1 - Lfull/Lnull
+    beta  <- stars(p,beta)
+    se    <- paste("(", format(round(se,3),nsmall=3),")", sep="")
+    R2    <- format(round(R2,3),nsmall=3)
+    n     <- format(n,big.mark=",",scientific=F)
+    
+    return(list("b" = beta, "s" = se, "p" = p, "r" = R2, "n" = n))
 }
 
 robust.se <- function(model, cluster) {
-  M <- length(unique(cluster))
-  N <- length(cluster)
-  K <- model$rank
-  dfc <- (M/(M - 1)) * ((N - 1)/(N - K))
-  uj <- apply(estfun(model), 2, function(x) tapply(x, cluster, sum));
-  rcse.cov <- dfc * sandwich(model, meat = crossprod(uj)/N)
-  rcse.se <- coeftest(model, rcse.cov)
-  return(list(rcse.cov, rcse.se))
+    M <- length(unique(cluster))
+    N <- length(cluster)
+    K <- model$rank
+    dfc <- (M/(M - 1)) * ((N - 1)/(N - K))
+    uj <- apply(estfun(model), 2, function(x) tapply(x, cluster, sum));
+    rcse.cov <- dfc * sandwich(model, meat = crossprod(uj)/N)
+    rcse.se <- coeftest(model, rcse.cov)
+    return(list(rcse.cov, rcse.se))
 }
 
 closegen <- function(d1,d2,dat) {
-  named <- names(dat)
-  dat$newvar <- 0  
-  dat$newvar[dat$pilldist > d1 & dat$pilldist <= d2 &
-                !(dat$pilldist)==0] <- 1
-  names(dat) <-c (named,paste('close',d2,sep=""))
-  return(dat)
+    named <- names(dat)
+    dat$newvar <- 0  
+    dat$newvar[dat$pilldist > d1 & dat$pilldist <= d2 &
+               !(dat$pilldist)==0] <- 1
+    names(dat) <-c (named,paste('close',d2,sep=""))
+    return(dat)
 }
 
 #===============================================================================
 #=== (5a) Function to run birth DDs (pill and pilldist) but with placebos
 #===============================================================================
 basemodelB <- function(age_sub,dat,lag) {
-  dat <- birthlag(dat,lag)
-  dat <- dat[dat$age %in% age_sub,]
-  dat <- dat[dat$year>=2006,]
-  
-  mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year + 
+    dat <- birthlag(dat,lag)
+    dat <- dat[dat$age %in% age_sub,]
+    dat <- dat[dat$year>=2006,]
+    
+    mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year + 
                factor(pill) + factor(year)                              , 
                family="binomial", data=dat)
-  n  <- sum(dat$successes) + sum(dat$failures)
-
-  clusters <-mapply(paste,"Com.",dat$Com,sep="")
-  mod$coefficients2 <- robust.se(mod,clusters)[[2]]
-  
-  results <- pillest(mod, dat, n,'pill', 1)
-  return(results)
+    n  <- sum(dat$successes) + sum(dat$failures)
+    
+    clusters <-mapply(paste,"Com.",dat$Com,sep="")
+    mod$coefficients2 <- robust.se(mod,clusters)[[2]]
+    
+    results <- pillest(mod, dat, n,'pill', 1)
+    return(results)
 }
 
 closemodelB <- function(age_sub,dat,lag) { 
-  dat <- birthlag(dat,lag)
-  dat <- dat[dat$age %in% age_sub,]
-  dat <- dat[dat$year>=2006,]
-  
-  dat <- closegen(0,15,dat)
-  dat <- closegen(15,30,dat)
-  dat <- closegen(30,45,dat)
-  
-  mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year        + 
+    dat <- birthlag(dat,lag)
+    dat <- dat[dat$age %in% age_sub,]
+    dat <- dat[dat$year>=2006,]
+    
+    dat <- closegen(0,15,dat)
+    dat <- closegen(15,30,dat)
+    dat <- closegen(30,45,dat)
+    
+    mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year        + 
                factor(pill) + factor(year) + factor(close15) + factor(close30) +
                factor(close45)                                                , 
                family="binomial", data=dat)
-  n  <- sum(dat$successes) + sum(dat$failures)
-  
-  clusters <-mapply(paste,"Com.",dat$Com,sep="")
-  mod$coefficients2 <- robust.se(mod,clusters)[[2]]
-  
-  results <- pillest(mod, dat, n,'pill|close', 4)
-  return(results)
+    n  <- sum(dat$successes) + sum(dat$failures)
+    
+    clusters <-mapply(paste,"Com.",dat$Com,sep="")
+    mod$coefficients2 <- robust.se(mod,clusters)[[2]]
+    
+    results <- pillest(mod, dat, n,'pill|close', 4)
+    return(results)
 }
 
 #===============================================================================
 #=== (5b) Function to run death DDs (pill and pilldist) but with placebos
 #===============================================================================
 basemodelD <- function(age_sub,dat,lag,type) {
-  dat <- deathlag(dat,lag,type)
-  dat <- dat[dat$age %in% age_sub,]
-  dat <- dat[dat$year>=2006,]
+    dat <- deathlag(dat,lag,type)
+    dat <- dat[dat$age %in% age_sub,]
+    dat <- dat[dat$year>=2006,]
+    
+    mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year + 
+               factor(pill) + factor(year)                                , 
+               family="binomial", data=dat)
+    n  <- sum(dat$successes) + sum(dat$failures)
+    
+    clusters <-mapply(paste,"Com.",dat$Com,sep="")
+    mod$coefficients2 <- robust.se(mod,clusters)[[2]]
   
-  mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year + 
-               factor(pill) + factor(year)                              , 
-             family="binomial", data=dat)
-  n  <- sum(dat$successes) + sum(dat$failures)
-  
-  clusters <-mapply(paste,"Com.",dat$Com,sep="")
-  mod$coefficients2 <- robust.se(mod,clusters)[[2]]
-  
-  results <- pillest(mod, dat, n,'pill', 1)
-  return(results)
+    results <- pillest(mod, dat, n,'pill', 1)
+    return(results)
 }
 
 closemodelD <- function(age_sub,dat,lag,type) { 
-  dat <- deathlag(dat,lag,type)
-  dat <- dat[dat$age %in% age_sub,]
-  dat <- dat[dat$year>=2006,]
+    dat <- deathlag(dat,lag,type)
+    dat <- dat[dat$age %in% age_sub,]
+    dat <- dat[dat$year>=2006,]
+    
+    dat <- closegen(0,15,dat)
   
-  dat <- closegen(0,15,dat)
-  
-  mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year + 
+    mod <- glm(cbind(successes,failures) ~ factor(Com) + factor(Com):year + 
                factor(pill) + factor(year) + factor(close15)            , 
-             family="binomial", data=dat)
-  n  <- sum(dat$successes) + sum(dat$failures)
+               family="binomial", data=dat)
+    n  <- sum(dat$successes) + sum(dat$failures)
   
-  clusters <-mapply(paste,"Com.",dat$Com,sep="")
-  mod$coefficients2 <- robust.se(mod,clusters)[[2]]
-  
-  results <- pillest(mod, dat, n,'pill|close', 4)
-  return(results)
+    clusters <-mapply(paste,"Com.",dat$Com,sep="")
+    mod$coefficients2 <- robust.se(mod,clusters)[[2]]
+    
+    results <- pillest(mod, dat, n,'pill|close', 4)
+    return(results)
 }
 
 #===============================================================================
 #=== (6) Run Models
 #===============================================================================
 if(birthM) {
-  lagBB3t <- basemodelB(15:19,birth.dat,3)
-  lagBB4t <- basemodelB(15:19,birth.dat,4)
-  lagBB5t <- basemodelB(15:19,birth.dat,5)
-  lagBB3w <- basemodelB(20:34,birth.dat,3)
-  lagBB4w <- basemodelB(20:34,birth.dat,4)
-  lagBB5w <- basemodelB(20:34,birth.dat,5)
+    lagBB3t <- basemodelB(15:19,birth.dat,3)
+    lagBB4t <- basemodelB(15:19,birth.dat,4)
+    lagBB5t <- basemodelB(15:19,birth.dat,5)
+    lagBB3w <- basemodelB(20:34,birth.dat,3)
+    lagBB4w <- basemodelB(20:34,birth.dat,4)
+    lagBB5w <- basemodelB(20:34,birth.dat,5)
   
-  lagCB3t <- closemodelB(15:19,birth.dat,3)
-  lagCB4t <- closemodelB(15:19,birth.dat,4)
-  lagCB5t <- closemodelB(15:19,birth.dat,5)
-  lagCB3w <- closemodelB(20:34,birth.dat,3)
-  lagCB4w <- closemodelB(20:34,birth.dat,4)
-  lagCB5w <- closemodelB(20:34,birth.dat,5)  
+    lagCB3t <- closemodelB(15:19,birth.dat,3)
+    lagCB4t <- closemodelB(15:19,birth.dat,4)
+    lagCB5t <- closemodelB(15:19,birth.dat,5)
+    lagCB3w <- closemodelB(20:34,birth.dat,3)
+    lagCB4w <- closemodelB(20:34,birth.dat,4)
+    lagCB5w <- closemodelB(20:34,birth.dat,5)  
 }
 
 if(deathM) {
-  lagBD3te <- basemodelD(15:19,death.dat,3,"death")
-  lagBD4te <- basemodelD(15:19,death.dat,4,"death")
-  lagBD5te <- basemodelD(15:19,death.dat,5,"death")
-  lagBD3we <- basemodelD(20:34,death.dat,3,"death")
-  lagBD4we <- basemodelD(20:34,death.dat,4,"death")
-  lagBD5we <- basemodelD(20:34,death.dat,5,"death")  
-
-  lagCD3te <- closemodelD(15:19,death.dat,3,"death")
-  lagCD4te <- closemodelD(15:19,death.dat,4,"death")
-  lagCD5te <- closemodelD(15:19,death.dat,5,"death")
-  lagCD3we <- closemodelD(20:34,death.dat,3,"death")
-  lagCD4we <- closemodelD(20:34,death.dat,4,"death")
-  lagCD5we <- closemodelD(20:34,death.dat,5,"death")   
+    lagBD3te <- basemodelD(15:19,death.dat,3,"death")
+    lagBD4te <- basemodelD(15:19,death.dat,4,"death")
+    lagBD5te <- basemodelD(15:19,death.dat,5,"death")
+    lagBD3we <- basemodelD(20:34,death.dat,3,"death")
+    lagBD4we <- basemodelD(20:34,death.dat,4,"death")
+    lagBD5we <- basemodelD(20:34,death.dat,5,"death")  
+    
+    lagCD3te <- closemodelD(15:19,death.dat,3,"death")
+    lagCD4te <- closemodelD(15:19,death.dat,4,"death")
+    lagCD5te <- closemodelD(15:19,death.dat,5,"death")
+    lagCD3we <- closemodelD(20:34,death.dat,3,"death")
+    lagCD4we <- closemodelD(20:34,death.dat,4,"death")
+    lagCD5we <- closemodelD(20:34,death.dat,5,"death")   
 }
 
 #==============================================================================

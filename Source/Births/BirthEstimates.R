@@ -29,16 +29,16 @@ rm(list=ls())
 #=== (1) Parameters
 #==============================================================================
 create <- FALSE
-preg   <- TRUE
-Npreg  <- TRUE
-prTab  <- TRUE
+preg   <- FALSE
+Npreg  <- FALSE
+prTab  <- FALSE
 spill  <- FALSE
 full   <- FALSE
-aboe   <- TRUE
-ranges <- TRUE
-events <- TRUE
-ChMund <- FALSE
-invPS  <- FALSE
+aboe   <- FALSE
+ranges <- FALSE
+events <- FALSE
+ChMund <- TRUE
+invPS  <- TRUE
     
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -203,9 +203,9 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
                    femaleworkers,
                    family=binomial, data=preddat)
         preddat$predict <- predict(PSc, type="response")
-        preddat$WT      <- 1/preddat$predict
-        #preddat$WT[preddat$pill==1] <- 1/preddat$predict
-        #preddat$WT[preddat$pill==0] <- 1/(1-preddat$predict)
+        #preddat$WT      <- 1/preddat$predict
+        preddat$WT[preddat$pill==1] <- 1/preddat$predict
+        preddat$WT[preddat$pill==0] <- 1/(1-preddat$predict)
 
         wts    <- preddat[,(names(preddat) %in% c("dom_comuna","WT","trend"))]
         formod <- merge(formod,wts,by=c("dom_comuna","trend"))        
@@ -467,6 +467,8 @@ event <- function(age_sub,order_sub) {
     formod           <- formod[with(formod,order(dom_comuna,trend,decreasing=T)), ]
     formod$add       <- ave(formod$nopill,formod$dom_comuna,FUN=cumsum)
     
+    formod$pilln5[formod$add==5 & formod$treatCom==1] <- 1
+    formod$pilln5[is.na(formod$pilln5)]               <- 0
     formod$pilln4[formod$add==4 & formod$treatCom==1] <- 1
     formod$pilln4[is.na(formod$pilln4)]               <- 0
     formod$pilln3[formod$add==3 & formod$treatCom==1] <- 1

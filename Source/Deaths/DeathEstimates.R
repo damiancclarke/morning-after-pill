@@ -24,13 +24,13 @@ rm(list=ls())
 #***(1) Parameters
 #******************************************************************************
 create   <- FALSE
-death    <- FALSE
-deathTab <- FALSE
+death    <- TRUE
+deathTab <- TRUE
 spill    <- TRUE
-combine  <- FALSE
+combine  <- TRUE
 full     <- FALSE
 
-birth_y_range <- 2006:2011
+birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
 age_range     <- c(15,49)
 week          <- 20

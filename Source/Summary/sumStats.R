@@ -34,15 +34,15 @@ library("data.table")
 library("doBy")
 library("SDMTools")
 
-create     <- TRUE
-comunas    <- TRUE
-kids       <- TRUE
-tables     <- TRUE
-pillgraph  <- TRUE
-preggraph  <- TRUE
-deathgraph <- TRUE
+create     <- FALSE
+comunas    <- FALSE
+kids       <- FALSE
+tables     <- FALSE
+pillgraph  <- FALSE
+preggraph  <- FALSE
+deathgraph <- FALSE
 totgraph   <- TRUE
-trends     <- TRUE
+trends     <- FALSE
 
 #*******************************************************************************
 #***(2) Load required data
@@ -56,9 +56,12 @@ deaths$pilldistance[deaths$pill==1]<-0
 deaths$healthspend <- deaths$healthspend/1000
 deaths$educationspend <- deaths$educationspend/1000
 
-names(deaths) <- c("dc","ye","ag","or","n","de","eP","eQ","lP","lQ","p","pill",
-                   "pd","el","mu","pa","vo","os","ht","hs","hc","et","em","fp",
-                   "fw","po","co")
+#NOTE: names don't really matter here.  We only work with death (de), age (ag)
+# year (ye), pill (pill) and other death classes (eP,eQ,lP,lQ)
+
+names(deaths) <- c("dc","os","hs","hc","ht","et","em","fp","fw","po","ur","u1",
+                   "ye","dn","re","co","uc","pill","mu","pa","vo","el","pd","p",
+                   "ag","or","n","de","eP","eQ","lP","lQ","cn")
 
 if(create) {
   birth_y_range <- 2000:2012
@@ -72,7 +75,7 @@ if(create) {
   source(fB)
   source(fD)  
   filenameB <- paste(brth.dir, 'S1Data_covars_20002012.csv' ,sep="")
-  filenameD <- paste(outD.dir, 'S1Data_20002012.csv', sep="")
+  filenameD <- paste(deth.dir, 'S1Data_20002012.csv', sep="")
   prep_s1_data(age_range,usecom="FALSE",filenameB)
   prep_s1_data_deaths(age_range,week,pat,FALSE,filenameD)
   
@@ -241,12 +244,12 @@ writeLines(c('\\begin{table}[htpb!] \\centering',
              '&&&& \\\\',
              paste(v1,paste(t(cs$mean["po.mean",1:6]),collapse=""),sep=""),
              paste(a, paste(t(cs$sd["po.sd",1:7]),collapse=""),sep=""),
-             paste(v2,paste(t(cs$mean["co.mean",1:6]),collapse=""),sep=""),
-             paste(a, paste(t(cs$sd["co.sd",1:7]),collapse=""),sep=""),
+             paste(v2,paste(t(cs$mean["cn.mean",1:6]),collapse=""),sep=""),
+             paste(a, paste(t(cs$sd["cn.sd",1:7]),collapse=""),sep=""),
              paste(v3,paste(t(cs$mean["et.mean",1:6]),collapse=""),sep=""),
              paste(a, paste(t(cs$sd["et.sd",1:7]),collapse=""),sep=""),
-             paste(v4,paste(t(cs$mean["ht.mean",1:6]),collapse=""),sep=""),
-             paste(a, paste(t(cs$sd["ht.sd",1:7]),collapse=""),sep=""),
+             paste(v4,paste(t(cs$mean["hs.mean",1:6]),collapse=""),sep=""),
+             paste(a, paste(t(cs$sd["hs.sd",1:7]),collapse=""),sep=""),
              paste(v5,paste(t(cs$mean["os.mean",1:6]),collapse=""),sep=""),
              paste(a, paste(t(cs$sd["os.sd",1:7]),collapse=""),sep=""),
              paste(v6,paste(t(cs$mean["mu.mean",1:6]),collapse=""),sep=""),
@@ -407,8 +410,8 @@ if (preggraph) {
 
 if (deathgraph) {
   deathc       <- deaths[deaths$ag %in% 15:34,]
-  deathc <- summaryBy(p + lP + eP ~ ye, FUN=sum, data=deathc)
-  deathc$late <- deathc$lP/(deathc$p)
+  deathc       <- summaryBy(p + lP + eP ~ ye, FUN=sum, data=deathc)
+  deathc$late  <- deathc$lP/(deathc$p)
   deathc$early <- deathc$eP/(deathc$p)  
 
   postscript(paste(graf.dir,"Deaths.eps",sep=""),
@@ -457,9 +460,9 @@ if (totgraph) {
              height=7, width=9)
   par(mar=c(5, 4, 4, 6) + 0.1)
   plot(deathnum$ye, deathnum$de, 
-       pch=16, axes=FALSE, ylim=c(1700,2200), xlab="", ylab="", 
+       pch=16, axes=FALSE, ylim=c(1600,2200), xlab="", ylab="", 
        type="b",col="black")
-  axis(2, ylim=c(1700,2200),col="black",las=1)  ## las=1 makes horizontal labels
+  axis(2, ylim=c(1600,2200),col="black",las=1)  ## las=1 makes horizontal labels
   mtext("Fetal Deaths",side=2,line=3.2)
   box()
   par(new=TRUE)
@@ -470,7 +473,7 @@ if (totgraph) {
   mtext("Births",side=4,col="darkgreen",line=3.5) 
   axis(4, ylim=c(200000,250000), col="darkgreen",col.axis="darkgreen",las=1)
   axis(1,birthnum$year)
-  mtext("Year \n",side=1,col="black",line=2.5)  
+  mtext("Year",side=1,col="black",line=2.5)  
   
   legend("topleft",legend=c("Deaths","Births"),
          text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
