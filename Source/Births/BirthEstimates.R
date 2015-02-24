@@ -32,13 +32,13 @@ create <- FALSE
 preg   <- TRUE
 Npreg  <- TRUE
 prTab  <- TRUE
-spill  <- TRUE
+spill  <- FALSE
 full   <- FALSE
 aboe   <- TRUE
 ranges <- TRUE
 events <- TRUE
-ChMund <- TRUE
-invPS  <- TRUE
+ChMund <- FALSE
+invPS  <- FALSE
     
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -122,7 +122,7 @@ pillest <- function(outresults,d,n,regex,dim) {
         else {p    <- outresults$coefficients2[pillline,][, "Pr(>|z|)"]}
     }
   
-    if (dim==1) {
+    if (dim==1|dim==4) {
         null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
         Lfull <- as.numeric(logLik(outresults))
         Lnull <- as.numeric(logLik(null))
@@ -291,7 +291,7 @@ NumMod <- function(age_sub,order_sub) {
   
     formod <- datcollapse(age_sub, order_sub,2,orig)
     names(formod)[25] <- "births"
-    return(formod)
+
     xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)    +
               factor(dom_comuna):trend, data=formod)
     xct <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend       +
@@ -337,7 +337,7 @@ closegen <- function(d1,d2,dat) {
     dat2$newvar[is.na(dat2$newvar)]<-0
     names(dat2)<-c(names(dat),paste('close',d2,sep=""))
     return(dat2)
-    a}
+}
 
 spillovers <- function(age_sub,order_sub) {
 
@@ -349,12 +349,12 @@ spillovers <- function(age_sub,order_sub) {
                   educationspend + educationmunicip + healthspend         + 
                   healthtraining + healthstaff + femalepoverty + condom   + 
                   femaleworkers + factor(close15) + factor(close30)       +
-                  factor(close45), family="binomial",data=formod2)
-    clusters <-mapply(paste,"dom_comuna.",formod2$dom_comuna,sep="")
+                  factor(close45), family="binomial",data=formod)
+    clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
     xspill$coefficients2 <- robust.se(xspill,clusters)[[2]]
 
-    n  <- sum(formod2$successes) + sum(formod2$failures)
-    s1 <- pillest(xspill,formod2,n,"pill|close",4)
+    n  <- sum(formod$successes) + sum(formod$failures)
+    s1 <- pillest(xspill,formod,n,"pill|close",4)
   
     return(list("b" = s1$b,"s" = s1$s, "n" = s1$n, "r" = s1$r))
 }
@@ -425,10 +425,10 @@ rangeest <- function(age_sub,order_sub){
                                            dat$femalepoverty,dat$urbBin    ,
                                            dat$year,dat$educationmunicip   ,
                                            dat$condom,dat$usingcont        ,
-                                           dat$femaleworkers),
+                                           dat$femaleworkers,dat$region),
                                        function(vec) {sum(na.omit(vec))})
-        
-        names(formod) <- c("close1","closemarg",Names)
+
+        names(formod) <- c("close1","closemarg",Names,"failures","successes")
         
         xrange <- glm(cbind(successes,failures) ~ factor(dom_comuna)          + 
                       factor(dom_comuna):trend + factor(year)  + factor(pill) + 
@@ -522,9 +522,9 @@ if(preg|ChMund){
 
 if(Npreg){
   N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100)
-  #N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100)
-  #N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100)
-  #NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100)
+  N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100)
+  N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100)
+  NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100)
 }
 
 if(spill){
