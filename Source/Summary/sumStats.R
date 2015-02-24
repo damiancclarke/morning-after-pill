@@ -61,7 +61,7 @@ names(deaths) <- c("dc","ye","ag","or","n","de","eP","eQ","lP","lQ","p","pill",
                    "fw","po","co")
 
 if(create) {
-  birth_y_range <- 2000:2011
+  birth_y_range <- 2000:2012
   pill_y_range <- birth_y_range - 1
   age_range <- c(15,49)  
   week          <- 20
@@ -71,8 +71,8 @@ if(create) {
   fD <- paste(codD.dir,"DeathGenerate.R",sep="")
   source(fB)
   source(fD)  
-  filenameB <- paste(brth.dir, 'S1Data_covars_20002011.csv' ,sep="")
-  filenameD <- paste(outD.dir, 'S1Data_20002011.csv', sep="")
+  filenameB <- paste(brth.dir, 'S1Data_covars_20002012.csv' ,sep="")
+  filenameD <- paste(outD.dir, 'S1Data_20002012.csv', sep="")
   prep_s1_data(age_range,usecom="FALSE",filenameB)
   prep_s1_data_deaths(age_range,week,pat,FALSE,filenameD)
   
@@ -287,7 +287,7 @@ writeLines(c('\\begin{table}[htpb!] \\centering',
              'nearest municipality which reports prescribing emergency',
              'contraceptives.  Pregnancies are reported as \\% of all women',
              'giving live birth, while fetal deaths are reported per live',
-             'birth.  All summary statistics are for the period 2006-2011.',
+             'birth.  All summary statistics are for the period 2006-2012.',
              '\\end{footnotesize}} \\normalsize\\end{tabular}\\end{table}'),
              sumfile)
 
@@ -484,7 +484,7 @@ if (totgraph) {
 }
 
 if (trends) {
-  f <- paste(brth.dir, "S1Data_covars_20002011.csv", sep="")
+  f <- paste(brth.dir, "S1Data_covars_20002012.csv", sep="")
   orig <- read.csv(f)
 
 #  postscript(paste(graf.dir,"Trends1519.eps",sep=""),
@@ -539,7 +539,7 @@ if (trends) {
   dev.off() 
 
   
-  f <- paste(deth.dir, "S1Data_20002011.csv", sep="")
+  f <- paste(deth.dir, "S1Data_20002012.csv", sep="")
   orig <- read.csv(f)
   postscript(paste(graf.dir,"TrendsDeath1519.eps",sep=""),
              horizontal = FALSE, onefile = FALSE, paper = "special",
