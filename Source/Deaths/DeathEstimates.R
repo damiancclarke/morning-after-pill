@@ -24,10 +24,11 @@ rm(list=ls())
 #***(1) Parameters
 #******************************************************************************
 create   <- FALSE
-death    <- TRUE
-deathTab <- TRUE
-spill    <- TRUE
-combine  <- TRUE
+death    <- FALSE
+Ndeath   <- TRUE
+deathTab <- FALSE
+spill    <- FALSE
+combine  <- FALSE
 full     <- FALSE
 
 birth_y_range <- 2006:2012
@@ -238,25 +239,22 @@ NumDeath <- function(age_sub,deathtype) {
                                     dat$usingcont,dat$femaleworkers),
                                 function(vec) {sum(na.omit(vec))})
     names(dat)              <- c(Names,"n","death")
+
+    dat$FDbirth <- (dat$death/dat$n)*1000
     
-    xBa  <- lm(death ~ factor(dom_comuna) + factor(year)                     +
-               factor(dom_comuna):trend + factor(pill), data=dat)
-    xFl  <- lm(death ~ factor(dom_comuna) + factor(year)                     +
+    xFl  <- lm(FDbirth ~ factor(dom_comuna) + factor(year)                     +
                factor(dom_comuna):trend + factor(pill) + factor(party)       + 
                factor(mujer) + votes + outofschool + educationspend          + 
                educationmunicip + healthspend + healthtraining + healthstaff +
                femalepoverty + femaleworkers + condom, data=dat)
     
     clusters <-mapply(paste,"dom_comuna.",dat$dom_comuna,sep="")
-    xBa$coefficients2   <- robust.se(xBa,clusters)[[2]]
     xFl$coefficients2   <- robust.se(xFl,clusters)[[2]]
     
     n  <- nrow(dat)
-    s1 <- pillest(xBa, dat, n, "pill", 10)
     s2 <- pillest(xFl, dat, n, "pill", 10)
 
-
-    return(list(s1,s2))
+    return(list("beta" = s2$b, "se" = s2$s, "R2" = s2$r, "n" = s2$n))
 }
 
 #==============================================================================
@@ -305,21 +303,33 @@ event <- function(age_sub,deathtype) {
 #***(5) Estimate
 #******************************************************************************
 if(death){
-  p1519 <- death_pmod(age_sub = 15:19, "death",1)
-  p2034 <- death_pmod(age_sub = 20:34, "death",1)
-  p3549 <- death_pmod(age_sub = 35:49, "death",1)
-  e1519 <- death_pmod(age_sub = 15:19,"earlyP",1)
-  e2034 <- death_pmod(age_sub = 20:34,"earlyP",1)
-  e3549 <- death_pmod(age_sub = 35:49,"earlyP",1)
-  l1519 <- death_pmod(age_sub = 15:19, "lateP",1)
-  l2034 <- death_pmod(age_sub = 20:34, "lateP",1)
-  l3549 <- death_pmod(age_sub = 35:40, "lateP",1)
+    p1519 <- death_pmod(age_sub = 15:19, "death",1)
+    p2034 <- death_pmod(age_sub = 20:34, "death",1)
+    p3549 <- death_pmod(age_sub = 35:49, "death",1)
+    e1519 <- death_pmod(age_sub = 15:19,"earlyP",1)
+    e2034 <- death_pmod(age_sub = 20:34,"earlyP",1)
+    e3549 <- death_pmod(age_sub = 35:49,"earlyP",1)
+    l1519 <- death_pmod(age_sub = 15:19, "lateP",1)
+    l2034 <- death_pmod(age_sub = 20:34, "lateP",1)
+    l3549 <- death_pmod(age_sub = 35:40, "lateP",1)
+}
+
+if(Ndeath) {
+    n1519  <- NumDeath(age_sub = 15:19, "death")
+    n2034  <- NumDeath(age_sub = 20:34, "death")
+    n3549  <- NumDeath(age_sub = 35:49, "death")
+    ne1519 <- NumDeath(age_sub = 15:19,"earlyP")
+    ne2034 <- NumDeath(age_sub = 20:34,"earlyP")
+    ne3549 <- NumDeath(age_sub = 35:49,"earlyP")
+    nl1519 <- NumDeath(age_sub = 15:19, "lateP")
+    nl2034 <- NumDeath(age_sub = 20:34, "lateP")
+    nl3549 <- NumDeath(age_sub = 35:40, "lateP")
 }
 
 if(spill){
-  s1519 <- spillovers(age_sub = 15:19,"earlyP")
-  s2034 <- spillovers(age_sub = 20:34,"earlyP")
-  s3549 <- spillovers(age_sub = 35:40,"earlyP")
+    s1519 <- spillovers(age_sub = 15:19,"earlyP")
+    s2034 <- spillovers(age_sub = 20:34,"earlyP")
+    s3549 <- spillovers(age_sub = 35:40,"earlyP")
 }
 
 if(full) {
@@ -438,11 +448,55 @@ stargazer(full1519, full2034,  full3549,
 }
 
 if(combine){
-  spillA <- readLines(paste(tab.dir,"Spillovers_A.tex", sep=""))
-  spillB <- readLines(paste(tab.dir,"Spillovers_B.tex", sep=""))  
+    spillA <- readLines(paste(tab.dir,"Spillovers_A.tex", sep=""))
+    spillB <- readLines(paste(tab.dir,"Spillovers_B.tex", sep=""))  
 
-  to <- file(paste(tab.dir,"Spillovers.tex", sep=""))
-  writeLines(c(spillA,spillB),to)
-  close(to)
+    to <- file(paste(tab.dir,"Spillovers.tex", sep=""))
+    writeLines(c(spillA,spillB),to)
+    close(to)
 }
 
+if(deathTab) {
+    xvn <- 'Morning After Pill  \\hspace{1.6cm} &'
+    to <- file(paste(tab.dir,"DeathsPerBirth.tex", sep=""))
+    writeLines(c('\\begin{table}[htpb!] \\centering',
+                 '\\caption{OLS Estimates: Fetal Deaths/Live Birth}',
+                 '\\label{TEENtab:DeathOLS}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]',
+                 '\\hline\\hline\\\\[-1.8ex]','& All & Early & Late \\\\',
+                 '& Deaths & Gestation & Gestation \\\\ \\midrule',
+                 '\\multicolumn{4}{l}{\\textsc{15-19 year olds}} \\\\',
+                 '&&&\\\\',
+                 paste(xvn,n1519$beta,a,ne1519$beta,a,nl1519$beta, s,sep=""),
+                 paste(a,n1519$s,a,ne1519$s,a,nl1519$s,s,sep=""),'&&&\\\\',
+                 paste(obs,n1519$n,a,ne1519$n,a,nl1519$n,s,sep=""),
+                 paste('R-squared&',n1519$R2,a,ne1519$R2,a,nl1519$R2,s,sep=""),
+                 '&&&\\\\',
+                 '\\multicolumn{4}{l}{\\textsc{20-34 year olds}} \\\\',
+                 '&&&\\\\',
+                 paste(xvar,n2034$beta,a,ne2034$beta,a,nl2034$beta,s,sep=""),
+                 paste(a,n2034$s,a,ne2034$s,a,nl2034$s,s,sep=""),'&&&\\\\',
+                 paste(obs,n2034$n,a,ne2034$n,a,nl2034$n,s,sep=""),
+                 paste('R-squared&',n2034$R2,a,ne2034$R2,a,nl2034$R2,s,sep=""),
+                 '&&&\\\\',
+                 '\\multicolumn{4}{l}{\\textsc{35-49 year olds}} \\\\',
+                 '&&&\\\\',
+                 paste(xvar,n3549$beta,a,ne3549$beta,a,nl3549$beta,s,sep=""),
+                 paste(a,n3549$s,a,ne3549$s,a,nl3549$s,s,sep=""),'&&&\\\\',
+                 paste(obs,n3549$n,a,ne3549$n,a,nl3549$n,s,sep=""),
+                 paste('R-squared&',n3549$R2,a,ne3549$R2,a,nl3549$R2,s,sep=""),
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{4}{p{10cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+                 'Each regression uses as its dependent variable fetal deaths ',
+                 'divided by live births in the comuna and age group and is ',
+                 'estimated by OLS.  All',
+                 'regressions include year and comuna fixed-effects, and',
+                 'comuna-specific trends.  Each regression also includes the',
+                 'full set of time varying controls described in table',
+                 '\\ref{TEENtab:PillPreg}.  Standard errors are clustered by',
+                 'comuna.',
+                 paste(sig,'\\end{footnotesize}}',sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+
+    close(to)
+}
