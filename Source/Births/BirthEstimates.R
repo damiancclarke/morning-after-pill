@@ -30,15 +30,15 @@ rm(list=ls())
 #==============================================================================
 create <- FALSE
 preg   <- FALSE
-Npreg  <- FALSE
-prTab  <- FALSE
+Npreg  <- TRUE
+prTab  <- TRUE
 spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
 events <- FALSE
-ChMund <- TRUE
-invPS  <- TRUE
+ChMund <- FALSE
+invPS  <- FALSE
     
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -71,7 +71,7 @@ graf.dir <- paste(proj.dir, "Figures/", sep="")
 Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
            "outofschool","healthspend","healthstaff","healthtraining"        , 
            "educationspend","femalepoverty","year","urban","educationmunicip",
-           "condom","usingcont","femaleworkers","region")
+           "condom","usingcont","femaleworkers","region","popln")
 
 #==============================================================================
 #=== (3a) Source functions
@@ -89,7 +89,6 @@ if(create){
 #==============================================================================
 f <- paste(brth.dir, "S1Data_granular_covars.csv", sep="")
 orig <- read.csv(f)
-
 
 #==============================================================================
 #=== (4) Main Functions
@@ -151,10 +150,21 @@ robust.se <- function(model, cluster) {
     return(list(rcse.cov, rcse.se))
 }
 
+closegen <- function(d1,d2,dat) {
+    dat2 <- dat
+    dat2$newvar <- NA  
+    dat2$newvar[dat2$pilldistance > d1 & dat2$pilldistance <= d2 &
+                !(dat2$pilldistance)==0] <- 1
+    dat2$newvar[is.na(dat2$newvar)]<-0
+    names(dat2)<-c(names(dat),paste('close',d2,sep=""))
+    return(dat2)
+}
+
 datcollapse <- function(age_sub,order_sub,ver,dat) {
 
     dat <- dat[dat$age %in% age_sub,]
     dat <- dat[(dat$order %in% order_sub) | !(dat$pregnant),]
+    dat$popln <- ave(dat$n,dat$dom_comuna,dat$year,FUN=sum)
     if(ver==2) {
         dat <- dat[dat$pregnant==1,]
     }
@@ -175,7 +185,7 @@ datcollapse <- function(age_sub,order_sub,ver,dat) {
                                      dat$femalepoverty,dat$urbBin,dat$year  ,
                                      dat$educationmunicip,dat$condom        ,
                                      dat$usingcont,dat$femaleworkers        ,
-                                     dat$region),
+                                     dat$region,dat$popln),
                                  function(vec) {sum(na.omit(vec))})
     names(fmod) <- c("close15","close30","close45",Names,"failures","successes")
     fmod$healthstaff      <- fmod$healthstaff/100000
@@ -287,11 +297,15 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
     }
 }
 
-NumMod <- function(age_sub,order_sub) {
+NumMod <- function(age_sub,order_sub,rate) {
   
     formod <- datcollapse(age_sub, order_sub,2,orig)
-    names(formod)[25] <- "births"
+    names(formod)[26] <- "births"
 
+    if(rate) {
+        formod$births <- (formod$births/formod$popln)*1000
+    }
+    
     xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)    +
               factor(dom_comuna):trend, data=formod)
     xct <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend       +
@@ -311,7 +325,7 @@ NumMod <- function(age_sub,order_sub) {
     xba$coefficients2 <- robust.se(xba,clusters)[[2]]
     xct$coefficients2 <- robust.se(xct,clusters)[[2]]
     xsp$coefficients2 <- robust.se(xsp,clusters)[[2]]
- 
+  
  
     n  <- nrow(formod)
     s1 <- pillest(xba, formod, n, "pill", 10)
@@ -325,20 +339,11 @@ NumMod <- function(age_sub,order_sub) {
 
     return(list("b" = betas,"se" = ses, "n" = n, "r" = r))  
 }
+  N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE)
 
 #==============================================================================
 #=== (4b) Various functions to examine effect of spillover 
 #==============================================================================
-closegen <- function(d1,d2,dat) {
-    dat2 <- dat
-    dat2$newvar <- NA  
-    dat2$newvar[dat2$pilldistance > d1 & dat2$pilldistance <= d2 &
-                !(dat2$pilldistance)==0] <- 1
-    dat2$newvar[is.na(dat2$newvar)]<-0
-    names(dat2)<-c(names(dat),paste('close',d2,sep=""))
-    return(dat2)
-}
-
 spillovers <- function(age_sub,order_sub) {
 
     formod <- datcollapse(age_sub, order_sub,1,orig)
@@ -425,7 +430,8 @@ rangeest <- function(age_sub,order_sub){
                                            dat$femalepoverty,dat$urbBin    ,
                                            dat$year,dat$educationmunicip   ,
                                            dat$condom,dat$usingcont        ,
-                                           dat$femaleworkers,dat$region),
+                                           dat$femaleworkers,dat$region    ,
+                                           dat$popln),
                                        function(vec) {sum(na.omit(vec))})
 
         names(formod) <- c("close1","closemarg",Names,"failures","successes")
@@ -467,16 +473,16 @@ event <- function(age_sub,order_sub) {
     formod           <- formod[with(formod,order(dom_comuna,trend,decreasing=T)), ]
     formod$add       <- ave(formod$nopill,formod$dom_comuna,FUN=cumsum)
     
-    formod$pilln5[formod$add==5 & formod$treatCom==1] <- 1
-    formod$pilln5[is.na(formod$pilln5)]               <- 0
-    formod$pilln4[formod$add==4 & formod$treatCom==1] <- 1
-    formod$pilln4[is.na(formod$pilln4)]               <- 0
-    formod$pilln3[formod$add==3 & formod$treatCom==1] <- 1
-    formod$pilln3[is.na(formod$pilln3)]               <- 0
-    formod$pilln2[formod$add==2 & formod$treatCom==1] <- 1
-    formod$pilln2[is.na(formod$pilln2)]               <- 0
-    formod$pilln1[formod$add==1 & formod$treatCom==1] <- 1
-    formod$pilln1[is.na(formod$pilln1)]               <- 0
+    formod$pilln5[formod$add==5 & formod$treatCom==1]   <- 1
+    formod$pilln5[is.na(formod$pilln5)]                 <- 0
+    formod$pilln4[formod$add==4 & formod$treatCom==1]   <- 1
+    formod$pilln4[is.na(formod$pilln4)]                 <- 0
+    formod$pilln3[formod$add==3 & formod$treatCom==1]   <- 1
+    formod$pilln3[is.na(formod$pilln3)]                 <- 0
+    formod$pilln2[formod$add==2 & formod$treatCom==1]   <- 1
+    formod$pilln2[is.na(formod$pilln2)]                 <- 0
+    formod$pilln1[formod$add==1 & formod$treatCom==1]   <- 1
+    formod$pilln1[is.na(formod$pilln1)]                 <- 0
     formod$pillp0[formod$pill==1 & formod$pilltotal==1] <- 1
     formod$pillp0[is.na(formod$pillp0)]                 <- 0
     formod$pillp1[formod$pill==1 & formod$pilltotal==2] <- 1
@@ -523,10 +529,15 @@ if(preg|ChMund){
 }
 
 if(Npreg){
-  N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100)
-  N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100)
-  N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100)
-  NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100)
+  N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE)
+  N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=FALSE)
+  N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=FALSE)
+  NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=FALSE)
+
+  r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=TRUE)
+  r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=TRUE)
+  r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=TRUE)
+  rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=TRUE)
 }
 
 if(spill){
@@ -813,7 +824,7 @@ writeLines(c('\\begin{table}[!htbp] \\centering',
             paste('N Preg (close 30) &',NPc3018,'&',NPc3019,'\\\\',sep=""),             
             'Pills Disbursed & 5,736 & 11,121 \\\\',
             '\\hline \\hline \\\\[-1.8ex]',
-            '\\multicolumn{3}{p{6cm}}{\\begin{footnotesize}\\textsc{Notes:} ',
+            '\\multicolumn{3}{p{8cm}}{\\begin{footnotesize}\\textsc{Notes:} ',
             'Regression coefficients and standard errors are calculated in ',
             'line with specification (\\ref{TEENeqn:spillover}). The number of ',
             'pills disbursed is calculated from administrative data described in ',
@@ -831,7 +842,7 @@ close(to)
 if(prTab){
     to <-file(paste(tab.dir,"aggregateBirths.tex", sep=""))
     writeLines(c('\\begin{table}[!htbp] \\centering',
-                 '\\caption{Estimates Based on Aggregate Comunal Data}',
+                 '\\caption{OLS Estimates Based on Aggregate Comunal Data}',
                  '\\label{TEENtab:aggregate}',
                  '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
                  '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
@@ -855,6 +866,12 @@ if(prTab){
                  ' & & & \\\\',
                  paste('Observations       &',N3549$n,'\\\\',sep=""),
                  paste('R-squared          &',N3549$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (All Groups)  &',NAll$b,'\\\\',sep=""),
+                 paste('                   &',NAll$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',NAll$n,'\\\\',sep=""),
+                 paste('R-squared          &',NAll$r,'\\\\',sep=""),
                  '\\hline \\\\[-1.8ex] ', 
                  '{\\small Year \\& Comuna FEs} & Y & Y & Y \\\\',
                  '{\\small Trend, Controls} & & Y & Y \\\\', 
@@ -864,6 +881,55 @@ if(prTab){
                  'Each panel presents difference-in-difference results for a',
                  'regression of the total count of pregnancies for the age',
                  'group in each municipality.  All models are estimated by OLS',
+                 'and standard errors are clustered at the level of the comuna.',
+                 'Controls are described in table \\ref{TEENtab:PillPreg}.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
+
+    to <-file(paste(tab.dir,"aggregateASFR.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{OLS Estimates Based on Aggregate Age-Specific Fertility Rate}',
+                 '\\label{TEENtab:aggregateASFR}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '& ASFR & ASFR & N ASFR \\\\',
+                 '&(1)&(2)&(3) \\\\ \\hline',
+                 ' & & & \\\\',
+                 paste('Pill (15-19 years) &',r1519$b,'\\\\',sep=""),
+                 paste('                   &',r1519$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',r1519$n,'\\\\',sep=""),
+                 paste('R-squared          &',r1519$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (20-34 years) &',r2034$b,'\\\\',sep=""),
+                 paste('                   &',r2034$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',r2034$n,'\\\\',sep=""),
+                 paste('R-squared          &',r2034$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (35-49 years) &',r3549$b,'\\\\',sep=""),
+                 paste('                   &',r3549$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',r3549$n,'\\\\',sep=""),
+                 paste('R-squared          &',r3549$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (All Groups)  &',rAll$b,'\\\\',sep=""),
+                 paste('                   &',rAll$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',rAll$n,'\\\\',sep=""),
+                 paste('R-squared          &',rAll$r,'\\\\',sep=""),
+                 '\\hline \\\\[-1.8ex] ', 
+                 '{\\small Year \\& Comuna FEs} & Y & Y & Y \\\\',
+                 '{\\small Trend, Controls} & & Y & Y \\\\', 
+                 '{\\small Spillovers} & & & Y \\\\',
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+                 'Each panel presents difference-in-difference results for a',
+                 'regression of the age-specific fertility rate (ASFR) for the age',
+                 'group in each municipality.  ASFR is defined as the number of',
+                 'births per 1,000 women.  In the case of all women, this is called',
+                 'the General Fertility Rate (GFR). All models are estimated by OLS',
                  'and standard errors are clustered at the level of the comuna.',
                  'Controls are described in table \\ref{TEENtab:PillPreg}.',
                  paste(sig, '\\end{footnotesize}}', sep=""),
