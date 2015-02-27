@@ -30,15 +30,15 @@ rm(list=ls())
 #==============================================================================
 create <- FALSE
 preg   <- FALSE
-Npreg  <- TRUE
-prTab  <- TRUE
+Npreg  <- FALSE
+prTab  <- FALSE
 spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
 events <- FALSE
 ChMund <- FALSE
-invPS  <- FALSE
+invPS  <- TRUE
     
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -59,13 +59,13 @@ require("lmtest"   )
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
 
 brth.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
-code.dir <- paste(proj.dir, "Source/Births/",sep="")
-com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
-ma.dir   <- paste(proj.dir, "Data/PAE/",sep="")
-pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
-pop.dir  <- paste(proj.dir, "Data/Population/",sep="")
-tab.dir  <- paste(proj.dir, "Tables/", sep="")
-graf.dir <- paste(proj.dir, "Figures/", sep="")
+code.dir <- paste(proj.dir, "Source/Births/"   ,sep="")
+com.dir  <- paste(proj.dir, "Data/Comunas/"    ,sep="")
+ma.dir   <- paste(proj.dir, "Data/PAE/"        ,sep="")
+pol.dir  <- paste(proj.dir, "Data/Alcaldes/"   ,sep="")
+pop.dir  <- paste(proj.dir, "Data/Population/" ,sep="")
+tab.dir  <- paste(proj.dir, "Tables/"          ,sep="")
+graf.dir <- paste(proj.dir, "Figures/"         ,sep="")
 
 
 Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
@@ -210,10 +210,8 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
         PSc <- glm(pill ~ factor(party) + factor(mujer) + votes + outofschool + 
                    educationspend + educationmunicip + healthspend            + 
                    healthtraining + healthstaff + femalepoverty + condom      +
-                   femaleworkers,
-                   family=binomial, data=preddat)
+                   femaleworkers, family=binomial, data=preddat)
         preddat$predict <- predict(PSc, type="response")
-        #preddat$WT      <- 1/preddat$predict
         preddat$WT[preddat$pill==1] <- 1/preddat$predict
         preddat$WT[preddat$pill==0] <- 1/(1-preddat$predict)
 
@@ -226,21 +224,21 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
 
     
     if(num==1) {
-        xnT <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
+        xnT <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)   +
                     factor(dom_comuna) + factor(region):trend,
                     family="binomial", data=formod, weights=WT)
   
-        xCM <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
+        xCM <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)   +
                     meanP + factor(region):trend,
                     family="binomial", data=formod, weights=WT)
 
-        xtr <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)      +
+        xtr <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)    +
                    factor(dom_comuna) + factor(dom_comuna):trend,
                    family="binomial", data=formod, weights=WT)
 
-        xpol <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)     +
-                    factor(dom_comuna) + factor(dom_comuna):trend + votes       +
-                    factor(party) + factor(mujer)                               ,
+        xpol <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)   +
+                    factor(dom_comuna) + factor(dom_comuna):trend + votes     +
+                    factor(party) + factor(mujer)                             ,
                     family="binomial", data=formod, weights=WT)
 
 
@@ -529,21 +527,21 @@ if(preg|ChMund){
 }
 
 if(Npreg){
-  N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE)
-  N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=FALSE)
-  N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=FALSE)
-  NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=FALSE)
-
-  r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=TRUE)
-  r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=TRUE)
-  r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=TRUE)
-  rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=TRUE)
+    N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE)
+    N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=FALSE)
+    N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=FALSE)
+    NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=FALSE)
+    
+    r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=TRUE)
+    r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=TRUE)
+    r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=TRUE)
+    rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=TRUE)
 }
 
 if(spill){
-  c1519 <- spillovers(age_sub = 15:19, order_sub = 1:100)
-  c2034 <- spillovers(age_sub = 20:34, order_sub = 1:100)
-  c3549 <- spillovers(age_sub = 35:44, order_sub = 1:100)
+    c1519 <- spillovers(age_sub = 15:19, order_sub = 1:100)
+    c2034 <- spillovers(age_sub = 20:34, order_sub = 1:100)
+    c3549 <- spillovers(age_sub = 35:44, order_sub = 1:100)
 }  
 
 if(invPS){
@@ -553,57 +551,59 @@ if(invPS){
 }
 
 if(full) {
-  full1519 <- runmod(age_sub = 15:19, order_sub = 1:100,2)
-  full2034 <- runmod(age_sub = 20:34, order_sub = 1:100,2)
-  full3549 <- runmod(age_sub = 35:49, order_sub = 1:100,2)
+    full1519 <- runmod(age_sub = 15:19, order_sub = 1:100,2)
+    full2034 <- runmod(age_sub = 20:34, order_sub = 1:100,2)
+    full3549 <- runmod(age_sub = 35:49, order_sub = 1:100,2)
 }
 
 if(aboe) {
 
-  NPp18   <- countpreg(age_sub = 15:18, order_sub = 1:100,1)
-  NPp19   <- countpreg(age_sub = 20:49, order_sub = 1:100,1)
-  NPc1518 <- countpreg(age_sub = 15:18, order_sub = 1:100,2)
-  NPc1519 <- countpreg(age_sub = 20:49, order_sub = 1:100,2)
-  NPc3018 <- countpreg(age_sub = 15:18, order_sub = 1:100,3)
-  NPc3019 <- countpreg(age_sub = 19:49, order_sub = 1:100,3) 
-
-  boe18 <- spillovers(age_sub = 15:18, order_sub = 1:100)
-  boe19 <- spillovers(age_sub = 19:49, order_sub = 1:100)
+    NPp18   <- countpreg(age_sub = 15:18, order_sub = 1:100,1)
+    NPp19   <- countpreg(age_sub = 20:49, order_sub = 1:100,1)
+    NPc1518 <- countpreg(age_sub = 15:18, order_sub = 1:100,2)
+    NPc1519 <- countpreg(age_sub = 20:49, order_sub = 1:100,2)
+    NPc3018 <- countpreg(age_sub = 15:18, order_sub = 1:100,3)
+    NPc3019 <- countpreg(age_sub = 19:49, order_sub = 1:100,3) 
+    
+    boe18 <- spillovers(age_sub = 15:18, order_sub = 1:100)
+    boe19 <- spillovers(age_sub = 19:49, order_sub = 1:100)
 }
 
 if(ranges) {
-  ra  <- rangeest(age_sub = 15:19, order_sub = 1:100)
+    ra  <- rangeest(age_sub = 15:19, order_sub = 1:100)
   
-  postscript(paste(graf.dir,"Dist1519.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  plot(ra$distance,ra$pillbeta, type="b",ylim=c(-0.10,-0.02),
-       col="darkgreen",lwd=2,pch=20, xlab="Distance From Treatment Cluster (km)",
-       ylab="Esimate of Effect on Treated Cluster")
-  points(ra$distance,ra$pillbeta+1.96*ra$pillse,type="l",lty=3,pch=20)
-  points(ra$distance,ra$pillbeta-1.96*ra$pillse,type="l",lty=3,pch=20)
+    postscript(paste(graf.dir,"Dist1519.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    plot(ra$distance,ra$pillbeta, type="b",ylim=c(-0.10,-0.02),
+         col="darkgreen",lwd=2,pch=20,
+         xlab="Distance From Treatment Cluster (km)",
+         ylab="Esimate of Effect on Treated Cluster")
+    points(ra$distance,ra$pillbeta+1.96*ra$pillse,type="l",lty=3,pch=20)
+    points(ra$distance,ra$pillbeta-1.96*ra$pillse,type="l",lty=3,pch=20)
+    
+    legend("topright",legend=c("Point Estimate","95% CI"),
+           text.col=c("darkgreen","black"),pch=c(20,NA),lty=c(1,3),
+           col=c("darkgreen","black"))
+    dev.off()
 
-  legend("topright",legend=c("Point Estimate","95% CI"),
-         text.col=c("darkgreen","black"),pch=c(20,NA),lty=c(1,3),
-         col=c("darkgreen","black"))
-  dev.off()
-
-
-  ra  <- rangeest(age_sub = 20:34, order_sub = 1:100)
+    
+    ra  <- rangeest(age_sub = 20:34, order_sub = 1:100)
   
-  postscript(paste(graf.dir,"Dist2034.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  plot(ra$distance,ra$pillbeta, type="b",ylim=c(-0.06,-0.02),
-       col="darkgreen",lwd=2,pch=20, xlab="Distance From Treatment Cluster (km)",
-       ylab="Esimate of Effect on Treated Cluster")
-  points(ra$distance,ra$pillbeta+1.96*ra$pillse,type="l",lty=3,pch=20)
-  points(ra$distance,ra$pillbeta-1.96*ra$pillse,type="l",lty=3,pch=20)
+    postscript(paste(graf.dir,"Dist2034.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    plot(ra$distance,ra$pillbeta, type="b",ylim=c(-0.06,-0.02),
+         col="darkgreen",lwd=2,pch=20,
+         xlab="Distance From Treatment Cluster (km)",
+         ylab="Esimate of Effect on Treated Cluster")
+    points(ra$distance,ra$pillbeta+1.96*ra$pillse,type="l",lty=3,pch=20)
+    points(ra$distance,ra$pillbeta-1.96*ra$pillse,type="l",lty=3,pch=20)
   
-  legend("topright",legend=c("Point Estimate","95% CI"),
-         text.col=c("darkgreen","black"),pch=c(20,NA),lty=c(1,3),
-         col=c("darkgreen","black"))
-  dev.off()
+    legend("topright",legend=c("Point Estimate","95% CI"),
+           text.col=c("darkgreen","black"),pch=c(20,NA),lty=c(1,3),
+           col=c("darkgreen","black"))
+    dev.off()
 }
 
 if(events){
@@ -893,7 +893,7 @@ if(prTab){
                  '\\label{TEENtab:aggregateASFR}',
                  '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
                  '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '& ASFR & ASFR & N ASFR \\\\',
+                 '& ASFR & ASFR & ASFR \\\\',
                  '&(1)&(2)&(3) \\\\ \\hline',
                  ' & & & \\\\',
                  paste('Pill (15-19 years) &',r1519$b,'\\\\',sep=""),
@@ -1026,4 +1026,46 @@ if(invPS){
                  paste(sig, '\\end{footnotesize}}', sep=""),
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
+}
+
+
+if(prTab) {
+to <-file(paste(tab.dir,"BirthRobust.tex", sep=""))
+writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
+             '\\caption{Alternative Specifications -- Births}',
+             '\\label{TEENtab:BirthRobust}',
+             '\\begin{tabular}{@{\\extracolsep{5pt}}lccccccc}',
+             '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+             '&(1)&(2)&(3)&(4)&(5)&(6)&(7) \\\\',
+             '&Main&Chamb--&No & OLS & OLS & Inv & Full \\\\',
+             '&&Mundlark&Trend & Count & Rate & PS & Controls \\\\ \\hline',
+             ' & & & & & & & \\\\',
+             #paste("All",a1519$b,'&',b1519$b,'\\\\', sep=""), 
+             #paste(' &', a1519$se,'&', b1519$se, '\\\\', sep=""), 
+             #' & & & & & & & & & \\\\',
+             #paste(obs, a1519$n,'&',b1519$n,'\\\\', sep=""), 
+             #paste(R2, a1519$r,'&',b1519$r,'\\\\', sep=""), 
+             ' & & & & & & & \\\\',
+             #paste("15-19",a1519$b,'&',b1519$b,'\\\\', sep=""), 
+             #paste(' &', a1519$se,'&', b1519$se, '\\\\', sep=""), 
+             #' & & & & & & & & & \\\\',
+             #paste(obs, a1519$n,'&',b1519$n,'\\\\', sep=""), 
+             #paste(R2, a1519$r,'&',b1519$r,'\\\\', sep=""), 
+             ' & & & & & & & \\\\',
+             #paste("20-34",a1519$b,'&',b1519$b,'\\\\', sep=""), 
+             #paste(' &', a1519$se,'&', b1519$se, '\\\\', sep=""), 
+             #' & & & & & & & & & \\\\',
+             #paste(obs, a1519$n,'&',b1519$n,'\\\\', sep=""), 
+             #paste(R2, a1519$r,'&',b1519$r,'\\\\', sep=""), 
+             ' & & & & & & & \\\\',
+             #paste("35-49",a1519$b,'&',b1519$b,'\\\\', sep=""), 
+             #paste(' &', a1519$se,'&', b1519$se, '\\\\', sep=""), 
+             #' & & & & & & & & & \\\\',
+             #paste(obs, a1519$n,'&',b1519$n,'\\\\', sep=""), 
+             #paste(R2, a1519$r,'&',b1519$r,'\\\\', sep=""),  
+             '\\hline \\\\[-1.8ex] ',
+             '\\multicolumn{8}{p{19cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+             paste(sig, '\\end{footnotesize}}', sep=""),
+             '\\normalsize\\end{tabular}\\end{table}\\end{landscape}'),to)
+close(to)
 }
