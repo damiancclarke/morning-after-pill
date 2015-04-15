@@ -205,12 +205,20 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
   
     formod <- datcollapse(age_sub,order_sub,1,orig)
     if(PSwt) {
-        preddat <- datcollapse(age_sub,order_sub,2,orig)
-        
-        PSc <- glm(pill ~ factor(party) + factor(mujer) + votes + outofschool + 
+        preddat      <- datcollapse(age_sub,order_sub,2,orig)
+        prerate      <- datcollapse(15:49,1:100,1,orig)
+        prerate      <- prerate[prerate$trend<4,]
+        prerate$rate <- prerate$successes/prerate$popln
+
+        prerate <- aggregate.data.frame(prerate$rate,
+                                        by=list(prerate$dom_comuna),FUN=mean)
+        names(prerate) <- c("dom_comuna","prerate")
+        preddat <- merge(preddat,prerate,by=c("dom_comuna"))
+                   
+        PSc <- glm(pill ~ factor(mujer) + votes + outofschool + 
                    educationspend + educationmunicip + healthspend            + 
                    healthtraining + healthstaff + femalepoverty + condom      +
-                   femaleworkers, family=binomial, data=preddat)
+                   femaleworkers + prerate, family=binomial, data=preddat)
         preddat$predict <- predict(PSc, type="response")
         preddat$WT[preddat$pill==1] <- 1/preddat$predict
         preddat$WT[preddat$pill==0] <- 1/(1-preddat$predict)
@@ -288,8 +296,10 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
         ses   <- paste(s1$s, "&", s2$s, "&", s4$s, "&", s5$s, sep="")
         n     <- paste(s1$n, '&', s2$n, '&', s4$n, '&' ,s5$n, sep='')
         r     <- paste(s1$r, '&', s2$r, '&', s4$r, '&', s5$r, sep='')
-
-        return(list("b" = betas,"se" = ses, "n" = n, "r" = r, "CM" = s0, "NT" = st))  
+        if(PSwt) {
+            return(list("b" = betas,"se" = ses, "n" = n, "r" = r, "PS" = PSc))  
+        }
+        return(list("b" = betas,"se" = ses, "n" = n, "r" = r, "CM" = s0, "NT" = st))
     } else {
         return(xcont)
     }
@@ -337,7 +347,7 @@ NumMod <- function(age_sub,order_sub,rate) {
 
     return(list("b" = betas,"se" = ses, "n" = n, "r" = r))  
 }
-  N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE)
+#  N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE)
 
 #==============================================================================
 #=== (4b) Various functions to examine effect of spillover 
