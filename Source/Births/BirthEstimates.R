@@ -36,9 +36,9 @@ spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
-events <- FALSE
+events <- TRUE
 ChMund <- FALSE
-invPS  <- TRUE
+invPS  <- FALSE
     
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -55,6 +55,7 @@ require("glmmML"   )
 require("sandwich" )
 require("stargazer")
 require("lmtest"   )
+require("plotrix"  )
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
 
@@ -616,6 +617,7 @@ if(ranges) {
     dev.off()
 }
 
+
 if(events){
     note <- "Points and confidence intervals represent etimates for a
     full event study. Each point represents treatment interacted with n years
@@ -624,42 +626,47 @@ if(events){
     note <- gsub("  "," ",note)
                   
     
-    e1519 <- event(age_sub=15:19, order_sub=1:100)
-
+    e1519 <- event(age_sub=15:19, order_sub=1)
+    
     postscript(paste(graf.dir,"Event1519.eps",sep=""),
              horizontal = FALSE, onefile = FALSE, paper = "special",
              height=7, width=9)
-    plot(e1519$eventyr,e1519$b, type="b",ylim=c(-0.2,0.10),
-         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
-         xlab="Event Year")
-    abline(h = 0, lwd=2, col="gray60")
-    points(e1519$eventyr,e1519$b+1.96*e1519$s,type="l",lty=5,pch=20)
-    points(e1519$eventyr,e1519$b-1.96*e1519$s,type="l",lty=5,pch=20)
+
+    plotCI(e1519$eventyr,e1519$b,ui=e1519$b+1.96*e1519$s,li=e1519$b-1.96*e1519$s,
+           ylim=c(-0.2,0.10), ylab="Estimate", xlab="Event Year",
+           cex.lab=1.25, cex.axis=1.25, cex.main=1.25, cex.sub=1.25)
+    
+    points(e1519$eventyr,e1519$b,type="l",lwd=2,pch=20)
+    abline(h =  0  , lwd=1, col="gray60", lty = 2)
+    abline(v = -0.1, lwd=2, col="red")
     dev.off()
     
-    e2034 <- event(age_sub=20:34, order_sub=1)
 
+    e2034 <- event(age_sub=20:34, order_sub=1)
     postscript(paste(graf.dir,"Event2034.eps",sep=""),
              horizontal = FALSE, onefile = FALSE, paper = "special",
              height=7, width=9)
-    plot(e2034$eventyr,e2034$b, type="b",ylim=c(-0.2,0.1),
-         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
-         xlab="Event Year")
-    abline(h = 0, lwd=2, col="gray60")
-    points(e2034$eventyr,e2034$b+1.96*e2034$s,type="l",lty=5,pch=20)
-    points(e2034$eventyr,e2034$b-1.96*e2034$s,type="l",lty=5,pch=20)
+
+    plotCI(e2034$eventyr,e2034$b,ui=e2034$b+1.96*e2034$s,li=e2034$b-1.96*e2034$s,
+           ylim=c(-0.2,0.10), ylab="Estimate", xlab="Event Year",
+           cex.lab=1.25, cex.axis=1.25, cex.main=1.25, cex.sub=1.25)
+    points(e2034$eventyr,e2034$b,type="l",lwd=2,pch=20)
+    abline(h =  0  , lwd=1, col="gray60", lty = 2)
+    abline(v = -0.1, lwd=2, col="red")
     dev.off()
+
 
     e3549 <- event(age_sub=35:49, order_sub=1)
     postscript(paste(graf.dir,"Event3549.eps",sep=""),
              horizontal = FALSE, onefile = FALSE, paper = "special",
              height=7, width=9)
-    plot(e3549$eventyr,e3549$b, type="b",ylim=c(-0.2,0.1),
-         col="darkgreen",lwd=2,pch=20, ylab="Estimate",
-         xlab="Event Year")
-    abline(h = 0, lwd=2, col="gray60")
-    points(e3549$eventyr,e3549$b+1.96*e3549$s,type="l",lty=5,pch=20)
-    points(e3549$eventyr,e3549$b-1.96*e3549$s,type="l",lty=5,pch=20)
+    plotCI(e3549$eventyr,e3549$b,ui=e3549$b+1.96*e3549$s,li=e3549$b-1.96*e3549$s,
+           ylab="Estimate", xlab="Event Year",
+           cex.lab=1.25, cex.axis=1.25, cex.main=1.25, cex.sub=1.25)
+    points(e3549$eventyr,e3549$b,type="l",lwd=2,pch=20)
+    abline(h =  0  , lwd=1, col="gray60", lty = 2)
+    abline(v = -0.1, lwd=2, col="red")
+
     dev.off()
 }
 
