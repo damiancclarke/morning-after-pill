@@ -32,7 +32,9 @@ pop.dir  <- paste(proj.dir, "Data/Population/",sep="")
 
 library("data.table")
 library("doBy")
+library("ggplot2")
 library("SDMTools")
+library("lattice")
 
 create     <- FALSE
 comunas    <- FALSE
@@ -41,8 +43,9 @@ tables     <- FALSE
 pillgraph  <- FALSE
 preggraph  <- FALSE
 deathgraph <- FALSE
-totgraph   <- TRUE
+totgraph   <- FALSE
 trends     <- FALSE
+sumplots   <- TRUE
 
 #*******************************************************************************
 #***(2) Load required data
@@ -64,145 +67,145 @@ names(deaths) <- c("dc","os","hs","hc","ht","et","em","fp","fw","po","ur","u1",
                    "ag","or","n","de","eP","eQ","lP","lQ","cn")
 
 if(create) {
-  birth_y_range <- 2000:2012
-  pill_y_range <- birth_y_range - 1
-  age_range <- c(15,49)  
-  week          <- 20
-  pat           <- "P"
-  
-  fB <- paste(codB.dir,"BirthGenerate.R",sep="")
-  fD <- paste(codD.dir,"DeathGenerate.R",sep="")
-  source(fB)
-  source(fD)  
-  filenameB <- paste(brth.dir, 'S1Data_covars_20002012.csv' ,sep="")
-  filenameD <- paste(deth.dir, 'S1Data_20002012.csv', sep="")
-  prep_s1_data(age_range,usecom="FALSE",filenameB)
-  prep_s1_data_deaths(age_range,week,pat,FALSE,filenameD)
-  
+    birth_y_range <- 2000:2012
+    pill_y_range <- birth_y_range - 1
+    age_range <- c(15,49)  
+    week          <- 20
+    pat           <- "P"
+    
+    fB <- paste(codB.dir,"BirthGenerate.R",sep="")
+    fD <- paste(codD.dir,"DeathGenerate.R",sep="")
+    source(fB)
+    source(fD)  
+    filenameB <- paste(brth.dir, 'S1Data_covars_20002012.csv' ,sep="")
+    filenameD <- paste(deth.dir, 'S1Data_20002012.csv', sep="")
+    prep_s1_data(age_range,usecom="FALSE",filenameB)
+    prep_s1_data_deaths(age_range,week,pat,FALSE,filenameD)
+    
 }
 #*******************************************************************************
 #***(3) Main Functions
 #*******************************************************************************
 comunaSum <- function() {
-  comd <- deaths
-  all  <- deaths
-  comd <- do.call(data.frame, aggregate(. ~ pill, comd,
-                                       function(x) c(mean = mean(x), sd=sd(x))))
-  all$g <- 1
-  all <- do.call(data.frame, aggregate(. ~ g, all,
-                                       function(x) c(mean = mean(x), sd=sd(x))))
+    comd <- deaths
+    all  <- deaths
+    comd <- do.call(data.frame, aggregate(. ~ pill, comd,
+                                          function(x) c(mean = mean(x), sd=sd(x))))
+    all$g <- 1
+    all <- do.call(data.frame, aggregate(. ~ g, all,
+                                         function(x) c(mean = mean(x), sd=sd(x))))
+    
+                                        #comd <- format(round(comd,3), nsmall=3)
+                                        #all  <- format(round(all,3), nsmall=3)
+    
+    comd <- format(comd, digits=3, big.mark=",", scientific=F)
+    all  <- format(all,  digits=3, big.mark=",", scientific=F)
   
-  #comd <- format(round(comd,3), nsmall=3)
-  #all  <- format(round(all,3), nsmall=3)
-
-  comd <- format(comd, digits=3, big.mark=",", scientific=F)
-  all  <- format(all,  digits=3, big.mark=",", scientific=F)
+    all  <- all[,grepl("pill.mean|pill.sd",colnames(all))==FALSE]
   
-  all  <- all[,grepl("pill.mean|pill.sd",colnames(all))==FALSE]
-  
-  msdd <- cbind(t(comd[1,]),'&',t(comd[2,]),"&",t(all))
-  sdd <- cbind("(",gsub("&",")&(",msdd[grep(".sd",rownames(msdd)),]),") \\\\")
-  md  <- cbind(msdd[grep(".mean|pill",rownames(msdd)),],"\\\\")
-  
-  
-  n<- with(deaths, tapply(dc, pill, FUN = function(x) length(unique(x))))
-  return(list("sd" = sdd, "mean" = md, "n"=n[2]))
+    msdd <- cbind(t(comd[1,]),'&',t(comd[2,]),"&",t(all))
+    sdd <- cbind("(",gsub("&",")&(",msdd[grep(".sd",rownames(msdd)),]),") \\\\")
+    md  <- cbind(msdd[grep(".mean|pill",rownames(msdd)),],"\\\\")
+    
+    
+    n<- with(deaths, tapply(dc, pill, FUN = function(x) length(unique(x))))
+    return(list("sd" = sdd, "mean" = md, "n"=n[2]))
 }
 
 childSum <- function() {
-  dat <- births
-  dat$totnonpreg <- (1-births$pregnant)*births$n
-  dat$totpreg <- births$pregnant*births$n
+    dat <- births
+    dat$totnonpreg <- (1-births$pregnant)*births$n
+    dat$totpreg <- births$pregnant*births$n
     
-  birthc <- summaryBy(totnonpreg + totpreg ~ pill, FUN=sum, data=dat)
-
-  nopill <- birthc$totpreg.sum[1]
-  pill <- birthc$totpreg.sum[2]  
-  total <- pill + nopill
-  
-  total <- format(total, digits=3, big.mark=",", scientific=F)
-  nopill <- format(nopill, digits=3, big.mark=",", scientific=F)
-  pill <- format(pill, digits=3, big.mark=",", scientific=F)
-  
-  
-  deathc <- summaryBy(de ~ pill, FUN=sum, data=deaths)
-  dnopill <- deathc$de.sum[1]
-  dpill <- deathc$de.sum[2]  
-  dtotal <- dpill + dnopill
-  
-  dtotal <- format(dtotal, digits=3, big.mark=",", scientific=F)
-  dnopill <- format(dnopill, digits=3, big.mark=",", scientific=F)
-  dpill <- format(dpill, digits=3, big.mark=",", scientific=F)
-  
-  
-  return(list("bp"=pill, "bn"=nopill, "bt"=total, 
-              "dp"=dpill, "dn"=dnopill, "dt"=dtotal))
+    birthc <- summaryBy(totnonpreg + totpreg ~ pill, FUN=sum, data=dat)
+    
+    nopill <- birthc$totpreg.sum[1]
+    pill <- birthc$totpreg.sum[2]  
+    total <- pill + nopill
+    
+    total <- format(total, digits=3, big.mark=",", scientific=F)
+    nopill <- format(nopill, digits=3, big.mark=",", scientific=F)
+    pill <- format(pill, digits=3, big.mark=",", scientific=F)
+    
+    
+    deathc <- summaryBy(de ~ pill, FUN=sum, data=deaths)
+    dnopill <- deathc$de.sum[1]
+    dpill <- deathc$de.sum[2]  
+    dtotal <- dpill + dnopill
+    
+    dtotal <- format(dtotal, digits=3, big.mark=",", scientific=F)
+    dnopill <- format(dnopill, digits=3, big.mark=",", scientific=F)
+    dpill <- format(dpill, digits=3, big.mark=",", scientific=F)
+    
+    
+    return(list("bp"=pill, "bn"=nopill, "bt"=total, 
+                "dp"=dpill, "dn"=dnopill, "dt"=dtotal))
 }
 
 birthtrends <- function(age_sub,dat) {
-  dat <- dat[dat$age %in% age_sub,]
+    dat <- dat[dat$age %in% age_sub,]
     
-  preg <-dat[dat$pregnant==1,]
-  birt <-dat[dat$pregnant==0,]
-  preg <-aggregate(preg$n,by=list(preg$year,preg$pill,preg$dom_comuna),sum)
-  birt <-aggregate(birt$n,by=list(birt$year,birt$pill,birt$dom_comuna),sum)
-  names(preg)<-c("year","pill","comuna","Npreg")
-  names(birt)<-c("year","pill","comuna","Nbirth")
-  
-  total <-merge(preg,birt,by=c("comuna","year","pill"))
-  total$birthrate <- total$Npreg/total$Nbirth
-  
-  total$pill2010<-0
-  total$pill2010[(total$year==2010&total$pill==1)]<-1
-  
-  pill2010<-aggregate(total$pill2010, by=list(total$comuna), sum)
-  names(pill2010)<-c("comuna","pill2010")
-  total<-total[,c("year","comuna","Npreg","Nbirth","birthrate")]
-  
-  final<-merge(total,pill2010,by="comuna",all=T)
-  
-  trends <- aggregate(final$Npreg,by=list(final$pill2010,final$year),sum)
-  names(trends) <- c("nopill","year","N")
-  
-  return(trends)  
+    preg <-dat[dat$pregnant==1,]
+    birt <-dat[dat$pregnant==0,]
+    preg <-aggregate(preg$n,by=list(preg$year,preg$pill,preg$dom_comuna),sum)
+    birt <-aggregate(birt$n,by=list(birt$year,birt$pill,birt$dom_comuna),sum)
+    names(preg)<-c("year","pill","comuna","Npreg")
+    names(birt)<-c("year","pill","comuna","Nbirth")
+    
+    total <-merge(preg,birt,by=c("comuna","year","pill"))
+    total$birthrate <- total$Npreg/total$Nbirth
+    
+    total$pill2010<-0
+    total$pill2010[(total$year==2010&total$pill==1)]<-1
+    
+    pill2010<-aggregate(total$pill2010, by=list(total$comuna), sum)
+    names(pill2010)<-c("comuna","pill2010")
+    total<-total[,c("year","comuna","Npreg","Nbirth","birthrate")]
+    
+    final<-merge(total,pill2010,by="comuna",all=T)
+    
+    trends <- aggregate(final$Npreg,by=list(final$pill2010,final$year),sum)
+    names(trends) <- c("nopill","year","N")
+    
+    return(trends)  
 }
 
 deathtrends <- function(age_sub,dat) {
-  dat <- dat[dat$age %in% age_sub,]
+    dat <- dat[dat$age %in% age_sub,]
+    
+    preg <-dat[dat$pregnant==1,]
+    deth <-dat[dat$earlyP==1,]
+    preg <-aggregate(preg$n,by=list(preg$year,preg$pill,preg$dom_comuna),sum)
+    deth <-aggregate(deth$n,by=list(deth$year,deth$pill,deth$dom_comuna),sum)
+    names(preg)<-c("year","pill","comuna","Npreg")
+    names(deth)<-c("year","pill","comuna","Ndeath")
+    
+    total <-merge(preg,deth,by=c("comuna","year","pill"))
+    total$deathrate <- total$Ndeath/total$Npreg
+    
+    total$pill2010<-0
+    total$pill2010[(total$year==2010&total$pill==1)]<-1
+    
+    pill2010<-aggregate(total$pill2010, by=list(total$comuna), sum)
+    names(pill2010)<-c("comuna","pill2010")
+    total<-total[,c("year","comuna","Npreg","Ndeath","deathrate")]
+    
+    final<-merge(total,pill2010,by="comuna",all=T)
   
-  preg <-dat[dat$pregnant==1,]
-  deth <-dat[dat$earlyP==1,]
-  preg <-aggregate(preg$n,by=list(preg$year,preg$pill,preg$dom_comuna),sum)
-  deth <-aggregate(deth$n,by=list(deth$year,deth$pill,deth$dom_comuna),sum)
-  names(preg)<-c("year","pill","comuna","Npreg")
-  names(deth)<-c("year","pill","comuna","Ndeath")
-  
-  total <-merge(preg,deth,by=c("comuna","year","pill"))
-  total$deathrate <- total$Ndeath/total$Npreg
-  
-  total$pill2010<-0
-  total$pill2010[(total$year==2010&total$pill==1)]<-1
-  
-  pill2010<-aggregate(total$pill2010, by=list(total$comuna), sum)
-  names(pill2010)<-c("comuna","pill2010")
-  total<-total[,c("year","comuna","Npreg","Ndeath","deathrate")]
-  
-  final<-merge(total,pill2010,by="comuna",all=T)
-  
-  trends <- aggregate(final$Ndeath,by=list(final$pill2010,final$year),sum)
-  names(trends) <- c("nopill","year","N")
-  
-  return(trends)
+    trends <- aggregate(final$Ndeath,by=list(final$pill2010,final$year),sum)
+    names(trends) <- c("nopill","year","N")
+    
+    return(trends)
 }
 
 #*******************************************************************************
 #***(4) Run Summary Functions
 #*******************************************************************************
 if(comunas) {
-  cs <- comunaSum()
+    cs <- comunaSum()
 }
 if(kids) {
-  ks <- childSum()
+    ks <- childSum()
 } 
 
 pm   <-format(round(wt.mean(births$pregnant,births$n),3), nsmall=3)
@@ -302,285 +305,304 @@ close(sumfile)
 #***(6) Graphical Results
 #*******************************************************************************
 if (pillgraph) {
-  pillS <- read.csv(paste(ma.dir,"PillDist.csv", sep=""), sep=";")  
-  pillM <- read.csv(paste(ma.dir,"Pill_MinSal.csv", sep=""), sep=";")    
-
+    pillS <- read.csv(paste(ma.dir,"PillDist.csv", sep=""), sep=";")  
+    pillM <- read.csv(paste(ma.dir,"Pill_MinSal.csv", sep=""), sep=";")    
+    
   
-  pillM$under18[is.na(pillM$under18)] <- 0
-  pillM$over18[is.na(pillM$over18)] <- 0  
-  pillM$total <- pillM$under18 + pillM$over18
-
-  pillMcollapse <- summaryBy(total ~ Year, FUN=sum, data=pillM)  
-  pillScollapse <- summaryBy(pill ~ year, FUN=sum, data=pillS)  
-
-  
-  preyears <- as.data.frame(t(rbind(2006:2008,0:0)))
-  names(preyears)      <- c("year","Pill")
-  names(pillMcollapse) <- c("year","Pill")
-  names(pillScollapse) <- c("year","Pill")
-
-  pillMcollapse <- rbind(preyears,pillMcollapse)
-  pillScollapse <- rbind(preyears,pillScollapse)
-
-  pillMcollapse <- pillMcollapse[pillMcollapse$year<=2011,]
-  
-
-  postscript(paste(graf.dir,"Pill.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  par(mar=c(5, 4, 4, 6) + 0.1)
-  plot(pillMcollapse$year, pillMcollapse$Pill, 
-       pch=16, axes=FALSE, ylim=c(0,8000), xlab="", ylab="", 
-       type="b",col="black")
-  axis(2, ylim=c(0,8000),col="black",las=1)  ## las=1 makes horizontal labels
-  mtext("Quantity of Pills Prescribed",side=2,line=3)
-  box()
-  
-  ## Allow a second plot on the same graph
-  par(new=TRUE)
-  
-  plot(pillScollapse$year, pillScollapse$Pill, pch=15,  
-       xlab="", ylab="", ylim=c(0,300), 
-       axes=FALSE, type="b", col="darkgreen")
-  ## a little farther out (line=4) to make room for labels
-  mtext("Pill Municipalities",side=4,col="darkgreen",line=3) 
-  axis(4, ylim=c(0,300), col="darkgreen",col.axis="darkgreen",las=1)
-  
-  ## Draw the time axis
-  axis(1,pillScollapse$year)
-  mtext("Year \n",side=1,col="black",line=2.5)  
-  
-  ## Add Legend
-  legend("topleft",legend=c("Pills Prescribed","Pill Municipalities"),
-         text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
-
-  note <- "Note: Prescription data is from the Ministry of Health's
-  administrative data on medications and medical attention. 
-  Municipality data is from an independent survey conducted by Dides et al, (2010;2011;2012)."
-  note <- sub("\n","",note)
-  note <- gsub("  "," ",note)  
-  mtext(note, side=1, line=4, adj=0, cex=0.8)
-  dev.off()
+    pillM$under18[is.na(pillM$under18)] <- 0
+    pillM$over18[is.na(pillM$over18)] <- 0  
+    pillM$total <- pillM$under18 + pillM$over18
+    
+    pillMcollapse <- summaryBy(total ~ Year, FUN=sum, data=pillM)  
+    pillScollapse <- summaryBy(pill ~ year, FUN=sum, data=pillS)  
+    
+    
+    preyears <- as.data.frame(t(rbind(2006:2008,0:0)))
+    names(preyears)      <- c("year","Pill")
+    names(pillMcollapse) <- c("year","Pill")
+    names(pillScollapse) <- c("year","Pill")
+    
+    pillMcollapse <- rbind(preyears,pillMcollapse)
+    pillScollapse <- rbind(preyears,pillScollapse)
+    
+    pillMcollapse <- pillMcollapse[pillMcollapse$year<=2011,]
+    
+    
+    postscript(paste(graf.dir,"Pill.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    par(mar=c(5, 4, 4, 6) + 0.1)
+    plot(pillMcollapse$year, pillMcollapse$Pill, 
+         pch=16, axes=FALSE, ylim=c(0,8000), xlab="", ylab="", 
+         type="b",col="black")
+    axis(2, ylim=c(0,8000),col="black",las=1)  ## las=1 makes horizontal labels
+    mtext("Quantity of Pills Prescribed",side=2,line=3)
+    box()
+    
+    ## Allow a second plot on the same graph
+    par(new=TRUE)
+    
+    plot(pillScollapse$year, pillScollapse$Pill, pch=15,  
+         xlab="", ylab="", ylim=c(0,300), 
+         axes=FALSE, type="b", col="darkgreen")
+    ## a little farther out (line=4) to make room for labels
+    mtext("Pill Municipalities",side=4,col="darkgreen",line=3) 
+    axis(4, ylim=c(0,300), col="darkgreen",col.axis="darkgreen",las=1)
+    
+    ## Draw the time axis
+    axis(1,pillScollapse$year)
+    mtext("Year \n",side=1,col="black",line=2.5)  
+    
+    ## Add Legend
+    legend("topleft",legend=c("Pills Prescribed","Pill Municipalities"),
+           text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
+    
+    note <- "Note: Prescription data is from the Ministry of Health's
+    administrative data on medications and medical attention. 
+    Municipality data is from an independent survey conducted by Dides et al, (2010;2011;2012)."
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)  
+    mtext(note, side=1, line=4, adj=0, cex=0.8)
+    dev.off()
 }
 
 if (preggraph) {
-  births$totnonpreg <- (1-births$pregnant)*births$n
-  births$totpreg <- births$pregnant*births$n
-
-  births$group[births$age>=15&births$age<=19] <- 1
-  births$group[births$age>=20&births$age<=34] <- 2
-  births$group[births$age>=35&births$age<=49] <- 3
-  
-  birthc <- summaryBy(totnonpreg + totpreg ~ year + group, FUN=sum, data=births)
-  birthc$prop <- birthc$totpreg/(birthc$totnonpreg + birthc$totpreg)
-  
-  births1519<-birthc[birthc$group==1,]
-  births2034<-birthc[birthc$group==2,]  
-
-
-  postscript(paste(graf.dir,"Births.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  par(mar=c(5, 4, 4, 6) + 0.1)
-  plot(births1519$year, births1519$prop, 
-       pch=16, axes=FALSE, ylim=c(0.049,0.055), xlab="", ylab="", 
-       type="b",col="black")
-  axis(2, ylim=c(0.049,0.055),col="black",las=1)  ## las=1 makes horizontal labels
-  mtext("Proportion of 15-19 year olds pregnant",side=2,line=3.2)
-  box()
-  
-  par(new=TRUE)
-  plot(births2034$year, births2034$prop, pch=15,  
-       xlab="", ylab="", ylim=c(0.082,0.089), 
-       axes=FALSE, type="b", col="darkgreen")
-  mtext("Proportion of 20-34 year olds pregnant",side=4,col="darkgreen",line=3.5) 
-  axis(4, ylim=c(0.082,0.089), col="darkgreen",col.axis="darkgreen",las=1)
-  
-  axis(1,births2034$year)
-  mtext("Year \n",side=1,col="black",line=2.5)  
-  legend("topleft",legend=c("15-19 year olds","20-34 year olds"),
-         text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
-  
-  note <- "Note: Data on pregnancies comes from the Ministry of Health's birth census"
-  note <- sub("\n","",note)
-  note <- gsub("  "," ",note)  
-  mtext(note, side=1, line=4, adj=0, cex=0.8)
-  dev.off()
+    births$totnonpreg <- (1-births$pregnant)*births$n
+    births$totpreg <- births$pregnant*births$n
+    
+    births$group[births$age>=15&births$age<=19] <- 1
+    births$group[births$age>=20&births$age<=34] <- 2
+    births$group[births$age>=35&births$age<=49] <- 3
+    
+    birthc <- summaryBy(totnonpreg + totpreg ~ year + group, FUN=sum, data=births)
+    birthc$prop <- birthc$totpreg/(birthc$totnonpreg + birthc$totpreg)
+    
+    births1519<-birthc[birthc$group==1,]
+    births2034<-birthc[birthc$group==2,]  
+    
+    
+    postscript(paste(graf.dir,"Births.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    par(mar=c(5, 4, 4, 6) + 0.1)
+    plot(births1519$year, births1519$prop, 
+         pch=16, axes=FALSE, ylim=c(0.049,0.055), xlab="", ylab="", 
+         type="b",col="black")
+    axis(2, ylim=c(0.049,0.055),col="black",las=1)  ## las=1 makes horizontal labels
+    mtext("Proportion of 15-19 year olds pregnant",side=2,line=3.2)
+    box()
+    
+    par(new=TRUE)
+    plot(births2034$year, births2034$prop, pch=15,  
+         xlab="", ylab="", ylim=c(0.082,0.089), 
+         axes=FALSE, type="b", col="darkgreen")
+    mtext("Proportion of 20-34 year olds pregnant",side=4,col="darkgreen",line=3.5) 
+    axis(4, ylim=c(0.082,0.089), col="darkgreen",col.axis="darkgreen",las=1)
+    
+    axis(1,births2034$year)
+    mtext("Year \n",side=1,col="black",line=2.5)  
+    legend("topleft",legend=c("15-19 year olds","20-34 year olds"),
+           text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
+    
+    note <- "Note: Data on pregnancies comes from the Ministry of Health's birth census"
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)  
+    mtext(note, side=1, line=4, adj=0, cex=0.8)
+    dev.off()
 }
 
 if (deathgraph) {
-  deathc       <- deaths[deaths$ag %in% 15:34,]
-  deathc       <- summaryBy(p + lP + eP ~ ye, FUN=sum, data=deathc)
-  deathc$late  <- deathc$lP/(deathc$p)
-  deathc$early <- deathc$eP/(deathc$p)  
-
-  postscript(paste(graf.dir,"Deaths.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  par(mar=c(5, 4, 4, 6) + 0.1)
-  plot(deathc$ye, deathc$early, 
-       pch=16, axes=FALSE, ylim=c(0.02,0.025), xlab="", ylab="", 
-       type="b",col="black")
-  axis(2, ylim=c(0.02,0.025),col="black",las=1)  ## las=1 makes horizontal labels
-  mtext("Fetal Deaths (0-20 weeks)",side=2,line=3.2)
-  box()
-  
-  par(new=TRUE)
-  
-  plot(deathc$ye, deathc$late, pch=15,  
-       xlab="", ylab="", ylim=c(0.04,0.055), 
-       axes=FALSE, type="b", col="darkgreen")
-  mtext("Fetal Deaths (21+ weeks)",side=4,col="darkgreen",line=3.5) 
-  axis(4, ylim=c(0.04,0.055), col="darkgreen",col.axis="darkgreen",las=1)
-  
-  axis(1,deathc$ye)
-  mtext("Year \n",side=1,col="black",line=2.5)  
-  legend("topleft",legend=c("Early term (0-20)","Late term (21-40)"),
-         text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
-  
-  note <- "Note: Data on pregnancies and fetal deaths comes from the Ministry of 
-  Health's birth census"
-  note <- sub("\n","",note)
-  note <- gsub("  "," ",note)  
-  mtext(note, side=1, line=4, adj=0, cex=0.8)
-  dev.off()
+    deathc       <- deaths[deaths$ag %in% 15:34,]
+    deathc       <- summaryBy(p + lP + eP ~ ye, FUN=sum, data=deathc)
+    deathc$late  <- deathc$lP/(deathc$p)
+    deathc$early <- deathc$eP/(deathc$p)  
+    
+    postscript(paste(graf.dir,"Deaths.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    par(mar=c(5, 4, 4, 6) + 0.1)
+    plot(deathc$ye, deathc$early, 
+         pch=16, axes=FALSE, ylim=c(0.02,0.025), xlab="", ylab="", 
+         type="b",col="black")
+    axis(2, ylim=c(0.02,0.025),col="black",las=1)  ## las=1 makes horizontal labels
+    mtext("Fetal Deaths (0-20 weeks)",side=2,line=3.2)
+    box()
+    
+    par(new=TRUE)
+    
+    plot(deathc$ye, deathc$late, pch=15,  
+         xlab="", ylab="", ylim=c(0.04,0.055), 
+         axes=FALSE, type="b", col="darkgreen")
+    mtext("Fetal Deaths (21+ weeks)",side=4,col="darkgreen",line=3.5) 
+    axis(4, ylim=c(0.04,0.055), col="darkgreen",col.axis="darkgreen",las=1)
+    
+    axis(1,deathc$ye)
+    mtext("Year \n",side=1,col="black",line=2.5)  
+    legend("topleft",legend=c("Early term (0-20)","Late term (21-40)"),
+           text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
+    
+    note <- "Note: Data on pregnancies and fetal deaths comes from the Ministry of 
+    Health's birth census"
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)  
+    mtext(note, side=1, line=4, adj=0, cex=0.8)
+    dev.off()
 }
 
 if (totgraph) {
-  births$births<-births$n*births$pregnant
-  #total numbers cited in data section of paper
-  sum(deaths$de)
-  sum(births$births)
-  
-  birthnum<- summaryBy(births ~ year, FUN=sum, data=births)
-  deathnum<- summaryBy(de ~ ye, FUN=sum, data=deaths)
+    births$births<-births$n*births$pregnant
+    #total numbers cited in data section of paper
+    sum(deaths$de)
+    sum(births$births)
+    
+    birthnum<- summaryBy(births ~ year, FUN=sum, data=births)
+    deathnum<- summaryBy(de ~ ye, FUN=sum, data=deaths)
 
-  postscript(paste(graf.dir,"BirthDeath.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  par(mar=c(5, 4, 4, 6) + 0.1)
-  plot(deathnum$ye, deathnum$de, 
-       pch=16, axes=FALSE, ylim=c(1600,2200), xlab="", ylab="", 
-       type="b",col="black")
-  axis(2, ylim=c(1600,2200),col="black",las=1)  ## las=1 makes horizontal labels
-  mtext("Fetal Deaths",side=2,line=3.2)
-  box()
-  par(new=TRUE)
-  
-  plot(birthnum$year, birthnum$births, pch=15,  
-       xlab="", ylab="", ylim=c(200000,250000), 
-       axes=FALSE, type="b", col="darkgreen")
-  mtext("Births",side=4,col="darkgreen",line=3.5) 
-  axis(4, ylim=c(200000,250000), col="darkgreen",col.axis="darkgreen",las=1)
-  axis(1,birthnum$year)
-  mtext("Year",side=1,col="black",line=2.5)  
-  
-  legend("topleft",legend=c("Deaths","Births"),
-         text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
-  
-  note <- "Note: Data on pregnancies and fetal deaths comes from the Ministry of 
-  Health's birth census"
-  note <- sub("\n","",note)
-  note <- gsub("  "," ",note)  
-  mtext(note, side=1, line=4, adj=0, cex=0.8)  
-  dev.off()
+    postscript(paste(graf.dir,"BirthDeath.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    par(mar=c(5, 4, 4, 6) + 0.1)
+    plot(deathnum$ye, deathnum$de, 
+         pch=16, axes=FALSE, ylim=c(1600,2200), xlab="", ylab="", 
+         type="b",col="black")
+    axis(2, ylim=c(1600,2200),col="black",las=1)
+    mtext("Fetal Deaths",side=2,line=3.2)
+    box()
+    par(new=TRUE)
+    
+    plot(birthnum$year, birthnum$births, pch=15,  
+         xlab="", ylab="", ylim=c(200000,250000), 
+         axes=FALSE, type="b", col="darkgreen")
+    mtext("Births",side=4,col="darkgreen",line=3.5) 
+    axis(4, ylim=c(200000,250000), col="darkgreen",col.axis="darkgreen",las=1)
+    axis(1,birthnum$year)
+    mtext("Year",side=1,col="black",line=2.5)  
+    
+    legend("topleft",legend=c("Deaths","Births"),
+           text.col=c("black","darkgreen"),pch=c(16,15),col=c("black","darkgreen"))
+    
+    note <- "Note: Data on pregnancies and fetal deaths comes from the Ministry of 
+    Health's birth census"
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)  
+    mtext(note, side=1, line=4, adj=0, cex=0.8)  
+    dev.off()
 }
 
 if (trends) {
-  f <- paste(brth.dir, "S1Data_covars_20002012.csv", sep="")
-  orig <- read.csv(f)
+    f <- paste(brth.dir, "S1Data_covars_20002012.csv", sep="")
+    orig <- read.csv(f)
+    
+    postscript(paste(graf.dir,"Reform1519.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    trends1519 <-birthtrends(age_sub=15:19, orig)  
+    nopillM <- trends1519[trends1519$nopill==1,]
+    pillM   <- trends1519[trends1519$nopill==0,]
+    plot(pillM$year,pillM$N, type="b",pch=16,col="darkgreen",
+         ylim=c(min(trends1519$N)-1000,max(trends1519$N)+2000),
+         ylab="Number of Live Births",xlab="Year")
+    lines(nopillM$year,nopillM$N, type="b",pch=15)
+    abline(v=2008.7)  
+    legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
+           text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
+    note <- "Note: Some municipalities which did not give the EC pill in 2010 did 
+  give the EC pill in 2011 (and vice versa)."
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)  
+    mtext(note, side=1, line=4, adj=0, cex=0.8)  
+    mtext(c("Constitutional Tribunal"),side=3,line=1, cex=0.8, at=2009)
+    mtext(c("Change in 'Normas de Fertilidad'"),side=3,line=0, cex=0.8, at=2009)
+    dev.off()
+    
+    postscript(paste(graf.dir,"Reform2034.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    trends2034 <-birthtrends(age_sub=20:34, orig)
+    nopillM <- trends2034[trends2034$nopill==1,]
+    pillM   <- trends2034[trends2034$nopill==0,]
+    plot(pillM$year,pillM$N, type="b",pch=16,col="darkgreen",
+         ylim=c(min(trends2034$N)-1000,max(trends2034$N)+8000),
+         ylab="Number of Live Births",xlab="Year")
+    lines(nopillM$year,nopillM$N, type="b",pch=15)
+    abline(v=2008.7)
+    
+    legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
+           text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
+    note <- "Note: Some municipalities which did not give the EC pill in 2010 did 
+  give the EC pill in 2011 (and vice versa)."
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)  
+    mtext(note, side=1, line=4, adj=0, cex=0.8)  
+    mtext(c("Constitutional Tribunal"),side=3,line=1, cex=0.8, at=2009)
+    mtext(c("Change in 'Normas de Fertilidad'"),side=3,line=0, cex=0.8, at=2009)
+    dev.off() 
+    
+    
+    f <- paste(deth.dir, "S1Data_20002012.csv", sep="")
+    orig <- read.csv(f)
+    postscript(paste(graf.dir,"TrendsDeath1519.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    trends1519 <-deathtrends(age_sub=15:19, orig)  
+    nopillM <- trends1519[trends1519$nopill==1,]
+    pillM   <- trends1519[trends1519$nopill==0,]
+    plot(pillM$year,pillM$N, type="b",pch=16,col="darkgreen",
+         ylim=c(min(trends1519$N)-1000,max(trends1519$N)+2000),
+         ylab="Number of Fetal Deaths",xlab="Year")
+    lines(nopillM$year,nopillM$N, type="b",pch=15)
+    legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
+           text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
+    note <- "Note: Some municipalities which did not give the EC pill in 2010 did 
+    give the EC pill in 2011 (and vice versa)."
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)  
+    mtext(note, side=1, line=4, adj=0, cex=0.8)  
+    dev.off()
+  
+    postscript(paste(graf.dir,"TrendsDeath2034.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    trends2034 <-deathtrends(age_sub=20:34, orig)
+    nopillM <- trends2034[trends2034$nopill==1,]
+    pillM   <- trends2034[trends2034$nopill==0,]
+    plot(pillM$year,pillM$N, type="b",pch=16,col="darkgreen",
+         ylim=c(min(trends2034$N)-1000,max(trends2034$N)+8000),
+         ylab="Number of Fetal Deaths",xlab="Year")
+    lines(nopillM$year,nopillM$N, type="b",pch=15)
+    
+    legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
+           text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
+    note <- "Note: Some municipalities which did not give the EC pill in 2010 did give the EC
+    pill in 2011 (and vice versa)."
+    note <- sub("\n","",note)
+    note <- gsub("  "," ",note)  
+    mtext(note, side=1, line=4, adj=0, cex=0.8)  
+    dev.off() 
+  
+}
 
-#  postscript(paste(graf.dir,"Trends1519.eps",sep=""),
-#             horizontal = FALSE, onefile = FALSE, paper = "special",
-#             height=7, width=9)
-  postscript(paste(graf.dir,"Reform1519.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  trends1519 <-birthtrends(age_sub=15:19, orig)  
-  nopillM <- trends1519[trends1519$nopill==1,]
-  pillM   <- trends1519[trends1519$nopill==0,]
-  plot(pillM$year,pillM$N, type="b",pch=16,col="darkgreen",
-       ylim=c(min(trends1519$N)-1000,max(trends1519$N)+2000),
-       ylab="Number of Live Births",xlab="Year")
-  lines(nopillM$year,nopillM$N, type="b",pch=15)
-  abline(v=2008.7)  
-  legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
-         text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
-  note <- "Note: Some municipalities which did not give the EC pill in 2010 did give the EC
-  pill in 2011 (and vice versa)."
-  note <- sub("\n","",note)
-  note <- gsub("  "," ",note)  
-  mtext(note, side=1, line=4, adj=0, cex=0.8)  
-  mtext(c("Constitutional Tribunal"),side=3,line=1, cex=0.8, at=2009)
-  mtext(c("Change in 'Normas de Fertilidad'"),side=3,line=0, cex=0.8, at=2009)
-  dev.off()
+if (sumplots) {
+    onlyBirths <- births[births$pregnant==1, c("age", "n")]
+    histBirths <- onlyBirths[rep(row.names(onlyBirths), onlyBirths$n), ]
+    m <- ggplot(histBirths, aes(x = age)) + xlab("Age") + ylab("Frequency") +
+        geom_histogram(binwidth=1,fill=I("blue"),col=I("red"),alpha=I(.4))
+    m + theme_bw()
+    ggsave(paste(graf.dir,"ageDist.pdf",sep=""),width=9, height=7)
 
-#  postscript(paste(graf.dir,"Trends2034.eps",sep=""),
-#             horizontal = FALSE, onefile = FALSE, paper = "special",
-#             height=7, width=9)
-  postscript(paste(graf.dir,"Reform2034.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  trends2034 <-birthtrends(age_sub=20:34, orig)
-  nopillM <- trends2034[trends2034$nopill==1,]
-  pillM   <- trends2034[trends2034$nopill==0,]
-  plot(pillM$year,pillM$N, type="b",pch=16,col="darkgreen",
-       ylim=c(min(trends2034$N)-1000,max(trends2034$N)+8000),
-       ylab="Number of Live Births",xlab="Year")
-  lines(nopillM$year,nopillM$N, type="b",pch=15)
-  abline(v=2008.7)
-  
-  legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
-         text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
-  note <- "Note: Some municipalities which did not give the EC pill in 2010 did give the EC
-  pill in 2011 (and vice versa)."
-  note <- sub("\n","",note)
-  note <- gsub("  "," ",note)  
-  mtext(note, side=1, line=4, adj=0, cex=0.8)  
-  mtext(c("Constitutional Tribunal"),side=3,line=1, cex=0.8, at=2009)
-  mtext(c("Change in 'Normas de Fertilidad'"),side=3,line=0, cex=0.8, at=2009)
-  dev.off() 
+    
+    f <- paste(brth.dir, "S1Data_covars_20002012.csv", sep="")
+    orig <- read.csv(f)
 
-  
-  f <- paste(deth.dir, "S1Data_20002012.csv", sep="")
-  orig <- read.csv(f)
-  postscript(paste(graf.dir,"TrendsDeath1519.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  trends1519 <-deathtrends(age_sub=15:19, orig)  
-  nopillM <- trends1519[trends1519$nopill==1,]
-  pillM   <- trends1519[trends1519$nopill==0,]
-  plot(pillM$year,pillM$N, type="b",pch=16,col="darkgreen",
-       ylim=c(min(trends1519$N)-1000,max(trends1519$N)+2000),
-       ylab="Number of Fetal Deaths",xlab="Year")
-  lines(nopillM$year,nopillM$N, type="b",pch=15)
-  legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
-         text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
-  note <- "Note: Some municipalities which did not give the EC pill in 2010 did give the EC
-  pill in 2011 (and vice versa)."
-  note <- sub("\n","",note)
-  note <- gsub("  "," ",note)  
-  mtext(note, side=1, line=4, adj=0, cex=0.8)  
-  dev.off()
-  
-  postscript(paste(graf.dir,"TrendsDeath2034.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-  trends2034 <-deathtrends(age_sub=20:34, orig)
-  nopillM <- trends2034[trends2034$nopill==1,]
-  pillM   <- trends2034[trends2034$nopill==0,]
-  plot(pillM$year,pillM$N, type="b",pch=16,col="darkgreen",
-       ylim=c(min(trends2034$N)-1000,max(trends2034$N)+8000),
-       ylab="Number of Fetal Deaths",xlab="Year")
-  lines(nopillM$year,nopillM$N, type="b",pch=15)
-  
-  legend("topleft",legend=c("Did not give EC in 2010","Gave EC in 2010"),
-         text.col=c("black","darkgreen"),pch=c(15,16),col=c("black","darkgreen"))
-  note <- "Note: Some municipalities which did not give the EC pill in 2010 did give the EC
-  pill in 2011 (and vice versa)."
-  note <- sub("\n","",note)
-  note <- gsub("  "," ",note)  
-  mtext(note, side=1, line=4, adj=0, cex=0.8)  
-  dev.off() 
-  
+    orig$agegroup[orig$age>=15&orig$age<20] <- 1 
+    orig$agegroup[orig$age>=20&orig$age<34] <- 2 
+    orig$agegroup[orig$age>=35]             <- 3
+
+    birthsC <- summaryBy(n ~ year+agegroup+pregnant, FUN=sum, data=orig)
+    birthsC <- reshape(birthsC,timevar="pregnant",idvar=c("agegroup","year"),
+                       direction="wide")
+    names(birthsC) <- c("year","agegroup","popln","births")
+    birthsC$ratio  <- birthsC$births/birthsC$popln*1000
+    
+    xyplot(birthsC$births~birthsC$year|birthsC$agegroup)
 }
