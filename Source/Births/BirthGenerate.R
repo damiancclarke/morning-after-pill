@@ -115,12 +115,12 @@ prep_s1_data <- function(age_range,usecom,filename) {
   #=============================================================================
   tot$dom_comuna <- apply(as.matrix(tot$dom_comuna),2,remove_accents)
   
-  tot$dom_comuna[tot$dom_comuna == "T AMARILLA"] <- "TIERRA AMARILLA"
-  tot$dom_comuna[tot$dom_comuna == "D DE ALMAGRO"] <- "DIEGO DE ALMAGRO"
-  tot$dom_comuna[tot$dom_comuna == "A DEL CARMEN"] <- "ALTO DEL CARMEN"
-  tot$dom_comuna[tot$dom_comuna == "ISLA DE PASCUA"] <- "ISLA  DE PASCUA"
-  tot$dom_comuna[tot$dom_comuna == "Q. TILCOCO"] <- "QUINTA DE TILCOCO"
-  tot$dom_comuna[tot$dom_comuna == "MARCHIGÜE"] <- "MARCHIHUE"
+  tot$dom_comuna[tot$dom_comuna == "T AMARILLA"]          <- "TIERRA AMARILLA"
+  tot$dom_comuna[tot$dom_comuna == "D DE ALMAGRO"]        <- "DIEGO DE ALMAGRO"
+  tot$dom_comuna[tot$dom_comuna == "A DEL CARMEN"]        <- "ALTO DEL CARMEN"
+  tot$dom_comuna[tot$dom_comuna == "ISLA DE PASCUA"]      <- "ISLA  DE PASCUA"
+  tot$dom_comuna[tot$dom_comuna == "Q. TILCOCO"]          <- "QUINTA DE TILCOCO"
+  tot$dom_comuna[tot$dom_comuna == "MARCHIGÜE"]           <- "MARCHIHUE"
   tot$dom_comuna[tot$dom_comuna == "PEDRO AGUIRRE CERDA"] <- "PEDRO AGUIRRE CERDA"
   
   #=============================================================================
@@ -232,11 +232,14 @@ prep_s1_data <- function(age_range,usecom,filename) {
   #=============================================================================
   # (8) Pill data
   #=============================================================================
-  f <- paste(ma.dir,"PillDist.csv",sep="")
+  f <- paste(ma.dir,"PillDistTime.csv",sep="")
   ma <- read.csv(f,sep=";")
-  ma <- ma[,c("comuna_names","year","disponible","pilldistance")]
-  names(ma) <- c("dom_comuna","year","pill","pilldistance")
-  #lag of ~9 months
+  ma <- ma[,c("comuna_names","year","disponible","pilldistance","roadDist",
+							"travelTime")]
+  names(ma) <- c("dom_comuna","year","pill","pilldistance","roadDist",
+								 "travelTime")
+  
+	#lag of ~9 months
   ma$year <- ma$year + 1  
   ####ma$year <- ma$year - 3  
   tmp <- merge(fin,ma,by=c("dom_comuna","year"),all=T)
@@ -247,6 +250,8 @@ prep_s1_data <- function(age_range,usecom,filename) {
   tmp$pill[!(tmp$pill %in% c("0","1"))] <- NA
   tmp$pill[tmp$year <= 2009] <- 0
   tmp$pilldistance[tmp$year <= 2009] <- 0
+  tmp$roadDist[tmp$year <= 2009] <- 0
+  tmp$travelTime[tmp$year <= 2009] <- 0
   ###tmp$pill[tmp$year <= 2006] <- 0
   ###tmp$pilldistance[tmp$year <= 2006] <- 0
   
@@ -278,18 +283,19 @@ prep_s1_data <- function(age_range,usecom,filename) {
     
     tmp <- merge(com,fin,by=c("dom_comuna","year"),all=T)  
     fin <- tmp[complete.cases(tmp),]
-    
+
     fin <- fin[,c("dom_comuna","educretiromedia","saludtotal","saludpersonal" ,
                   "saludcapacit", "eductotal","educmunic","mujeresindigente"  ,
                   "mujeresfuncionarias","pobreza","urb","urbind","year","dens",
                   "region","condom","usingcont","pill","mujer","party","votop",
-                  "election","pilldistance","pregnant","age","order","n")]
+                  "election","pilldistance","roadDist","travelTime","pregnant",
+									"age","order","n")]
     names(fin) <- c("dom_comuna","outofschool", "healthspend", "healthstaff"  , 
                     "healthtraining", "educationspend","educationmunicip"     ,
                     "femalepoverty","femaleworkers","poverty","urban","urbBin",
                     "year","density","region","condom","usingcont","pill"     ,
                     "mujer","party","votop","election","pilldistance"         ,
-                    "pregnant","age","order","n")
+                    "roadDist","travelTime","pregnant","age","order","n")
     rm(tmp)
   }  
   #=============================================================================
