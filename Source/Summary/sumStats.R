@@ -35,6 +35,7 @@ library("doBy")
 library("ggplot2")
 library("SDMTools")
 library("lattice")
+library("texreg")
 
 create     <- FALSE
 comunas    <- FALSE
@@ -45,7 +46,7 @@ preggraph  <- FALSE
 deathgraph <- FALSE
 totgraph   <- FALSE
 trends     <- FALSE
-sumplots   <- TRUE
+sumplots   <- FALSE
 
 #*******************************************************************************
 #***(2) Load required data
@@ -197,6 +198,90 @@ deathtrends <- function(age_sub,dat) {
     
     return(trends)
 }
+
+pilltest <- function(dat) {
+    dat <- dat[dat$age %in% 15:44,]
+    dat <- dat[(dat$order %in% 1:100) | !(dat$pregnant),]
+
+    dat$failures <- (1-dat$pregnant)*dat$n
+    dat$successes <- dat$pregnant*dat$n
+    
+    dat <- aggregate.data.frame(dat[,c("failures","successes")],
+                                by=list(dat$outofschool,dat$healthspend        ,
+                                        dat$healthstaff,dat$healthtraining     ,
+                                        dat$educationspend,dat$educationmunicip,
+                                        dat$femalepoverty,dat$femaleworkers    ,
+                                        dat$urbBin,dat$year                    ,
+                                        dat$region,dat$density,dat$condom      ,
+                                        dat$pill,dat$mujer,dat$party,dat$votop ,
+                                        dat$pilldistance,dat$dom_comuna),
+                                function(vec) {sum(na.omit(vec))})
+
+    names(dat) <- c('outofschool','healthspend','healthstaff','healthtraining',
+                    'educationspend','educationmunicip','femalepoverty'       ,
+                    'femaleworkers','urban','year','region','density','condom',
+                    'pill','mujer','party','votop','pilldistance','comuna'    ,
+                    'noPreg','Preg')
+    dat$healthstaff       <- dat$healthstaff/100000
+    dat$healthspend       <- dat$healthspend/100000
+    dat$educationspend    <- dat$educationspend/100000
+    dat$educationmunicip  <- dat$educationmunicip/100000
+    dat$pill              <- dat$pill*100
+    dat$pillclose[dat$pilldistance<45&dat$pilldistance!=0] <- 100
+    dat$pillclose[is.na(dat$pillclose)] <- 0
+    dat$conservative[dat$party=="UDI"|dat$party=="RN"] <- 1
+    dat$conservative[is.na(dat$conservative)] <- 0
+
+    Pmod.noReg <- lm(pill ~ outofschool + healthspend + healthstaff         +
+                     healthtraining + educationspend + educationmunicip     +
+                     femalepoverty + femaleworkers + urban                  +
+                     condom + mujer + conservative + votop + factor(year)   ,
+                     data = dat)
+    Pmod.noReg <- extract(Pmod.noReg, include.adjrs = FALSE, include.rmse = FALSE)
+    Pmod.Reg   <- lm(pill ~ outofschool + healthspend + healthstaff         +
+                     healthtraining + educationspend + educationmunicip     +
+                     femalepoverty + femaleworkers +                 urban  +
+                     condom + mujer + conservative  + votop + factor(year)  +
+                     factor(region), data = dat)
+    Pmod.Reg <- extract(Pmod.Reg, include.adjrs = FALSE, include.rmse = FALSE)
+    Dmod.noReg <- lm(pillclose    ~ outofschool + healthspend + healthstaff +
+                     healthtraining + educationspend + educationmunicip     +
+                     femalepoverty + femaleworkers + urban                  +
+                     condom + mujer + conservative  + votop + factor(year) ,
+                     data = dat)
+    Dmod.noReg <- extract(Dmod.noReg, include.adjrs = FALSE, include.rmse = FALSE)
+    Dmod.Reg   <- lm(pillclose    ~ outofschool + healthspend + healthstaff +
+                     healthtraining + educationspend + educationmunicip     +
+                     femalepoverty + femaleworkers +                 urban  +
+                     condom + mujer + conservative  + votop + factor(year)  +
+                     factor(region), data = dat)
+    Dmod.Reg <- extract(Dmod.Reg, include.adjrs = FALSE, include.rmse = FALSE)
+
+    results <- texreg(list(Pmod.noReg,Dmod.noReg,Pmod.Reg,Dmod.Reg),
+                      file=paste(outt.dir,"PillChoice.tex",sep=""),
+                      caption="Comuna Characteristics and Pill Decisions",
+                      omit.coef="(region)|(year)|(Intercept)|(Adj.)|(RMS)",
+                      custom.coef.names=c("NA","Out of School",
+                          "Health Spending","Health Staff","Health Training",
+                          "Education Spending","Education Level",
+                          "Female Poverty","Female Workers","Urban",
+                          "Condom Use","Female Mayor","Conservative Mayor",
+                          "Vote Margin",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,
+                          NA,NA,NA,NA,NA,NA,NA,NA,NA),
+                      custom.model.names=c("Pill$\\times$100",
+                          "Pill$\\times$100","Close$\\times$100",
+                          "Close$\\times$100"),booktabs=TRUE,
+                      custom.gof.names=c("R-squared","Observations"),
+                      use.packages=FALSE,caption.above=TRUE,
+                      label="TEENtab:pillchoice",
+                      custom.note=paste("\\begin{footnotesize}\\textsc{Notes:}",
+                                        "All columns include year fixed effect",
+                                        "s. Columns 2 and 4 also include regio",
+                                        "n fixed effects.",
+                                        "\\end{footnotesize}",sep=""))
+    return(results)
+}
+tester <- pilltest(births)
 
 #*******************************************************************************
 #***(4) Run Summary Functions
@@ -585,10 +670,17 @@ if (trends) {
 if (sumplots) {
     onlyBirths <- births[births$pregnant==1, c("age", "n")]
     histBirths <- onlyBirths[rep(row.names(onlyBirths), onlyBirths$n), ]
-    m <- ggplot(histBirths, aes(x = age)) + xlab("Age") + ylab("Frequency") +
-        geom_histogram(binwidth=1,fill=I("blue"),col=I("red"),alpha=I(.4))
-    m + theme_bw()
-    ggsave(paste(graf.dir,"ageDist.pdf",sep=""),width=9, height=7)
+    b <- ggplot(histBirths, aes(x = age)) + xlab("Age") + ylab("Frequency") +
+         geom_histogram(binwidth=1,fill=I("blue"),col=I("red"),alpha=I(.4))
+    b + theme_bw() + theme(text = element_text(size = 15))
+    ggsave(paste(graf.dir,"ageDistBirths.pdf",sep=""),width=9, height=7)
+
+    onlyDeaths <- deaths[deaths$p!=0, c("ag", "p")]
+    histDeaths <- onlyDeaths[rep(row.names(onlyDeaths), onlyDeaths$p), ]
+    d <- ggplot(histDeaths, aes(x = ag)) + xlab("Age") + ylab("Frequency")  +
+         geom_histogram(binwidth=1,fill=I("blue"),col=I("red"),alpha=I(.4))
+    d + theme_bw() + theme(text = element_text(size = 15))
+    ggsave(paste(graf.dir,"ageDistDeaths.pdf",sep=""),width=9, height=7)
 
     
     f <- paste(brth.dir, "S1Data_covars_20002012.csv", sep="")
