@@ -257,11 +257,11 @@ pilltest <- function(dat) {
                      factor(region), data = dat)
     Dmod.Reg <- extract(Dmod.Reg, include.adjrs = FALSE, include.rmse = FALSE)
 
-    results <- texreg(list(Pmod.noReg,Dmod.noReg,Pmod.Reg,Dmod.Reg),
+    results <- texreg(list(Pmod.noReg,Pmod.Reg,Dmod.noReg,Dmod.Reg),
                       file=paste(outt.dir,"PillChoice.tex",sep=""),
                       caption="Comuna Characteristics and Pill Decisions",
                       omit.coef="(region)|(year)|(Intercept)|(Adj.)|(RMS)",
-                      custom.coef.names=c("NA","Out of School",
+                      custom.coef.names=c(NA,"Out of School",
                           "Health Spending","Health Staff","Health Training",
                           "Education Spending","Education Level",
                           "Female Poverty","Female Workers","Urban",
