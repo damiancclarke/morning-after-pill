@@ -47,6 +47,8 @@ deathgraph <- FALSE
 totgraph   <- FALSE
 trends     <- FALSE
 sumplots   <- FALSE
+ptest      <- FALSE 
+distplots  <- TRUE
 
 #*******************************************************************************
 #***(2) Load required data
@@ -120,6 +122,7 @@ childSum <- function() {
     
     birthc <- summaryBy(totnonpreg + totpreg ~ pill, FUN=sum, data=dat)
     
+
     nopill <- birthc$totpreg.sum[1]
     pill <- birthc$totpreg.sum[2]  
     total <- pill + nopill
@@ -128,6 +131,9 @@ childSum <- function() {
     nopill <- format(nopill, digits=3, big.mark=",", scientific=F)
     pill <- format(pill, digits=3, big.mark=",", scientific=F)
     
+    Tnopill <- birthc$totpreg.sum[1]+birthc$totnonpreg.sum[1]
+    Tpill   <- birthc$totpreg.sum[2]  +birthc$totnonpreg.sum[2]  
+    Ttotal  <- Tpill + Tnopill
     
     deathc <- summaryBy(de ~ pill, FUN=sum, data=deaths)
     dnopill <- deathc$de.sum[1]
@@ -140,7 +146,8 @@ childSum <- function() {
     
     
     return(list("bp"=pill, "bn"=nopill, "bt"=total, 
-                "dp"=dpill, "dn"=dnopill, "dt"=dtotal))
+                "dp"=dpill, "dn"=dnopill, "dt"=dtotal,
+                "tp"=Tpill, "tn"=Tnopill, "tt"=Ttotal))
 }
 
 birthtrends <- function(age_sub,dat) {
@@ -224,6 +231,8 @@ pilltest <- function(dat) {
                     'noPreg','Preg')
     dat$healthstaff       <- dat$healthstaff/100000
     dat$healthspend       <- dat$healthspend/100000
+    #dat$healthtraining    <- dat$healthtraining/100000
+    #NOTE: CHECK HOW HEALTH TRAINING DEFINED
     dat$educationspend    <- dat$educationspend/100000
     dat$educationmunicip  <- dat$educationmunicip/100000
     dat$pill              <- dat$pill*100
@@ -233,25 +242,25 @@ pilltest <- function(dat) {
     dat$conservative[is.na(dat$conservative)] <- 0
 
     Pmod.noReg <- lm(pill ~ outofschool + healthspend + healthstaff         +
-                     healthtraining + educationspend + educationmunicip     +
+                     educationspend + educationmunicip     +
                      femalepoverty + femaleworkers + urban                  +
                      condom + mujer + conservative + votop + factor(year)   ,
                      data = dat)
     Pmod.noReg <- extract(Pmod.noReg, include.adjrs = FALSE, include.rmse = FALSE)
     Pmod.Reg   <- lm(pill ~ outofschool + healthspend + healthstaff         +
-                     healthtraining + educationspend + educationmunicip     +
+                     educationspend + educationmunicip     +
                      femalepoverty + femaleworkers +                 urban  +
                      condom + mujer + conservative  + votop + factor(year)  +
                      factor(region), data = dat)
     Pmod.Reg <- extract(Pmod.Reg, include.adjrs = FALSE, include.rmse = FALSE)
     Dmod.noReg <- lm(pillclose    ~ outofschool + healthspend + healthstaff +
-                     healthtraining + educationspend + educationmunicip     +
+                     educationspend + educationmunicip     +
                      femalepoverty + femaleworkers + urban                  +
                      condom + mujer + conservative  + votop + factor(year) ,
                      data = dat)
     Dmod.noReg <- extract(Dmod.noReg, include.adjrs = FALSE, include.rmse = FALSE)
     Dmod.Reg   <- lm(pillclose    ~ outofschool + healthspend + healthstaff +
-                     healthtraining + educationspend + educationmunicip     +
+                     educationspend + educationmunicip     +
                      femalepoverty + femaleworkers +                 urban  +
                      condom + mujer + conservative  + votop + factor(year)  +
                      factor(region), data = dat)
@@ -262,7 +271,7 @@ pilltest <- function(dat) {
                       caption="Comuna Characteristics and Pill Decisions",
                       omit.coef="(region)|(year)|(Intercept)|(Adj.)|(RMS)",
                       custom.coef.names=c(NA,"Out of School",
-                          "Health Spending","Health Staff","Health Training",
+                          "Health Spending","Health Staff",
                           "Education Spending","Education Level",
                           "Female Poverty","Female Workers","Urban",
                           "Condom Use","Female Mayor","Conservative Mayor",
@@ -281,8 +290,9 @@ pilltest <- function(dat) {
                                         "\\end{footnotesize}",sep=""))
     return(results)
 }
-tester <- pilltest(births)
-
+if(ptest) {
+    tester <- pilltest(births)
+}
 #*******************************************************************************
 #***(4) Run Summary Functions
 #*******************************************************************************
@@ -292,6 +302,7 @@ if(comunas) {
 if(kids) {
     ks <- childSum()
 } 
+
 
 pm   <-format(round(wt.mean(births$pregnant,births$n),3), nsmall=3)
 psd  <-format(round(wt.sd(births$pregnant,births$n),3), nsmall=3)
@@ -313,11 +324,13 @@ if(tables) {
 a  <- "&&"
 v1 <- "Poverty &&"
 v2 <- "Conservative &&"
-v3 <- "Education Spending &&"
+v3a <- "Education Spending (Total) &&"
+v3b <- "Education Spending (Municipal) &&"
 v4 <- "Health Spending &&"
 v5 <- "Out of School &&"
 v6 <- "Female Mayor &&"
 v7 <- "Female Poverty &&"
+v11 <- "Condom Use &&"
 v8 <- "Pill Distance &&"
 v9 <- "Live Births &&"
 v10 <- "Fetal Deaths &&"
@@ -334,8 +347,10 @@ writeLines(c('\\begin{table}[htpb!] \\centering',
              paste(a, paste(t(cs$sd["po.sd",1:7]),collapse=""),sep=""),
              paste(v2,paste(t(cs$mean["cn.mean",1:6]),collapse=""),sep=""),
              paste(a, paste(t(cs$sd["cn.sd",1:7]),collapse=""),sep=""),
-             paste(v3,paste(t(cs$mean["et.mean",1:6]),collapse=""),sep=""),
+             paste(v3a,paste(t(cs$mean["et.mean",1:6]),collapse=""),sep=""),
              paste(a, paste(t(cs$sd["et.sd",1:7]),collapse=""),sep=""),
+             paste(v3b,paste(t(cs$mean["em.mean",1:6]),collapse=""),sep=""),
+             paste(a, paste(t(cs$sd["em.sd",1:7]),collapse=""),sep=""),
              paste(v4,paste(t(cs$mean["hs.mean",1:6]),collapse=""),sep=""),
              paste(a, paste(t(cs$sd["hs.sd",1:7]),collapse=""),sep=""),
              paste(v5,paste(t(cs$mean["os.mean",1:6]),collapse=""),sep=""),
@@ -344,6 +359,8 @@ writeLines(c('\\begin{table}[htpb!] \\centering',
              paste(a, paste(t(cs$sd["mu.sd",1:7]),collapse=""),sep=""),
              paste(v7,paste(t(cs$mean["fp.mean",1:6]),collapse=""),sep=""),
              paste(a, paste(t(cs$sd["fp.sd",1:7]),collapse=""),sep=""),
+             paste(v11,paste(t(cs$mean["co.mean",1:6]),collapse=""),sep=""),
+             paste(a, paste(t(cs$sd["co.sd",1:7]),collapse=""),sep=""),
              paste(v8,paste(t(cs$mean["pd.mean",1:6]),collapse=""),sep=""),
              paste(a, paste(t(cs$sd["pd.sd",1:7]),collapse=""),sep=""),
              '&&&& \\\\',
@@ -366,6 +383,7 @@ writeLines(c('\\begin{table}[htpb!] \\centering',
              paste("N Comunas && 346 &", cs$n,"& 346 \\\\",sep=""),
              paste("N Fetal Deaths &&",  ks$dn, "&", ks$dp,"&",  ks$dt, "\\\\",sep=""),
              paste("N Births &&",  ks$bn, "&", ks$bp,"&",  ks$bt, "\\\\",sep=""),
+             paste("Population (sum) &&",  ks$tn, "&", ks$tp,"&",  ks$tt, "\\\\",sep=""),
              '\\hline \\hline \\\\[-1.8ex]',
              '\\multicolumn{5}{p{10cm}}{\\begin{footnotesize}\\textsc{Notes:}',
              'Group means are presented with standard deviations below in',
@@ -697,4 +715,44 @@ if (sumplots) {
     birthsC$ratio  <- birthsC$births/birthsC$popln*1000
     
     xyplot(birthsC$births~birthsC$year|birthsC$agegroup)
+}
+
+if (distplots) {
+    distDat <- births[births$year>2008&births$year<2012,]
+
+    distance <-aggregate(distDat$pilldistance,
+                         by=list(distDat$year,distDat$dom_comuna),FUN="mean")
+
+    postscript(paste(graf.dir,"EuclideanDistance.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    hist(distance$x[distance$x>0&distance$x<150], col="#CCCCFF", main="",
+         xlab="Euclidean Distance (km)")
+    dev.off()
+    print(sum(distance$x>150))
+    
+
+    distance <-aggregate(distDat$roadDist,
+                         by=list(distDat$year,distDat$dom_comuna),FUN="mean")
+    distance$x <- distance$x/1000
+    postscript(paste(graf.dir,"RoadDistance.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    hist(distance$x[distance$x>0&distance$x<140], col="#CCCCFF", main="",
+         xlab="Distance over Roads (km)")
+    print(sum(distance$x>150))
+    dev.off()
+
+    
+    distance <-aggregate(distDat$travelTime,
+                         by=list(distDat$year,distDat$dom_comuna),FUN="mean")
+    distance$x <- distance$x/60
+    postscript(paste(graf.dir,"TravelTime.eps",sep=""),
+               horizontal = FALSE, onefile = FALSE, paper = "special",
+               height=7, width=9)
+    hist(distance$x[distance$x>0&distance$x<150], col="#CCCCFF", main="",
+         xlab="Travel time (minutes)")
+    print(sum(distance$x>150))
+    dev.off()
+    
 }
