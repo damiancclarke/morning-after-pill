@@ -29,17 +29,18 @@ rm(list=ls())
 #=== (1) Parameters
 #==============================================================================
 create <- FALSE
-preg   <- FALSE
-Npreg  <- FALSE
-prTab  <- FALSE
-spill  <- FALSE
+preg   <- TRUE
+Npreg  <- TRUE
+Lpreg  <- TRUE
+prTab  <- TRUE
+spill  <- TRUE
 full   <- FALSE
 aboe   <- FALSE
-ranges <- TRUE
+ranges <- FALSE
 events <- FALSE
-ChMund <- FALSE
-invPS  <- FALSE
-robust <- FALSE
+ChMund <- TRUE
+invPS  <- TRUE
+robust <- TRUE
 
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -124,7 +125,8 @@ pillest <- function(outresults,d,n,regex,dim) {
     }
   
     if (dim==1|dim==4) {
-        null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
+        null  <- glm(cbind(successes,failures) ~ 1,
+                     family="binomial",data=d,weights=WT)
         Lfull <- as.numeric(logLik(outresults))
         Lnull <- as.numeric(logLik(null))
         R2    <- 1 - Lfull/Lnull
@@ -182,15 +184,37 @@ datcollapse <- function(age_sub,order_sub,ver,dat) {
     dat <- dat[dat$age %in% age_sub,]
     dat <- dat[(dat$order %in% order_sub) | !(dat$pregnant),]
     dat$popln <- ave(dat$n,dat$dom_comuna,dat$year,FUN=sum)
-    if(ver==2) {
-        dat <- dat[dat$pregnant==1,]
-    }
+
     dat <- closegen(0,15,dat)
     dat <- closegen(15,30,dat)
     dat <- closegen(30,45,dat)
     
     dat$failures <- (1-dat$pregnant)*dat$n
     dat$successes <- dat$pregnant*dat$n
+
+    if(ver==2) {
+        dat$n <- 1
+        full  <- aggregate.data.frame(dat$n,
+                                      by=list(dat$close15,dat$close30      ,
+                                          dat$close45,dat$road15,dat$road30,
+                                          dat$road45,dat$time15,dat$time30 ,
+                                          dat$time45,dat$dom_comuna        ,
+                                          dat$year-2005,(dat$year-2005)^2  ,
+                                          dat$pill,dat$mujer,dat$party     ,
+                                          dat$votop,dat$outofschool        ,
+                                          dat$healthspend,dat$healthstaff  ,
+                                          dat$healthtraining               ,
+                                          dat$educationspend               ,
+                                          dat$femalepoverty,dat$urbBin     ,
+                                          dat$year,dat$educationmunicip    ,
+                                          dat$condom,dat$usingcont         ,
+                                          dat$femaleworkers,dat$region     ,
+                                          dat$popln),
+                                      function(vec) {sum(na.omit(vec))})
+        names(full) <- c("close15","close30","close45","road15","road30","road45",
+                         "time15","time30","time45",Names,"n")
+        dat   <- dat[dat$pregnant==1,]
+    }
 
     fmod <- aggregate.data.frame(dat[,c("failures","successes")],
                                  by=list(dat$close15,dat$close30,dat$close45,
@@ -208,6 +232,12 @@ datcollapse <- function(age_sub,order_sub,ver,dat) {
                                  function(vec) {sum(na.omit(vec))})
     names(fmod) <- c("close15","close30","close45","road15","road30","road45",
  										 "time15","time30","time45",Names,"failures","successes")
+
+    if(ver==2) {
+        fmod<-merge(fmod,full,all.y=TRUE)
+        fmod$successes[is.na(fmod$successes)]<-0
+    }
+
     fmod$healthstaff      <- fmod$healthstaff/100000
     fmod$healthspend      <- fmod$healthspend/100000
     fmod$healthtraining   <- fmod$healthtraining/100000
@@ -218,6 +248,39 @@ datcollapse <- function(age_sub,order_sub,ver,dat) {
     return(fmod)
 }
 
+inversePS <- function(age_sub,order_sub,dat) {
+    #CALCULATE PROPENSITY SCORE WEIGHT FOR EACH COMUNA BASED ON
+    #PILL/NON-PILL STATUS.  USE FULL SET OF CONTROLS TO PREDICT PSCORE.
+
+    psdat <- datcollapse(age_sub,order_sub,2,dat)
+    psdat$conservative[psdat$party=="UDI"|psdat$party=="RN"] <- 1
+    psdat$conservative[is.na(psdat$conservative)] <- 0
+
+    psdat <- aggregate.data.frame(psdat[,c("pill","mujer","conservative"  ,
+                                           "votes","outofschool","popln"  ,
+                                           "healthspend","healthstaff"    ,
+                                           "healthtraining","usingcont"   ,
+                                           "femalepoverty","femaleworkers",
+                                           "condom","educationspend"      ,
+                                           "educationmunicip")],
+                                  by=list(psdat$dom_comuna), FUN=mean)
+    psdat$pillind[psdat$pill>0]<-1
+    psdat$pillind[is.na(psdat$pillind)]<-0
+        
+    PSc <- glm(pillind ~ mujer + conservative + votes + outofschool +
+               popln + healthspend + healthstaff + healthtraining   +
+               usingcont + femalepoverty + condom + femaleworkers   +
+               educationspend+ educationmunicip,
+               family=binomial, data=psdat)
+    psdat$predict<-predict(PSc,type="response")
+    psdat$WT[psdat$pillind==1] <- 1/psdat$predict
+    psdat$WT[psdat$pillind==0] <- 1/(1-psdat$predict)
+    
+    colnames(psdat)[1]<-"dom_comuna"
+    wts <- psdat[,(names(psdat) %in% c("dom_comuna", "WT"))] 
+    return(wts)
+}
+
 #==============================================================================
 #=== (4a) Run various models to test effect of PAE on pregnancy 
 #==============================================================================
@@ -225,31 +288,23 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
   
     formod <- datcollapse(age_sub,order_sub,1,orig)
     if(PSwt) {
-        preddat      <- datcollapse(age_sub,order_sub,2,orig)
-        prerate      <- datcollapse(15:49,1:100,1,orig)
-        prerate      <- prerate[prerate$trend<4,]
-        prerate$rate <- prerate$successes/prerate$popln
+        wts <- inversePS(age_sub,order_sub,orig)
+        formod <- join(formod,wts,by="dom_comuna",type="left",match="all")
 
-        prerate <- aggregate.data.frame(prerate$rate,
-                                        by=list(prerate$dom_comuna),FUN=mean)
-        names(prerate) <- c("dom_comuna","prerate")
-        preddat <- merge(preddat,prerate,by=c("dom_comuna"))
-                   
-        PSc <- glm(pill ~ factor(mujer) + votes + outofschool                 + 
-                   educationspend + educationmunicip + healthspend            + 
-                   healthtraining + healthstaff + femalepoverty + condom      +
-                   femaleworkers + prerate, family=binomial, data=preddat)
-        preddat$predict <- predict(PSc, type="response")
-        preddat$WT[preddat$pill==1] <- 1/preddat$predict
-        preddat$WT[preddat$pill==0] <- 1/(1-preddat$predict)
+        xPS <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)    +
+                   factor(dom_comuna) + factor(dom_comuna):trend,
+                   family="binomial", data=formod, weights=WT)
 
-        wts    <- preddat[,(names(preddat) %in% c("dom_comuna","WT","trend"))]
-        formod <- merge(formod,wts,by=c("dom_comuna","trend"))        
+        clusters <- mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+        xPS$coefficients2  <- robust.se(xPS,clusters)[[2]]
+        n  <- sum(formod$successes) + sum(formod$failures)
+        
+        s0 <- pillest(xPS,   formod, n, "pill", 1)
+        return(s0)
+        
     } else {
         formod$WT <- 1
     }
-    
-
     
     if(num==1) {
         xnT <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)   +
@@ -311,27 +366,28 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
         s3 <- pillest(xsh,   formod, n, "pill", 1)
         s4 <- pillest(xfem,  formod, n, "pill", 1)
         s5 <- pillest(xcont, formod, n, "pill", 1)
-    
+
         betas <- paste(s1$b, "&", s2$b, "&", s4$b, "&", s5$b, sep="")
         ses   <- paste(s1$s, "&", s2$s, "&", s4$s, "&", s5$s, sep="")
         n     <- paste(s1$n, '&', s2$n, '&', s4$n, '&' ,s5$n, sep='')
         r     <- paste(s1$r, '&', s2$r, '&', s4$r, '&', s5$r, sep='')
-        if(PSwt) {
-            return(list("b" = betas,"se" = ses, "n" = n, "r" = r, "PS" = PSc))  
-        }
         return(list("b" = betas,"se" = ses, "n" = n, "r" = r, "CM" = s0, "NT" = st))
     } else {
         return(xcont)
     }
 }
 
-NumMod <- function(age_sub,order_sub,rate) {
+
+NumMod <- function(age_sub,order_sub,rate,logm) {
   
     formod <- datcollapse(age_sub, order_sub,2,orig)
     names(formod)[32] <- "births"  #this used to be 26 (June 30, 2015)
 
     if(rate) {
         formod$births <- (formod$births/formod$popln)*1000
+    }
+    if(logm) {
+        formod$births<-log(formod$births+1)
     }
     
     xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)    +
@@ -355,6 +411,7 @@ NumMod <- function(age_sub,order_sub,rate) {
     xsp$coefficients2 <- robust.se(xsp,clusters)[[2]]
   
  
+    formod$WT <- 1
     n  <- nrow(formod)
     s1 <- pillest(xba, formod, n, "pill", 10)
     s2 <- pillest(xct, formod, n, "pill", 10)
@@ -367,7 +424,7 @@ NumMod <- function(age_sub,order_sub,rate) {
 
     return(list("b" = betas,"se" = ses, "n" = n, "r" = r))  
 }
-#  N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE)
+
 
 #==============================================================================
 #=== (4b) Various functions to examine effect of spillover 
@@ -386,6 +443,7 @@ spillovers <- function(age_sub,order_sub) {
     clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
     xspill$coefficients2 <- robust.se(xspill,clusters)[[2]]
 
+    formod$WT <- 1
     n  <- sum(formod$successes) + sum(formod$failures)
     s1 <- pillest(xspill,formod,n,"pill|close",4)
   
@@ -574,6 +632,7 @@ event <- function(age_sub,order_sub) {
 #=== (5) Estimate
 #==============================================================================
 if(preg|ChMund){
+    print("Rate of Pregnancy Logits")
     a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1,PSwt=FALSE)
     a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1,PSwt=FALSE)
     a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1,PSwt=FALSE)
@@ -586,18 +645,28 @@ if(preg|ChMund){
 }
 
 if(Npreg){
-    N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE)
-    N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=FALSE)
-    N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=FALSE)
-    NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=FALSE)
+    print("Number of Pregnancy OLS")
+    N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE,logm=FALSE)
+    N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=FALSE,logm=FALSE)
+    N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=FALSE,logm=FALSE)
+    NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=FALSE,logm=FALSE)
     
-    r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=TRUE)
-    r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=TRUE)
-    r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=TRUE)
-    rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=TRUE)
+    r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=TRUE,logm=FALSE)
+    r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=TRUE,logm=FALSE)
+    r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=TRUE,logm=FALSE)
+    rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=TRUE,logm=FALSE)
+}
+
+if(Lpreg){
+    print("ln(Number of Pregnancy) OLS")
+    l1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE,logm=TRUE)
+    l2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=FALSE,logm=TRUE)
+    l3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=FALSE,logm=TRUE)
+    lAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=FALSE,logm=TRUE)
 }
 
 if(spill){
+    print("Spillover Models")
     c1519 <- spillovers(age_sub = 15:19, order_sub = 1:100)
     c2034 <- spillovers(age_sub = 20:34, order_sub = 1:100)
     c3549 <- spillovers(age_sub = 35:49, order_sub = 1:100)
@@ -605,6 +674,7 @@ if(spill){
 }  
 
 if(invPS){
+    print("Rate of Pregnancy Models with Inverse Propensity Weights")
     ps1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1,PSwt=TRUE)
     ps2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1,PSwt=TRUE)
     ps3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1,PSwt=TRUE)
@@ -618,7 +688,6 @@ if(full) {
 }
 
 if(aboe) {
-
     NPp18   <- countpreg(age_sub = 15:18, order_sub = 1:100,1)
     NPp19   <- countpreg(age_sub = 20:49, order_sub = 1:100,1)
     NPc1518 <- countpreg(age_sub = 15:18, order_sub = 1:100,2)
@@ -981,6 +1050,56 @@ if(prTab){
                  paste(sig, '\\end{footnotesize}}', sep=""),
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
+
+    to <-file(paste(tab.dir,"aggregateLogBirths.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{OLS Estimates Based on Aggregate log(Births)}',
+                 '\\label{TEENtab:aggregateLog}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '& log(Births) & log(Births) & log(Births) \\\\',
+                 '&(1)&(2)&(3) \\\\ \\hline',
+                 ' & & & \\\\',
+                 paste('Pill (15-19 years) &',l1519$b,'\\\\',sep=""),
+                 paste('                   &',l1519$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',l1519$n,'\\\\',sep=""),
+                 paste('R-squared          &',l1519$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (20-34 years) &',l2034$b,'\\\\',sep=""),
+                 paste('                   &',l2034$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',l2034$n,'\\\\',sep=""),
+                 paste('R-squared          &',l2034$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (35-49 years) &',l3549$b,'\\\\',sep=""),
+                 paste('                   &',l3549$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',l3549$n,'\\\\',sep=""),
+                 paste('R-squared          &',l3549$r,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Pill (All Groups)  &',lAll$b,'\\\\',sep=""),
+                 paste('                   &',lAll$s,'\\\\',sep=""),
+                 ' & & & \\\\',
+                 paste('Observations       &',lAll$n,'\\\\',sep=""),
+                 paste('R-squared          &',lAll$r,'\\\\',sep=""),
+                 '\\hline \\\\[-1.8ex] ', 
+                 '{\\small Year \\& Comuna FEs} & Y & Y & Y \\\\',
+                 '{\\small Trend, Controls} & & Y & Y \\\\', 
+                 '{\\small Spillovers} & & & Y \\\\',
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{4}{p{11.1cm}}{\\begin{footnotesize}\\textsc{Notes:} ',
+                 'Each panel presents difference-in-difference results for a        ',
+                 'regresion of log(births+1) for the age group in each municipality.',
+                 'The estimation sample consists of all municipalities and years    ',
+                 'that have a population of at least 1 woman in the age group in    ',
+                 'question. All models are estimated by OLS and standard errors are ',
+                 'clustered at the level of the comuna. Controls are described in   ',
+                 'table \\ref{TEENtab:PillPreg}.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
+
 }
 
 if(ChMund){
@@ -1039,32 +1158,18 @@ if(invPS){
     writeLines(c('\\begin{table}[!htbp] \\centering',
                  '\\caption{Inverse Propensity Score Weighting}',
                  '\\label{TEENtab:inversePS}',
-                 '\\begin{tabular}{@{\\extracolsep{5pt}}lcccc}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
                  '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '&Pr(Birth)&Pr(Birth)&Pr(Birth)&Pr(Birth)\\\\',
-                 '&(1)&(2)&(3)&(4)\\\\ \\hline',
-                 '\\multicolumn{5}{l}{\\textsc{\\noindent 15-19 year olds}} \\\\',
-                 ' & & & & \\\\',
-                 paste(xvar,ps1519$b,'\\\\', sep=""), 
-                 paste(' &',ps1519$se, '\\\\', sep=""), 
-                 ' & & & & \\\\',
-                 '\\multicolumn{5}{l}{\\textsc{\\noindent 20-34 year olds}} \\\\',
-                 ' & & & & \\\\', 
-                 paste(xvar,ps2034$b,'\\\\', sep=""), 
-                 paste(' &',ps2034$se,'\\\\', sep=""), 
-                 ' & & & &\\\\',
-                 '\\multicolumn{5}{l}{\\textsc{\\noindent 35-49 year olds}} \\\\',
-                 ' & & & & \\\\', 
-                 paste(xvar,ps3549$b,'\\\\', sep=""), 
-                 paste(' &',ps3549$se,'\\\\', sep=""), 
-                 ' & & & & \\\\',
-                 '\\hline \\\\[-1.8ex] ', 
-                 '{\\small Trends \\& FEs} & Y & Y & Y & Y \\\\',
-                 '{\\small Political Controls} & & Y & Y & Y \\\\', 
-                 '{\\small Health, Educ, Gender Controls} & & & Y & Y \\\\',
-                 '{\\small Condom Availability} & & & & Y \\\\', 
+                 '& 15--19 years & 20--34 years & 35--49 years \\\\',
+                 '&(1)&(2)&(3) \\\\ \\hline',
+                 ' & & & \\\\',
+                 paste(xvar,ps1519$b,'&',ps2034$b,'&',ps3549$b,'\\\\', sep=""), 
+                 paste(' &',ps1519$s,'&',ps2034$s,'&',ps3549$s,'\\\\', sep=""), 
+                 ' & & & \\\\',
+                 paste(obs, ps1519$n,'&',ps2034$n,'&',ps3549$n,'\\\\', sep=""), 
+                 paste('$R^2$&',ps1519$r,'&',ps2034$r,'&',ps3549$r,'\\\\', sep=""), 
                  '\\hline \\hline \\\\[-1.8ex]',
-                 '\\multicolumn{5}{p{12.6cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+                 '\\multicolumn{4}{p{10.4cm}}{\\begin{footnotesize}\\textsc{Notes:}' ,
                  'Regression results estimated using inverse propensity score ',
                  'weighting based on Pr(treatment) on full observables.',
                  'Specifications and controls identical to those described in table',
@@ -1088,81 +1193,81 @@ writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
              '\\multicolumn{8}{l}{\\textsc{\\noindent All Age Groups}} \\\\',
              ' & & & & & & & \\\\',
              paste(xvar,strsplit(aAll$b,'&')[[1]][1],'&',aAll$CM$b,'&',aAll$NT$b,
-                   '&',strsplit(psAll$b,'&')[[1]][1],'&',cAll$b[1],'&',
+                   '&',psAll$b,'&',cAll$b[1],'&',
                    strsplit(NAll$b,'&')[[1]][1],'&',strsplit(rAll$b,'&')[[1]][1],
                    '\\\\',sep=""),
              paste('&' ,strsplit(aAll$se,'&')[[1]][1],'&',aAll$CM$s,'&',aAll$NT$s,'&',
-                   strsplit(psAll$se,'&')[[1]][1],'&',cAll$s[1],'&',
+                   psAll$s,'&',cAll$s[1],'&',
                    strsplit(NAll$s,'&')[[1]][1],'&',strsplit(rAll$s,'&')[[1]][1],
                    '\\\\',sep=""),
              ' & & & & & & & \\\\',
              paste('R$^2$/Pseudo-R$^2$&',strsplit(aAll$r,'&')[[1]][1],'&',aAll$CM$r,'&',
-                   aAll$NT$r,'&',strsplit(psAll$r,'&')[[1]][1],'&',cAll$r[1],'&',
+                   aAll$NT$r,'&',psAll$r,'&',cAll$r[1],'&',
                    strsplit(NAll$r,'&')[[1]][1],'&',strsplit(rAll$r,'&')[[1]][1],
                    '\\\\',sep=""),
              paste('Observations&',strsplit(aAll$n,'&')[[1]][1],'&',aAll$CM$n,'&',
-                   aAll$NT$n,'&',strsplit(psAll$n,'&')[[1]][1],'&',cAll$n[1],'&',
+                   aAll$NT$n,'&',psAll$n,'&',cAll$n[1],'&',
                    strsplit(NAll$n,'&')[[1]][1],'&',strsplit(rAll$n,'&')[[1]][1],
                    '\\\\',sep=""),
              '\\multicolumn{8}{l}{\\textsc{\\noindent 15-19 Year-Olds}} \\\\',
              ' & & & & & & & \\\\',
              paste(xvar,strsplit(a1519$b,'&')[[1]][1],'&',a1519$CM$b,'&',a1519$NT$b,'&',
-                   strsplit(ps1519$b,'&')[[1]][1],'&',c1519$b[1],'&',
+                   ps1519$b,'&',c1519$b[1],'&',
                    strsplit(N1519$b,'&')[[1]][1],'&',strsplit(r1519$b,'&')[[1]][1],
                    '\\\\',sep=""),
              paste('&' ,strsplit(a1519$se,'&')[[1]][1],'&',a1519$CM$s,'&',a1519$NT$s,'&',
-                   strsplit(ps1519$se,'&')[[1]][1],'&',c1519$s[1],'&',
+                   ps1519$s,'&',c1519$s[1],'&',
                    strsplit(N1519$s,'&')[[1]][1],'&',strsplit(r1519$s,'&')[[1]][1],
                    '\\\\',sep=""),
              ' & & & & & & & \\\\',
              paste('R$^2$/Pseudo-R$^2$&',strsplit(a1519$r,'&')[[1]][1],'&',a1519$CM$r,'&',
-                   a1519$NT$r,'&',strsplit(ps1519$r,'&')[[1]][1],'&',c1519$r[1],'&',
+                   a1519$NT$r,'&',ps1519$r,'&',c1519$r[1],'&',
                    strsplit(N1519$r,'&')[[1]][1],'&',strsplit(r1519$r,'&')[[1]][1],
                    '\\\\',sep=""),
              paste('Observations&',strsplit(a1519$n,'&')[[1]][1],'&',a1519$CM$n,'&',
-                   a1519$NT$n,'&',strsplit(ps1519$n,'&')[[1]][1],'&',c1519$n[1],'&',
+                   a1519$NT$n,'&',ps1519$n,'&',c1519$n[1],'&',
                    strsplit(N1519$n,'&')[[1]][1],'&',strsplit(r1519$n,'&')[[1]][1],
                    '\\\\',sep=""),
              '\\multicolumn{8}{l}{\\textsc{\\noindent 20-34 Year-Olds}} \\\\',
              ' & & & & & & & \\\\',
              paste(xvar,strsplit(a2034$b,'&')[[1]][1],'&',a2034$CM$b,'&',a2034$NT$b,'&',
-                   strsplit(ps2034$b,'&')[[1]][1],'&',c2034$b[1],'&',
+                   ps2034$b,'&',c2034$b[1],'&',
                    strsplit(N2034$b,'&')[[1]][1],'&',strsplit(r2034$b,'&')[[1]][1],
                    '\\\\',sep=""),
              paste('&' ,strsplit(a2034$se,'&')[[1]][1],'&',a2034$CM$s,'&',a2034$NT$s,'&',
-                   strsplit(ps2034$se,'&')[[1]][1],'&',c2034$s[1],'&',
+                   ps2034$s,'&',c2034$s[1],'&',
                    strsplit(N2034$s,'&')[[1]][1],'&',strsplit(r2034$s,'&')[[1]][1],
                    '\\\\',sep=""),
              ' & & & & & & & \\\\',
              paste('R$^2$/Pseudo-R$^2$&',strsplit(a2034$r,'&')[[1]][1],'&',a2034$CM$r,'&',
-                   a2034$NT$r,'&',strsplit(ps2034$r,'&')[[1]][1],'&',c2034$r[1],'&',
+                   a2034$NT$r,'&',ps2034$r,'&',c2034$r[1],'&',
                    strsplit(N2034$r,'&')[[1]][1],'&',strsplit(r2034$r,'&')[[1]][1],
                    '\\\\',sep=""),
              paste('Observations&',strsplit(a2034$n,'&')[[1]][1],'&',a2034$CM$n,'&',
-                   a2034$NT$n,'&',strsplit(ps2034$n,'&')[[1]][1],'&',c2034$n[1],'&',
+                   a2034$NT$n,'&',ps2034$n,'&',c2034$n[1],'&',
                    strsplit(N2034$n,'&')[[1]][1],'&',strsplit(r2034$n,'&')[[1]][1],
                    '\\\\',sep=""),
              '\\multicolumn{8}{l}{\\textsc{\\noindent 35-49 Year-Olds}} \\\\',
              ' & & & & & & & \\\\',
              paste(xvar,strsplit(a3549$b,'&')[[1]][1],'&',a3549$CM$b,'&',a3549$NT$b,'&',
-                   strsplit(ps3549$b,'&')[[1]][1],'&',c3549$b[1],'&',
+                   ps3549$b,'&',c3549$b[1],'&',
                    strsplit(N3549$b,'&')[[1]][1],'&',strsplit(r3549$b,'&')[[1]][1],
                    '\\\\',sep=""),
              paste('&' ,strsplit(a3549$se,'&')[[1]][1],'&',a3549$CM$s,'&',a3549$NT$s,'&',
-                   strsplit(ps3549$se,'&')[[1]][1],'&',c3549$s[1],'&',
+                   ps3549$s,'&',c3549$s[1],'&',
                    strsplit(N3549$s,'&')[[1]][1],'&',strsplit(r3549$s,'&')[[1]][1],
                    '\\\\',sep=""),
              ' & & & & & & & \\\\',
              paste('R$^2$/Pseudo-R$^2$&',strsplit(a3549$r,'&')[[1]][1],'&',a3549$CM$r,'&',
-                   a3549$NT$r,'&',strsplit(ps3549$r,'&')[[1]][1],'&',c3549$r[1],'&',
+                   a3549$NT$r,'&',ps3549$r,'&',c3549$r[1],'&',
                    strsplit(N3549$r,'&')[[1]][1],'&',strsplit(r3549$r,'&')[[1]][1],
                    '\\\\',sep=""),
              paste('Observations&',strsplit(a3549$n,'&')[[1]][1],'&',a3549$CM$n,'&',
-                   a3549$NT$n,'&',strsplit(ps3549$n,'&')[[1]][1],'&',c3549$n[1],'&',
+                   a3549$NT$n,'&',ps3549$n,'&',c3549$n[1],'&',
                    strsplit(N3549$n,'&')[[1]][1],'&',strsplit(r3549$n,'&')[[1]][1],
                    '\\\\',sep=""),
              '\\hline \\\\[-1.8ex] ',
-             '\\multicolumn{8}{p{19cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+             '\\multicolumn{8}{p{17.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
              paste(sig, '\\end{footnotesize}}', sep=""),
              '\\normalsize\\end{tabular}\\end{table}\\end{landscape}'),to)
 close(to)
