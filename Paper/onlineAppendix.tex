@@ -1,0 +1,170 @@
+%********************************************************************************
+\documentclass[12pt,subeqn]{article}
+
+%-------------------------------------------------------------------------------
+%--- PACKAGES
+%-------------------------------------------------------------------------------
+\usepackage{url}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{bold-extra}
+\usepackage{rotating}
+\usepackage{dcolumn}
+\usepackage{color}
+\pagecolor{white}
+\usepackage{pdfpages}
+\usepackage{lastpage}
+\usepackage{lscape}
+\usepackage{lineno}
+\usepackage{setspace}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{breqn}
+\usepackage{appendix}
+\usepackage{natbib}
+\usepackage[capposition=top]{floatrow}
+\usepackage{graphicx}
+\usepackage{epsfig}
+\usepackage{epstopdf}
+\usepackage{multirow}
+\usepackage{titletoc}
+\usepackage{wrapfig}
+\usepackage{blindtext}
+\usepackage{subcaption}
+\usepackage{subfloat}
+
+%-------------------------------------------------------------------------------
+%--- SPECIFICATIONS (MARGINS, TOC, BIBLIO)
+%-------------------------------------------------------------------------------
+\setlength\topmargin{-0.375in}
+\setlength\textheight{8.8in}
+\setlength\textwidth{5.8in}
+\setlength\oddsidemargin{0.4in}
+\setlength\evensidemargin{-0.5in}
+
+
+\bibliographystyle{abbrvnat}
+\bibpunct{(}{)}{;}{a}{,}{,}
+
+
+
+\titlecontents{section}
+[0pt]
+{}%
+{\contentsmargin{0pt}
+    \thecontentslabel\enspace%
+    }
+{\contentsmargin{0pt}}
+{\titlerule*[.5pc]{.}\contentspage}
+[]
+
+
+
+%-------------------------------------------------------------------------------
+%--- FRONT PAGE
+%-------------------------------------------------------------------------------
+\begin{document}
+\begin{spacing}{1.4}
+
+\begin{center}
+\textbf{ONLINE APPENDICES} \\
+\vspace{4mm}
+From the paper: \\
+\vspace{6mm}
+{\large \textsc{Assessing Plan B: 
+The Effect of the Morning After Pill on Children and Women}} \\
+Damian Clarke and Andrea Bentancor
+\end{center}
+
+\tableofcontents
+
+
+%-------------------------------------------------------------------------------
+%--- MAIN CONTENTS
+%-------------------------------------------------------------------------------
+\renewcommand\thesection{\Alph{section}}
+\renewcommand\figurename{Figure OA}
+\renewcommand\tablename{Table OA}
+
+\setlength\parindent{0.25in}
+\setlength\parskip{0.25in}
+
+\clearpage
+\section{Data Appendix: Births and Deaths}
+
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Mother's Age at Birth: Chile 2006-2012}
+\label{TEENfig:ageHist}
+\includegraphics[scale=0.54]{../Figures/ageDistBirths.pdf} 
+\end{center}
+\vspace{-4mm}
+\floatfoot{\textsc{Notes to figure \ref{TEENfig:ageHist}}: Sample consists of
+all births to Chilean women between the years of 2006-2012.  Data comes from
+the Chilean Ministry of Health's administrative birth registry.}
+\end{figure}
+
+
+\clearpage
+\section{Data Appendix: Distance to Treatment}
+
+
+\begin{figure}[htpb!]
+\includegraphics[scale=0.7]{../Figures/mapDistance.png}
+\caption{Distance based on googlemaps}
+\label{googdist}
+\end{figure}
+
+
+\begin{figure}[htpb!]
+\includegraphics[scale=0.55]{../Figures/EuclideanDistance.eps}
+\caption{Simple Distance to Treatment}
+\label{dist}
+\end{figure}
+
+
+\begin{figure}[htpb!]
+\begin{center}
+\caption{Alternative Measures of Distance to Treatment}
+\label{altdist}
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.32]{../Figures/TravelTime.eps}
+  \caption{Travel time by vehicle}
+  \label{travelTime}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+  \centering
+  \includegraphics[scale=0.32]{../Figures/RoadDistance.eps}
+  \caption{Distance over roads}
+  \label{roadDist}
+\end{subfigure}
+\end{center}
+\vspace{-4mm}
+\floatfoot{\textsc{Notes to figures \ref{dist}-\ref{altdist}}: 
+Histograms present the distance from each municipality where the pill
+was not available to the closest pill municipality in the years 2009-2011.
+Distances over 150 km (minutes) have been omitted for clarity.  In each 
+case, less than 1.5\% of non-pill municipalities are greater than 150km 
+(minutes) from the nearest pill municipality.}
+\end{figure}
+
+
+\clearpage
+\section{Alternative Specifications}
+\input{../Tables/aggregateLogBirths.tex}
+\input{../Tables/aggregateBirths.tex}
+
+\clearpage
+\section{Placebo Tests Using Lagged Reforms}
+\input{../Tables/Placebo.tex}
+
+
+
+
+
+
+
+
+\end{spacing}
+\end{document}
