@@ -307,7 +307,7 @@ prep_s1_data_deaths <- function(age_range,week,regex,usecom,filename) {
   #*****************************************************************************
   # (11) Morning After Pill Data
   #*****************************************************************************  
-  f <- paste(ma.dir,"PillDist.csv",sep="")
+  f <- paste(ma.dir,"PillDistTime.csv",sep="")
   ma <- read.csv(f,sep=";")
   ma <- ma[,c("comuna_names","year","disponible","pilldistance")]
   names(ma) <- c("dom_comuna","year","pill","pilldistance")
@@ -356,15 +356,15 @@ prep_s1_data_deaths <- function(age_range,week,regex,usecom,filename) {
                   "saludcapacit", "eductotal","educmunic","mujeresindigente"  ,
                   "mujeresfuncionarias","pobreza","urb","urbind","year","dens",
                   "region","condom","usingcont","pill","mujer","party","votop",
-                  "election","pilldistance","pregnant","age","order","n"      ,
-                  "death","earlyP","earlyQ","lateP","lateQ")]
+                  "election","pilldistance","roadDist","travelTime","pregnant",
+                  "age","order","n","death","earlyP","earlyQ","lateP","lateQ")]
     names(fin) <- c("dom_comuna","outofschool", "healthspend", "healthstaff"  , 
                     "healthtraining", "educationspend","educationmunicip"     ,
                     "femalepoverty","femaleworkers","poverty","urban","urbBin",
                     "year","density","region","condom","usingcont","pill"     ,
                     "mujer","party","votop","election","pilldistance"         ,
-                    "pregnant","age","order","n","death","earlyP","earlyQ"    ,
-                    "lateP","lateQ")    
+                    "roadDist","travelTime","pregnant","age","order","n"      ,
+                    "death","earlyP","earlyQ","lateP","lateQ")    
     rm(tmp)  
   }
   #*****************************************************************************
