@@ -4,12 +4,14 @@
 %-------------------------------------------------------------------------------
 %--- PACKAGES
 %-------------------------------------------------------------------------------
+\usepackage{chronosys}
 \usepackage{url}
 \usepackage{longtable}
 \usepackage{booktabs}
 \usepackage{bold-extra}
 \usepackage{rotating}
 \usepackage{dcolumn}
+%\usepackage{chronology}
 \usepackage{color}
 \pagecolor{white}
 \usepackage{pdfpages}
@@ -34,6 +36,9 @@
 \usepackage{subfloat}
 \usepackage{xr}
 \externaldocument{BentancorClarke_AdolescentFertility}
+
+\definecolor{blue}{HTML}{84CECC}
+\definecolor{gr}{HTML}{375D81}
 
 %-------------------------------------------------------------------------------
 %--- SPECIFICATIONS (MARGINS, TOC, BIBLIO)
@@ -63,7 +68,7 @@
 \renewcommand\figurename{Appendix Figure}
 \renewcommand\tablename{Appendix Table}
 \renewcommand\thesection{\Alph{section}}
-
+\renewcommand*{\thepage}{A\arabic{page}}
 
 
 %-------------------------------------------------------------------------------
@@ -211,12 +216,12 @@ Government of Chile's vital statistics data.}
 \end{figure}
 
 The population of fertile-aged women in Chile during this period was 
-approximately 4 million\footnote{According to the 2002 census, the population
+approximately 4 million.\footnote{According to the 2002 census, the population
 of Chile was 15,116,435, of which 50.7\% were women.  The most recent estimates
 from INE are 17,556,815, and 50.5\% respectively.}  Over the entire period 
-2006-2012, 28,196,700 fertile aged women were exposed (4 million women in 7 
-years).  Appendix figure \ref{TEENfig:Pregtime} displays pregnancy rates by
-age-group over the period of study, calculated from MINSAL vital statistics
+2006-2012, 28,196,700 fertile aged women were exposed (4 million women per year
+for 7 years).  Appendix figure \ref{TEENfig:Pregtime} displays pregnancy rates 
+by age-group over the period of study, calculated from MINSAL vital statistics
 and INE population data.  These figures are virtually indistinguishable from
 rates published in aggregate data by MINSAL \citep{MINSAL2013}.\footnote{For
 example, The Ministry of Health reports that the rate of pregnancy per 1,000
@@ -415,7 +420,7 @@ freely to women.  These Municipal Health Centres are run under the directive
 of the elected mayor of each Municipality, leaving all remaining legislation 
 regarding the distribution of the pill up to the 346 mayors in Chile.
 
-In this study we study the period surrounding this 2008 legislation as the 
+In this study we focus on the period surrounding this 2008 legislation as the 
 cutoff of interest.  However, even after this finding the emergency 
 contraceptive pill has not been far from legislative action, with a number of
 other cases raised.  These cases never entirely threatened the continuity of
@@ -430,25 +435,45 @@ of the morning after pill to women of any age in any health centre in Chile.
 This became operative on May 28, 2013, meaning that---at least officially---%
 there are no longer any restrictions in place in the country.
 
-
+\begin{figure}
+\startchronology[align=left, startyear=2004,stopyear=2015, height=0pt, startdate=false, stopdate=false, dateselevation=1pt, arrow=false, box=true]
+%\chronograduation[event][dateselevation=0pt]{2}
+\chronoperiode[textstyle=\raggedleft\colorbox{gr!50}, color=gr, startdate=false, bottomdepth=0pt, topheight=8pt, textdepth=-25pt,dateselevation=16pt, stopdate=false]{2008}{2012}{Municipal variation in provision}
+\chronoperiode[textstyle=\colorbox{blue!50}, color=blue, startdate=false, bottomdepth=8pt, topheight=16pt, textdepth=-18pt, dateselevation=12pt, stopdate=false]{2004}{2008}{No EC in Health Centres}
+\chronoevent{2013}{Nationally Available}
+\chronoevent{2008}{\textbf{Reform}: Constitutional Finding}
+%\chronoevent{2012}
+\stopchronology
+%%%
+%%%\begin{chronology}[2]{2004}{2015}{10cm}
+%%%\event{2008}{\textbf{Reform}: Constitutional Finding}
+%%%\event[2008]{2012}{Municipal-variation in EC provision}
+%%%\event{\decimaldate{3}{3}{2013}}{Nationally Available}
+%%%\end{chronology}
+\caption{Timing of the Reform}
+\label{TEENfig:reformtiming}
+\floatfoot{\textsc{Notes to figure \ref{TEENfig:reformtiming}:} Prior to 2008, the
+EC pill was not available at any health care centres or hospitals, and was only
+very infrequently available for purchase at pharmacies.  Between 2008 and 2012, the
+EC pill was freely available in municipal health centres only if the mayor of the
+municipality directed centres to provide it.  Over this period, a given municipality
+could change their decision, and if prescribing in one year, did not necessarily
+prescribe the next year.  From 2013 onwards, the EC pill was legally available for
+free in all municipalities, and from 2015 onwards, was available for purchase in all
+pharmacies without a prescription.}
+\end{figure}
 
 
 \clearpage
-\section{Alternative Specifications}
+\section{Alternative Specifications and Tests}
 \input{../Tables/aggregateASFR.tex}
 \input{../Tables/DeathsPerBirth.tex}
 \input{../Tables/aggregateLogBirths.tex}
 \input{../Tables/aggregateBirths.tex}
 \input{../Tables/PregFullCovars.tex}
 \input{../Tables/DeathFullCovars.tex}
-
-Add tables on alternative distance measures (waiting on larger access to google
-API).
-
-
-
-\clearpage
-\section{Placebo Tests Using Lagged Reforms}
+\input{../Tables/SpilloversROAD.tex}
+\input{../Tables/SpilloversTIME.tex}
 \input{../Tables/Placebo.tex}
 
 
