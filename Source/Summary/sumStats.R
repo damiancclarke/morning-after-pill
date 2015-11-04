@@ -47,8 +47,8 @@ deathgraph <- FALSE
 totgraph   <- FALSE
 trends     <- FALSE
 sumplots   <- FALSE
-ptest      <- FALSE 
-distplots  <- TRUE
+ptest      <- TRUE 
+distplots  <- FALSE
 
 #*******************************************************************************
 #***(2) Load required data
@@ -218,8 +218,8 @@ pilltest <- function(dat) {
                                         dat$healthstaff,dat$healthtraining     ,
                                         dat$educationspend,dat$educationmunicip,
                                         dat$femalepoverty,dat$femaleworkers    ,
-                                        dat$urbBin,dat$year                    ,
-                                        dat$region,dat$density,dat$condom      ,
+                                        dat$urbBin,dat$year,dat$region         ,
+                                        dat$density,dat$condom,dat$usingcont   ,
                                         dat$pill,dat$mujer,dat$party,dat$votop ,
                                         dat$pilldistance,dat$dom_comuna),
                                 function(vec) {sum(na.omit(vec))})
@@ -227,8 +227,8 @@ pilltest <- function(dat) {
     names(dat) <- c('outofschool','healthspend','healthstaff','healthtraining',
                     'educationspend','educationmunicip','femalepoverty'       ,
                     'femaleworkers','urban','year','region','density','condom',
-                    'pill','mujer','party','votop','pilldistance','comuna'    ,
-                    'noPreg','Preg')
+                    'condomUse','pill','mujer','party','votop','pilldistance' ,
+                    'comuna','noPreg','Preg')
     dat$healthstaff       <- dat$healthstaff/100000
     dat$healthspend       <- dat$healthspend/100000
     #dat$healthtraining    <- dat$healthtraining/100000
@@ -242,26 +242,26 @@ pilltest <- function(dat) {
     dat$conservative[is.na(dat$conservative)] <- 0
 
     Pmod.noReg <- lm(pill ~ outofschool + healthspend + healthstaff         +
-                     educationspend + educationmunicip     +
-                     femalepoverty + femaleworkers + urban                  +
+                     educationspend + educationmunicip                      +
+                     femalepoverty + femaleworkers + urban + condomUse      +
                      condom + mujer + conservative + votop + factor(year)   ,
                      data = dat)
     Pmod.noReg <- extract(Pmod.noReg, include.adjrs = FALSE, include.rmse = FALSE)
     Pmod.Reg   <- lm(pill ~ outofschool + healthspend + healthstaff         +
-                     educationspend + educationmunicip     +
-                     femalepoverty + femaleworkers +                 urban  +
+                     educationspend + educationmunicip                      +
+                     femalepoverty + femaleworkers +  urban + condomUse     +
                      condom + mujer + conservative  + votop + factor(year)  +
                      factor(region), data = dat)
     Pmod.Reg <- extract(Pmod.Reg, include.adjrs = FALSE, include.rmse = FALSE)
     Dmod.noReg <- lm(pillclose    ~ outofschool + healthspend + healthstaff +
-                     educationspend + educationmunicip     +
-                     femalepoverty + femaleworkers + urban                  +
-                     condom + mujer + conservative  + votop + factor(year) ,
+                     educationspend + educationmunicip                      +
+                     femalepoverty + femaleworkers + urban + condomUse      +
+                     condom + mujer + conservative  + votop + factor(year)  ,
                      data = dat)
     Dmod.noReg <- extract(Dmod.noReg, include.adjrs = FALSE, include.rmse = FALSE)
     Dmod.Reg   <- lm(pillclose    ~ outofschool + healthspend + healthstaff +
-                     educationspend + educationmunicip     +
-                     femalepoverty + femaleworkers +                 urban  +
+                     educationspend + educationmunicip                      +
+                     femalepoverty + femaleworkers + urban + condomUse      +
                      condom + mujer + conservative  + votop + factor(year)  +
                      factor(region), data = dat)
     Dmod.Reg <- extract(Dmod.Reg, include.adjrs = FALSE, include.rmse = FALSE)
@@ -274,24 +274,29 @@ pilltest <- function(dat) {
                           "Health Spending","Health Staff",
                           "Education Spending","Education Level",
                           "Female Poverty","Female Workers","Urban",
-                          "Condom Use","Female Mayor","Conservative Mayor",
-                          "Vote Margin",NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,
-                          NA,NA,NA,NA,NA,NA,NA,NA,NA),
+                          "Condom Use","Condom Availability","Female Mayor",
+                          "Conservative Mayor","Vote Margin",NA,NA,NA,NA,NA,
+                          NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA,NA),
                       custom.model.names=c("Pill$\\times$100",
                           "Pill$\\times$100","Close$\\times$100",
                           "Close$\\times$100"),booktabs=TRUE,
                       custom.gof.names=c("R-squared","Observations"),
                       use.packages=FALSE,caption.above=TRUE,
                       label="TEENtab:pillchoice",
-                      custom.note=paste("\\begin{footnotesize}\\textsc{Notes:}",
-                                        "All columns include year fixed effect",
-                                        "s. Columns 2 and 4 also include regio",
-                                        "n fixed effects.",
+                      custom.note=paste("\\begin{footnotesize}\\textsc{Notes:} ",
+                                        "Refer to table \\ref{TEENtab:SumStats}",
+                                        " for variable definitions.            ",
+                                        "$^{*}$p$<$0.1; $^{**}$p$<$0.05;       ",
+                                        "$^{***}$p$<$0.01",
                                         "\\end{footnotesize}",sep=""))
     return(results)
 }
 if(ptest) {
-    tester <- pilltest(births)
+    tester    <- pilltest(births)
+    regfile   <- readLines(paste(outt.dir,"PillChoice.tex",sep=""),-1)
+    regfile[8]  = "&(1)&(2)&(3)&(4) \\\\ \\midrule"
+    regfile[38] = "Year FE&Y&Y&Y&Y\\\\ Region FE &&Y&&Y\\\\ \\bottomrule"
+    writeLines(regfile,paste(outt.dir,"PillChoice.tex",sep=""))
 }
 #*******************************************************************************
 #***(4) Run Summary Functions
@@ -693,8 +698,8 @@ if (sumplots) {
     b + theme_bw() + theme(text = element_text(size = 15))
     ggsave(paste(graf.dir,"ageDistBirths.pdf",sep=""),width=9, height=7)
 
-    onlyDeaths <- deaths[deaths$p!=0, c("ag", "p")]
-    histDeaths <- onlyDeaths[rep(row.names(onlyDeaths), onlyDeaths$p), ]
+    onlyDeaths <- deaths[deaths$de!=0, c("ag", "de")]
+    histDeaths <- onlyDeaths[rep(row.names(onlyDeaths), onlyDeaths$de), ]
     d <- ggplot(histDeaths, aes(x = ag)) + xlab("Age") + ylab("Frequency")  +
          geom_histogram(binwidth=1,fill=I("blue"),col=I("red"),alpha=I(.4))
     d + theme_bw() + theme(text = element_text(size = 15))
