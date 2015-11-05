@@ -57,19 +57,20 @@ intercourse, or in the case of rape.
 
 The scarce existing literature on this topic suggests that the EC pill may have 
 had surprisingly little effect on both pregnancy and abortion 
-\citep{Grossetal2012,Durrance2013}. Compared to the large body of evidence 
+\citep{Grossetal2014,Durrance2013}. Compared to the large body of evidence 
 suggesting that contraceptive technologies such as the oral contraceptive and 
 legal abortion can have significant and important effects on pregnancy rates, 
 empirical studies of the effect of the EC pill have found small or non-existent 
 shifts in fertility outcomes despite high rates of use\footnote{For example, 
-the CDC reports that between 2006 and 2010, 11\% (5.8 million) women aged 
-between 15 and 44 used the emergency contraceptive pill at least once.  Among
-20-24 year olds, the rate is even higher, at 23\% \citep{Danielsetal2013}.}.  
-However, existing analyses of the effect of the 
+the CDC reports that in the United States between 2006 and 2010, 11\% (5.8 
+million) women aged between 15 and 44 used the emergency contraceptive pill at 
+least once.  Among 20-24 year olds, the rate is even higher, at 23\% 
+\citep{Danielsetal2013}.}.  However, existing analyses of the effect of the 
 morning after pill on birth rates have been limited in terms of the contexts 
 examined.  Existing quasi-experimental studies in the literature are focused on 
 the United States, where abortion is legal, and hence the scope of the EC on 
-net birth rates is likely to be limited.\footnote{Indeed, this is explicitly 
+net birth rates is likely to be limited, especially if abortion and the EC pill
+act as substitutable technologies.\footnote{Indeed, this is explicitly 
 suggested, although untested, in the economic literature. \citet{Grossetal2014}, 
 in one of the few quasi-experimental studies of the EC pill, write a model of 
 contraceptive use where use of the EC pill explicitly depends on the outside 
@@ -82,15 +83,15 @@ cost of abortion. They find small effects in the USA, however state:
      \end{quote}}
 
 However, in many countries and regions, abortion is highly regulated, allowed
-in only extreme cases, or even outlawed entirely.  Recent figures, 
-\citep{UN2014}, suggest that only one third of the world's governments
-currently allow elective abortion or abortion for economic or social reasons,
-with this number being considerably lower in developing regions with high
-rates of fertility.  For areas in which abortion is not decriminalised, it is 
-of considerable interest to know whether the arrival of the EC pill in the 
-isolation of abortion is sufficient to provide similarly remarkable changes in 
-fertility rates as those observed with the historical arrival of the first wave 
-of contraceptive technologies to other areas.
+in only extreme cases, or even outlawed entirely.  Recent figures suggest that 
+only one third of the world's governments currently allow elective abortion or 
+abortion for economic or social reasons, with this number being considerably 
+lower in developing regions with high rates of fertility \citep{UN2014}.  For 
+areas in which abortion is not decriminalised, it is of considerable interest 
+to determine whether the arrival of the EC pill in the isolation of abortion 
+is sufficient to provide similarly remarkable changes in fertility rates as 
+those observed with the historical arrival of the first wave of contraceptive 
+technologies to other areas.
 
 %In the case of Chile, prior to the 
 %availability of the EC pill, abortion was illegal in all circumstances, and 
@@ -108,7 +109,7 @@ analysis, these quasi-experimental studies examining different contexts and
 national reforms often find broadly similar effects, suggesting that both
 abortion and the oral contraceptive pill alone resulted in significant 
 reductions in births. In USA, these estimates suggest that both methods reduce 
-childbearing at a young age by about 5.5\% (average estimates), while in Romania 
+childbearing at a young age by about 5.5\% (mean estimate), while in Romania 
 and Nepal, the effects are closer to 7\%.  In this paper, we examine whether the 
 morning after pill alone (where legal abortion is not available) could have 
 effects of similar magnitude and importance.
@@ -154,7 +155,7 @@ and abortions.  The arrival of this new technology is associated with significan
 reductions in these outcomes.  Further, the effects identified are of considerable
 magnitude.  It is estimated that among teenage girls, the widespread availability 
 of emergency contraception reduces births by around 7\%, and may more than halve 
-rates of illegal abortion.  Among older women the reductions in births and illegal 
+rates of illegal abortion. Among older women, the reductions in births and illegal 
 abortion are more moderate, however still quantitatively important.  For example, 
 among 20-34 year olds, the emergency contraceptive pill reduces births by an 
 estimated 4.2\% and appears to reduce illegal abortion by around 20\%.
@@ -202,13 +203,13 @@ sufficient to have effects over observed birth rates.
 %interrupt undesired pregancies (Casas 2014).}
 
 The results of this study add to the nascent literature on the emergency 
-contraceptive pill.  Recent studies such as \citet{Grossetal2012, Durrance2013} 
-which have been the first to address this question in the economic literature
-have provided evidence to suggest that the effects of this technology may be 
-minor.  Here we offer considerable evidence to the contrary, suggesting
-that the expansion in the availability of emergency contraceptives may offer 
-important effects in certain countries, with large impacts on pregnancy and 
-abortion rates, especially among young women.
+contraceptive pill.  Recent studies such as \citet{Grossetal2014} and 
+\citet{Durrance2013} which have been the first to address this question in 
+the economic literature have provided evidence to suggest that the effects of 
+this technology may be minor.  Here we offer considerable evidence to the 
+contrary, suggesting that the expansion in the availability of emergency 
+contraceptives may offer important effects in certain countries, with large 
+impacts on pregnancy and abortion rates, especially among young women.
 
 Finally, \person raise a number of points regarding the estimation of 
 treatment effects in the presence of spillovers between treatment and control
@@ -526,12 +527,19 @@ estimated which allow for auto-correlation by municipality.  The identifying
 variation in availability of the pill is by municipality and year.  Prior to 
 the legal reform the pill was unavailable to all women, while posterior to the
 reform the pill was available to those women living in municipalities where the
-mayor did not restrict access.  This provides a flexible differences-in-%
-differences (hereafter diff-in-diff) framework, and allows us to causally 
-estimate the effect of the morning after pill if we believe that typical 
-diff-in-diff assumptions hold.  Namely, we require that unobserved components 
-$\varepsilon_{ijt}$ in the above specification evolve similarly over time in 
-the treated and untreated municipalities.
+mayor did not restrict access.\footnote{Prescribing the pill in a given year
+after the reform does not imply that municipalities necessarily prescribe the 
+pill in the years following.  For example, in some cases municipalities 
+switched from 0 (pre-reform), to 1 (during reform), back to 0 (during reform), 
+and then to 1 definitively (post-reform) after the EC pill was made legal in the 
+whole country in 2013.
+Our identification strategy takes advantage of this switching, given that 
+$Pill_{jt}$ varies by municipality and time.}  This provides a flexible 
+difference-in-differences (hereafter diff-in-diff) framework, and allows us to 
+causally estimate the effect of the morning after pill if we believe that 
+typical diff-in-diff assumptions hold.  Namely, we require that unobserved 
+components $\varepsilon_{ijt}$ in the above specification evolve similarly over 
+time in the treated and untreated municipalities.
 
 Given the geographically disperse, and, as discussed in previous sections,
 plausibly exogenous nature of the arrival of the morning after pill, we may be
@@ -545,6 +553,25 @@ the mayor, the mayor's gender, health and education inputs including staffing
 and training investments, and time varying measures of female empowerment by
 municipality.
 
+In our principal specification, we estimate (\ref{TEENeqn:pill}) using weighted
+logits.  From our data, we observe the number of women who give birth 
+($birth_{ijt}=1$) and those who don't give birth ($birth_{ijt}=0$) in each 
+municipality and time period.  This allows us to estimate a logit, where each 
+outcome in each municipality is weighted by the number of women who give birth 
+or who do not give birth respectively.\footnote{In this case, identification is
+based on municipal-level variation in $Pill_{jt}$, and the unweighted number of
+observations is simply the number of municipalities by the number of time 
+periods.  However, each outcome (birth or no birth), is weighted by the number
+of women for whom this is relevant, so the total weighted number of observations 
+is the number of fertile aged women by the number of time periods. In each case,
+we cluster standard errors at the level of the municipality.} As an alternative
+specification, we also estimate (\ref{TEENeqn:pill}) by OLS at the level of 
+the municipality where we replace the binary outcome $birth_{ijt}$ by the 
+municipal-level birth rate (the general fertility rate, and age specific 
+fertility rates), and also by the simple count of the number of births. In 
+these specifications, our outcome variable is $BirthRate_{jt}$, and standard 
+errors are once again clustered at the level of the municipality.
+
 We are interested in determining whether the morning after pill affects 
 fertility at both the extensive and the intensive margins.  We thus measure
 pregnancy in a number of ways: firstly, at the intensive margin by examining
@@ -555,15 +582,16 @@ groups, and look at teenagers (15-19 year olds), 20-34 year olds, and 35-49
 year olds. 
 
 Similar estimations are run replacing $birth_{ijt}$ with $fetal\ death_{ijt}$,
-which---for certain subsets---we believe proxy illegal abortion (as discussed
-in section \ref{TEENscn:Data}).  After assessing the pill's impact on pregnancy, 
-and abortion \person estimate reduced form effects of the pill's arrival on 
-various measures of mother and child outcomes.  These include maternal education,
-employment status and marital status, and child birthweight and gestational
-length.  While \person don't believe that these regressions are demonstrating
-causality in the case of mother's outcomes, these regressions are a useful test
-to determine whether certain groups are more likely to access the pill leading to
-aggregate compositional change in the cohorts of women who give birth.
+and the rate of fetal death which---for certain subsets---we believe proxy 
+illegal abortion (as discussed in section \ref{TEENscn:Data}).  Finally, after 
+assessing the pill's impact on pregnancy, and abortion \person estimate reduced 
+form effects of the pill's arrival on various measures of mother and child 
+outcomes.  These include maternal education, employment status and marital 
+status, and child birthweight and gestational length.  While we don't believe 
+that these regressions are demonstrating causality in the case of mother's 
+outcomes, they are a useful test to determine whether certain groups are more 
+likely to access the EC pill, leading to aggregate compositional change in the 
+cohorts of women who give birth.
 
 %********************************************************************************
 \subsection{Identifying Spillovers Between Municipalities}
@@ -969,8 +997,8 @@ Bonferroni correction, finding a significant result would be even less likely.
 
 
 %********************************************************************************
-\subsection{Placebo Tests}
-\label{TEENsscn:placebo}
+\subsection{Event Study Analysis}
+\label{TEENsscn:eventstudy}
 Robustness of the main estimates to the addition of time-varying controls and
 municipal-specific time trends provides some confidence in the results, however 
 does not directly examine the differential trends assumption underlying 
@@ -979,35 +1007,7 @@ diff-in-diff estimation.  In order to examine this assumption more closely,
 whether the results are driven by pre-existing differences or trends in treatment
 and control municipalities. 
 
-\Person thus run analogous tests to (\ref{TEENeqn:pill}) and 
-(\ref{TEENeqn:spillover}), however rather than looking at births following the
-introduction of the pill, \person examine births \emph{preceding} the introduction
-of the pill.  The logic underlying these tests is that if is the arrival of the EC 
-pill which reduces undesired births, then there should be no difference between 
-trends in births in pill and non-pill municipalities in years preceding the reform.  
-If however, the effects are due to general differences in trends in non-pill and 
-pill municipalities, we may expect that an effect would be seen even in the 
-absence of the EC pill.  We this run the following series of tests:
-\begin{equation}
- \label{TEENeqn:placebo}
-birth_{ijt-l} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt}\} + \phi_t + \eta_j + 
-\eta_j\cdot t + \varepsilon_{ijt},
-\end{equation}
-where $l$ refers to a series of lags $l\in 3,4,5$ years.  \Person choose lags of
-at least 3 years so that all births observed will occur entirely before the 
-arrival of the EC pill in 2008.
-
-These results are presented in table \ref{TEENtab:Placebo}, both for 
-specification (\ref{TEENeqn:placebo}) and an analogous specification where 
-placebo close municipalities are defined.  These placebo tests support the 
-diff-in-diff specification estimated.  In all but 3 of 30 coefficients, small
-and statistically insignificant results are observed on placebo treatments.  In
-3 of 30 cases, significant effects are found, although these are always on 
-placebo `close' treatments, and not on the main treatment itself.  Generally
-this is quite strong evidence in favour of an absence of pre-treatment 
-differential trends, as at 10\% significance levels, it is expected that 
-approximately 3 in 30 coefficients should be falsely accepted (ie a type I error
-should occur).
+XXXX
 
 Along with these formal placebo tests, we can examine trends by eye based on
 full data on all births occurring in Chile in the past decade and a half. \Person 
