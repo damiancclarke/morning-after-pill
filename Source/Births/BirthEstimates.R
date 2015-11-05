@@ -30,17 +30,17 @@ rm(list=ls())
 #==============================================================================
 create <- FALSE
 preg   <- TRUE
-Npreg  <- TRUE
-Lpreg  <- TRUE
+Npreg  <- FALSE
+Lpreg  <- FALSE
 prTab  <- TRUE
-spill  <- TRUE
+spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
 events <- FALSE
-ChMund <- TRUE
-invPS  <- TRUE
-robust <- TRUE
+ChMund <- FALSE
+invPS  <- FALSE
+robust <- FALSE
 
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -429,9 +429,19 @@ NumMod <- function(age_sub,order_sub,rate,logm) {
 #==============================================================================
 #=== (4b) Various functions to examine effect of spillover 
 #==============================================================================
-spillovers <- function(age_sub,order_sub) {
+spillovers <- function(age_sub,order_sub,time,road) {
 
     formod <- datcollapse(age_sub, order_sub,1,orig)
+    if (time) {
+        formod$close15 <- formod$time15
+        formod$close30 <- formod$time30
+        formod$close45 <- formod$time45
+    }
+    if (road) {
+        formod$close15 <- formod$road15
+        formod$close30 <- formod$road30
+        formod$close45 <- formod$road45
+    }
     
     xspill <- glm(cbind(successes,failures) ~ factor(dom_comuna)          + 
                   factor(dom_comuna):trend + factor(year) + factor(pill)  + 
@@ -667,10 +677,21 @@ if(Lpreg){
 
 if(spill){
     print("Spillover Models")
-    c1519 <- spillovers(age_sub = 15:19, order_sub = 1:100)
-    c2034 <- spillovers(age_sub = 20:34, order_sub = 1:100)
-    c3549 <- spillovers(age_sub = 35:49, order_sub = 1:100)
-    cAll  <- spillovers(age_sub = 15:49, order_sub = 1:100)
+    c1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=FALSE,road=FALSE)
+    c2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=FALSE,road=FALSE)
+    c3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=FALSE,road=FALSE)
+    cAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=FALSE,road=FALSE)
+    print("Spillover Models (Road)")
+    cr1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=FALSE,road=TRUE)
+    cr2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=FALSE,road=TRUE)
+    cr3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=FALSE,road=TRUE)
+    crAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=FALSE,road=TRUE)
+    print("Spillover Models (Time)")
+    ct1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=TRUE,road=FALSE)
+    ct2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=TRUE,road=FALSE)
+    ct3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=TRUE,road=FALSE)
+    ctAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=TRUE,road=FALSE)
+
 }  
 
 if(invPS){
@@ -785,9 +806,78 @@ sig  <- '$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01'
 
 if(prTab){
 to <-file(paste(tab.dir,"Births.tex", sep=""))
-writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
+writeLines(c('\\begin{table}[!htbp] \\centering',
            '\\caption{The Effect of the Morning After Pill on Pregnancy}',
            '\\label{TEENtab:PillPreg}',
+           '\\begin{tabular}{@{\\extracolsep{5pt}}lcccc}',
+           '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+           '&Pr(Birth)&Pr(Birth)&Pr(Birth)&Pr(Birth)\\\\ ',
+           '&(1)&(2)&(3)&(4)\\\\ \\hline',
+           '\\multicolumn{5}{l}{\\textsc{\\noindent All Women}} \\\\',
+           ' & & & & \\\\',
+           paste(xvar,aAll$b,'\\\\', sep=""), 
+           paste(' &', aAll$se, '\\\\',sep=""), 
+           ' & & & & \\\\',
+           paste(obs, aAll$n,'\\\\', sep=""), 
+           paste(R2, aAll$r,'\\\\', sep=""), 
+           ' & & & & \\\\',
+           '\\multicolumn{5}{l}{\\textsc{\\noindent 15-19 year olds}} \\\\',
+           ' & & & & \\\\',
+           paste(xvar,a1519$b,'\\\\', sep=""), 
+           paste(' &', a1519$se, '\\\\', sep=""), 
+           ' & & & & \\\\',
+           paste(obs, a1519$n, '\\\\', sep=""), 
+           paste(R2, a1519$r,'\\\\', sep=""), 
+           ' & & & & \\\\',
+           '\\multicolumn{5}{l}{\\textsc{\\noindent 20-34 year olds}} \\\\',
+           ' & & & & \\\\', 
+           paste(xvar,a2034$b,'\\\\', sep=""), 
+           paste(' &', a2034$se, '\\\\', sep=""), 
+           ' & & & & \\\\',
+           paste(obs, a2034$n,'\\\\', sep=""), 
+           paste(R2, a2034$r,'\\\\', sep=""), 
+           ' & & & & \\\\',
+           '\\multicolumn{5}{l}{\\textsc{\\noindent 35-49 year olds}} \\\\',
+           ' & & & & \\\\', 
+           paste(xvar,a3549$b,'\\\\', sep=""), 
+           paste(' &', a3549$se,'\\\\', sep=""), 
+          ' & & & & \\\\',
+           paste('Observations&',a3549$n,'\\\\', sep=""), 
+           paste(R2, a3549$r,'\\\\', sep=""), 
+           '\\hline \\\\[-1.8ex] ', 
+           '{\\small Trends \\& FEs} & Y & Y & Y & Y \\\\',
+           '{\\small Political Controls} & & Y & Y & Y \\\\', 
+           '{\\small Health, Educ, Gender Controls} & & & Y & Y\\\\',
+           '{\\small Condom Availability} & & & & Y\\\\', 
+           '\\hline \\hline \\\\[-1.8ex]',
+           '\\multicolumn{5}{p{13.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+           ' Birth is a binary variable taking 1 for women who give birth    ',
+           'and 0 if the woman does not give birth. All models are estimated ',
+           ' by weighted logit, where weights are the number of women who    ',
+           'give birth or do not give birth (respectively). Municipality and ',
+           ' year fixed effects are included, and standard errors are        ',
+           'clustered at the level of the municipality. All coefficients are ',
+           'reported as log odds and in each case Pill is a binary variable  ',
+           'referring to the availability of the morning after pill in the   ',
+           'woman\'s municipality and (lagged) year. Political controls are  ',
+           'party dummies for the mayor in power, the mayor\'s gender, and   ',
+           'the vote margin of the mayor.  Health and education controls     ',
+           'are the percent of girls out of highschool, education spending   ',
+           'spending by both the municipality and the Ministry of Education  ',
+           'and total health spending and health spending on staff and       ',
+           'training.  Gender controls are the percent of female heads of    ',
+           ' households living below the poverty line, and the percent of    ',
+           'female workers in professional positions in the Municipality,    ',
+           'and condom availability is measured from survey data at the      ',
+           'level of the region.',
+           paste(sig, '\\end{footnotesize}}', sep=""),
+           '\\normalsize\\end{tabular}\\end{table}'),to)
+close(to)
+
+to <-file(paste(tab.dir,"BirthsBoth.tex", sep=""))
+writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
+           '\\caption{The Effect of the Morning After Pill on Pregnancy}',
+           '\\label{TEENtab:PillPregBoth}',
            '\\begin{tabular}{@{\\extracolsep{5pt}}lccccp{1mm}cccc}',
            '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
            '&\\multicolumn{4}{c}{All Births}&&\\multicolumn{4}{c}{First Births}',
@@ -823,23 +913,13 @@ writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
            '{\\small Condom Availability} & & & & Y && & & & Y \\\\', 
            '\\hline \\hline \\\\[-1.8ex]',
            '\\multicolumn{10}{p{22cm}}{\\begin{footnotesize}\\textsc{Notes:}',
-           'All Births and First Births are binary variables taking the value',
-           'of 1 in the case that a women gives live birth and that this',
-           'occurs at any birth order, or is her first birth (respectively).',
-           'All models are estimated using logistic regression and include',
-           'comuna and year fixed. Standard errors are clustered at the level',
-           'of the comuna.  All coefficients are',
-           'reported as log odds and in each case Pill is a binary variable',
-           'referring to the availability of the morning after pill in the',
-           'woman\'s comuna and (lagged) year.  Political controls include',
-           'party dummies for the mayor in power, the mayor\'s gender, and',
-           'the vote margin of the mayor.  Health and education controls',
-           'include the percent of girls out of highschool, education',
-           'spending by both the municipality and the Ministry of Education',
-           'and total health spending and health spending on staff and',
-           'training.  Gender controls are the percent of female heads of',
-           ' households living below the poverty line, and the percent of',
-           'female workers in professional positions in the Municipality.',
+           'Refer to notes in table \\ref{TEENtab:PillPreg} of the paper.   ',
+           'For all births, logits are estimated where women giving birth   ',
+           'in the year are assigned the value 1, and women not giving birth',
+           ' are assigned zero.  For first births, only women who have their',
+           ' first birth are assigned one.  All women who do not give birth ',
+           ' are assigned the value of zero, so results are expressed as    ',
+           ' first births/all women not giving birth.                       ',
            paste(sig, '\\end{footnotesize}}', sep=""),
            '\\normalsize\\end{tabular}\\end{table}\\end{landscape}'),to)
 close(to)
@@ -867,7 +947,55 @@ if(spill){
              paste(obs,c1519$n,'&',c2034$n,'&',c3549$n,'\\\\',sep=""),
              paste(R2,c1519$r,'&',c2034$r,'&',c3549$r,'\\\\ \\midrule',sep="")),
              to)
-close(to)
+  close(to)
+
+  to <-file(paste(tab.dir,"SpilloversROAD_A.tex", sep=""))
+  writeLines(c('\\begin{table}[!htbp] \\centering',
+             '\\caption{The Morning After Pill and Treatment Spillovers (Roads)}',
+             '\\label{TEENtab:SpilloverRoads} \\begin{tabular}',
+             '{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]\\hline\\hline\\\\',
+             '[-1.8ex] & 15-19 & 20-34 & 35-49 \\\\',
+             '& Year olds & Year olds & Year olds \\\\ \\midrule',
+             '\\multicolumn{4}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
+             '& & & \\\\',
+             paste(xvar,cr1519$b[1],'&',cr2034$b[1],'&',cr3549$b[1],'\\\\',sep=""),
+             paste('&',cr1519$s[1],'&',cr2034$s[1],'&',cr3549$s[1],'\\\\',sep=""),            
+             paste(xv2,cr1519$b[2],'&',cr2034$b[2],'&',cr3549$b[2],'\\\\',sep=""),
+             paste('&',cr1519$s[2],'&',cr2034$s[2],'&',cr3549$s[2],'\\\\',sep=""),
+             paste(xv3,cr1519$b[3],'&',cr2034$b[3],'&',cr3549$b[3],'\\\\',sep=""),
+             paste('&',cr1519$s[3],'&',cr2034$s[3],'&',cr3549$s[3],'\\\\',sep=""), 
+             '& & & \\\\',
+             paste(obs,cr1519$n,'&',cr2034$n,'&',cr3549$n,'\\\\',sep=""),
+             paste(R2,cr1519$r,'&',cr2034$r,'&',cr3549$r,'\\\\ \\midrule',sep="")),
+             to)
+  close(to)
+  
+  xv2  <- 'Close $<15$ mins &'
+  xv3  <- 'Close 15-30 mins &'
+  xv4  <- 'Close 30-45 mins &'
+
+  to <-file(paste(tab.dir,"SpilloversTIME_A.tex", sep=""))
+  writeLines(c('\\begin{table}[!htbp] \\centering',
+             '\\caption{The Morning After Pill and Treatment Spillovers (Time)}',
+             '\\label{TEENtab:SpilloverTime} \\begin{tabular}',
+             '{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]\\hline\\hline\\\\',
+             '[-1.8ex] & 15-19 & 20-34 & 35-49 \\\\',
+             '& Year olds & Year olds & Year olds \\\\ \\midrule',
+             '\\multicolumn{4}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
+             '& & & \\\\',
+             paste(xvar,ct1519$b[1],'&',ct2034$b[1],'&',ct3549$b[1],'\\\\',sep=""),
+             paste('&',ct1519$s[1],'&',ct2034$s[1],'&',ct3549$s[1],'\\\\',sep=""),            
+             paste(xv2,ct1519$b[2],'&',ct2034$b[2],'&',ct3549$b[2],'\\\\',sep=""),
+             paste('&',ct1519$s[2],'&',ct2034$s[2],'&',ct3549$s[2],'\\\\',sep=""),
+             paste(xv3,ct1519$b[3],'&',ct2034$b[3],'&',ct3549$b[3],'\\\\',sep=""),
+             paste('&',ct1519$s[3],'&',ct2034$s[3],'&',ct3549$s[3],'\\\\',sep=""), 
+             paste(xv4,ct1519$b[4],'&',ct2034$b[4],'&',ct3549$b[4],'\\\\',sep=""),
+             paste('&',ct1519$s[4],'&',ct2034$s[4],'&',ct3549$s[4],'\\\\',sep=""), 
+             '& & & \\\\',
+             paste(obs,ct1519$n,'&',ct2034$n,'&',ct3549$n,'\\\\',sep=""),
+             paste(R2,ct1519$r,'&',ct2034$r,'&',ct3549$r,'\\\\ \\midrule',sep="")),
+             to)
+  close(to)
 }
 
 if(full) {
