@@ -600,12 +600,12 @@ Our diff-in-diff estimates in the previous section potentially underestimate the
 true effect of the morning after pill.  Principally, we may be concerned that
 there exist spillovers between treatment and control clusters due to the porous
 nature of municipal boundaries. Given that a woman can access municipal health
-centres in neighbouring comunas, if she is denied access to the pill in her
-comuna she may travel to obtain it elsewhere, or otherwise rely on the close
-geographic distance between her municipality and a treatment municipality to 
-gain access to the morning after pill\footnote{This may be the case for example
-if women rely on friends or contacts in neighbouring municipalities to gain 
-access.}.  This motivates the following specification:
+centres in neighbouring municipalities, if she is denied access to the pill in 
+her municipality she may travel to obtain it elsewhere, or otherwise rely on the 
+close geographic distance between her municipality and a treatment municipality 
+to gain access to the morning after pill\footnote{This may be the case, for 
+example, if women rely on friends or contacts in neighbouring municipalities to 
+gain access.}.  This motivates the following specification:
 \begin{equation}
  \label{TEENeqn:spillover}
 y_{ijct} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt-1}\} + 
@@ -637,7 +637,8 @@ determined by $c$, the minimum distance to a treatment cluster, and $c+d$,
 the maximum distance to the treatment cluster. For example, $close_{0,15,jt}$ 
 will take the value of 1 for any municipality which does not itself prescribe 
 the EC pill, but is within (0,15] km of a treatment municipality.  Similarly 
-$close_{15,30,jt}\Rightarrow (15,30]$.}
+$close_{15,30,jt}=1$ for municipalities located (15,30] km from the nearest
+EC pill.}
 
 To see this, define $y_{1ijt}$ as the potential outcome for a woman in the 
 presence of treatment.  Likewise, $y_{0ijt}$ is the potential outcome for a 
@@ -646,8 +647,8 @@ literature\footnote{See for example \citet{CardKruger1994}.}, difference-in-%
 differences will allow us to estimate the causal effect of treatment if we are 
 willing to make a common trends assumption about treament and control 
 municipalities.  Implicitly, this common trends assumption nests an assumption
-about spillovers between treatment and control muncipalities: that no such 
-spillovers may exist, as these will affect the pre-existing trend in the control 
+that spillovers between treatment and control muncipalities may not occur, as 
+these will affect the pre-existing trend in the control 
 state.\footnote{Fortunately for the naive estimates of treatment effects in this 
 case, any estimates will be attenuated rather than overstated, given that the 
 mixture of treated units with the control group will cause outcomes in control 
@@ -775,65 +776,99 @@ allow for dependence across individuals based on distance.
 \subsection{The Effect of Emergency Contraception on Births}
 \label{TEENsscn:rbirths}
 Table \ref{TEENtab:PillPreg} provides estimates for specification 
-(\ref{TEENeqn:pill}).  This has been estimated using a logistic regression, and
-all coefficients are cast as log odds.  Here, \person examine two fertility 
-outcomes: the probability that a woman gives birth to any child (columns 1-4), 
-and the probability that a woman gives birth to her first child (columns 5-8). 
-The latter outcome captures just the effects of the emergency contraceptive pill
-at the extensive margin, while the prior outcome captures both extensive (first
-birth), and intensive (more births) effects.
+(\ref{TEENeqn:pill}).  This has been estimated using a weighted logit regression,
+where cells are weighted by the number of women giving birth and the number of
+women not giving birth in each municipality and year respectively.  As such, the
+number of observations refers to the weighted count of all fertile women over the
+period of study, rather than the number of municipalities and years (which we
+include as notes to the tables).  All estimated coefficients and standard errors 
+are cast as log odds.  
 
-In each case we estimate first the simple diff-in-diff specification without 
-time-varying controls, and then gradually add time varying controls which may 
-confound results of the original specification.  Initial results suggest that the 
-effect on pregnancies may be large, particularly so for teenagers.  Point 
-estimates on ``All Births'' for the 15-19 year old group suggest that the pill is 
-associated with a highly significant 6.2\% reduction in pregnancy 
-(1-$\exp(-0.064)$), or a 4.0\% reduction when including potentially confounding 
-time-varying controls.  The coefficients on these time varying controls are omitted 
-from table \ref{TEENtab:PillPreg} for the sake of clarity; however a full output 
-for column (4) of each panel is provided in appendix table \ref{TEENtabPregFull}.
-
-When we examine the effect only on first births, we see a somewhat smaller, but
-still important 3.5\% reduction in births (or an imprecisely estimated 2.1\% 
-reduction when including controls for condom availability).  This ``First Births''
-column must necessarily be less than or equal to the effect of the morning after 
-pill on all births, given that all births include first births, along with higher 
-order births.  The difference between the results in these two columns allows
-for a rough examination of the magnitude of extensive versus intensive effects
-on fertility.  Were the entire effect of the pill working at the extensive 
-(first birth) margin, we would expect that the coefficients for ``First Births''
-should equal those on ``All Births''.  As is, for the teenage group, we see
-that the coefficient on first births is 51\% of that on all births, suggesting
-that while the extensive margin is important, the morning after pill also has
-important effects at the intensive margin.
+We first estimate the simple diff-in-diff specification without time-varying 
+controls, and then gradually add time-varying controls which may confound results 
+of the original specification.  Initial results suggest that the effect on 
+pregnancies may be large, particularly so for teenagers.  Point estimates of the
+effect of the morning after pill for the 15-19 year old group suggest that it is 
+associated with a highly significant 5.8\% reduction in pregnancy 
+(1-$\exp(-0.060)$), or a 4.5\% reduction when including potentially confounding 
+time-varying controls.  The coefficients on these time varying controls are 
+omitted from table \ref{TEENtab:PillPreg} for the sake of clarity; however a 
+full output for column (4) is provided in the online appendix.
 
 The effects on older age groups are more moderate than the effect on teenagers,
 consistent with the fact that a greater proportion of teenage births are
 undesired.  However, for 20-34 year olds we still see that access to the 
-emergency contraceptive reduces pregnancy, by 3.0\% for all births, and 2.1\% for 
-first births.  In contrast to younger women, there appears to be no effect of the 
-morning after pill on women aged 35 and above.  All estimates for the 35-49 
-year old group are not significantly different to zero.
+emergency contraceptive reduces pregnancy, by 3.1\% for all births when full 
+controls are included.  In contrast to younger women, there appears to be no 
+effect of the morning after pill on women aged 35 and above.  All estimates for 
+the 35-49 year old group are not significantly different to zero.  The global 
+effect of the reform pooled for women of all fertile ages (15-49) is, as 
+expected, a weighted average of these estimates.  In areas where the EC pill
+became available as a result of the reform, the reduction in pregnancies 
+associated with its arrival for all women was approximately 2.7\%, as described
+in column 4 of table \ref{TEENtab:PillPreg}.
+
+We address concerns regarding particular specification and estimation decisions
+in table \ref{TEENtab:BirthRobust}.  Overall, the results from table 
+\ref{TEENtab:BirthRobust} suggest that our results are robust to alternative
+methodologies.  For all groups, estimating without a state-specific time-trend
+(column 2) suggests slightly larger, though not statistically distinguishable, 
+effect sizes than the diff-in-diff estimates from table \ref{TEENtab:PillPreg},
+which have been reproduced in column 1.  Similarly, using inverse propensity
+score weighting in regressions to weight EC pill and non-EC pill municipalities
+by their probability of prescribing or not the EC pill, (coulmn 3) results in 
+quantitatively similar (slightly smaller) effects to those reported in column 1.
+
+The estimation of non-linear models in a difference-in-differences style 
+framework can be subject to complications (see for example \citet{AiNorton2003}).
+As such, we examine a number of ways to avoid common pitfalls in these models.
+Firstly, we re-estimate specification (\ref{TEENeqn:pill}), in the absence of
+a large number fixed effects by using the Chamberlain-Mundlak device\footnote{%
+In our specification, the number of municipalities (and hence fixed effects) is 
+constant as $T\rightarrow\infty$, however the number of individuals grows with 
+$T$.  As we are including municipal fixed effects, rather than individual FEs, 
+theoretically at least, the incidental parameters problem in our logit models is 
+not a concern.  Nevertheless, empirically we test whether removing FEs and 
+following the Chamerlain-Mundlak device does affect our estimates, which may 
+signify problems with FE estimation. For additional details regarding these 
+methodologies, see \citet{Chamberlain1980,Wooldridge2005}.}. The results from
+column 4 of table \ref{TEENtab:BirthRobust} suggest that these estimates are not
+remarkably different from our main estimates, providing support to the logit 
+specification.  However, more fundamentally, we entirely replace our non-linear
+models based on a binary outcome (birth versus no birth) with an OLS regression
+following precisely the same specification, but continuous outcome variables
+counting births and the birth rate at the level of the municipality in each year
+in question. In column 6 of table \ref{TEENtab:BirthRobust} we present OLS 
+results of the total count of births, while column 7 expresses the birth rate 
+per 1,000 women. Despite the considerable differences in estimation methods and 
+set-up, we are reassured to see that the estimates of birth rate from OLS 
+regressions provide results which are both qualitatively and quantitatively 
+similar to the rates suggested by our main logit estimates: for teenagers a 
+reduction in births by 4.5 per 1,000 teenaged women, and for 20-34 year olds a 
+reduction in births attributable to the EC pill of 3.3 births per 1,000 women.%
+\footnote{As reference, Chilean Ministry of Health estimates suggest that 
+absolute birth rates for these groups over the time period under study was 55 per 
+1,000, and 87 per 1,000 respectively.  Expressing the rates as percent change 
+suggests an effect of approximately -8 and -3.6\% respectively.}
 
 %********************************************************************************
 \subsection{The Effect of Emergency Contraception on Abortions}
 \label{TEENsscn:rabortion}
 In table \ref{TEENtab:PillDeath}, difference-in-difference estimates of the 
 effect of the emergency contraceptive pill on fetal deaths are presented.  Once
-again these are estimated using a logit model. In this case the denominator (or
-0 in the outcome variable) is assigned to each live birth, while a fetal death
-is assigned a 1.  All effects are thus interpreted as fetal deaths per live 
-births.  As discussed in section \ref{TEENscn:Data}, by using certain subsets of 
-fetal deaths we aim to proxy for illegal abortion.  We expect that if the 
-emergency contraceptive pill affects abortion, this should turn up in fetal 
-deaths occurring from 0-20 weeks, however should not turn up in deaths occuring
-later in the gestational period, given that abortions rarely take place beyond 
-the 20\textsuperscript{th} week.
+again the main specification are estimated using a weighted logit. In this case 
+the denominator (or 0 in the outcome variable) is assigned to each live birth
+ocurring in the municipality and year, while a fetal death is assigned a 1. All 
+effects are thus interpreted as fetal deaths per live births. As discussed in 
+section \ref{TEENscn:Data}, by using certain subsets of fetal deaths we aim to 
+proxy for illegal abortion.  We expect that if the emergency contraceptive pill 
+affects abortion, this should turn up in fetal deaths occurring from 0-20 weeks, 
+however should not turn up in deaths occuring later in the gestational period, 
+given that abortions rarely take place beyond the 20\textsuperscript{th} week.
 
 Column (1) of table \ref{TEENtab:PillDeath} presents the effect of the pill on
 \emph{all} fetal deaths.  We are, however, most intersted in columns (2) and (3),
-which present results for early (0-20 weeks), and late (21-39 weeks) 
+which present results for early (0-20 weeks), and late ($>$21 weeks) 
 respectively.  In these columns we have removed from the sample any fetal deaths
 which have been classified in ICD class Q (a minority of fetal deaths), as these 
 represent causes such as congenital defects, which are very unlikely to proxy
@@ -844,17 +879,15 @@ the morning after pill may reduce the prevalence of (illegal) abortion.  Some
 effect is found when examining the effect on all fetal deaths, however when 
 this is examined by subgroups, the effect is entirely driven by early gestation
 deaths.  The size of the coefficient is empirically very important: it 
-suggests a reduction in early gestation deaths by 55\%, which \person interpret
-as strong evidence in favour of reductions of illegal abortion.  When compared 
-to the null effect on late-term deaths, this seems to provide more support to
-this claim.
-
-A similar pattern is observed for the 20-34 year old group of women, however
-effects are smaller and somewhat less significant.  While no significant effect
-is found when examining all births, there is evidence (at the 10\% significance
-level), that the arrival of emergency contraceptive reduces early gestation
-deaths by 17\%.  Once again, no significant effect is found in late gestation
-fetal death.
+suggests a reduction in early gestation deaths by 37\%, (these coefficients are
+log odds, so the effect size is interpreted as: $1-\log(-0.468)=-0.37$) which we 
+interpret as strong evidence in favour of reductions of illegal abortion.  When 
+compared to the null effect on late-term deaths, this seems to provide more 
+support to this claim. A similar pattern is observed for the 20-34 year old group 
+of women, however effects are smaller and not statistically significant. Although
+point estimates suggest that the effect of the EC pill on early term fetal deaths
+is negative, and larger than the effect on late term fetal deaths, neither of 
+these are precisely estimated.
 
 The group of women aged 35 years and above is somewhat less clear, and, while the 
 effect sizes of the coefficients follows the pattern outlined above, the
@@ -863,7 +896,14 @@ fetal death is much more common as maternal age increases, it is perhaps
 unsurprising that we find some effect for this group.  One possible explanation
 for this finding is that the morning after pill allows less healthy women to 
 select out of child bearing, although given the lack of covariates recording 
-mother's health at the time of childbirth, this cannot be explored fully.
+mother's health at the time of childbirth, this cannot be explored fully.  In
+robustness checks which are reported in online appendices, we find that OLS 
+estimates using the rate of fetal death at the level of the municipality 
+(analogous to column 7 of table \ref{TEENtab:BirthRobust}) result in 
+insignificant estimates for the over 35 age group, while the pattern of other
+results remains unchanged.  This further suggests that the effect on the over 35
+age group is quite noisy, and less robust than birth findinds, and the fetal
+death effects at younger ages.
 
 %********************************************************************************
 \subsection{Municipality Spillover and Imperfect `Compliance'}
