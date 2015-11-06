@@ -622,7 +622,11 @@ where
 \]
 where $dist_{jt}$ is the distance (in km) to the nearest treatment municipality 
 (ie a municipality which reports prescribing the pill).  By definition, this takes
-0 for all treatment municipalities.
+0 for all treatment municipalities.  In order to measure distance, we calculate
+point-to-point (Euclidean) distance from the centre of each municipality to each
+other municipality.  As robustness checks, we also calculate distance over roads,
+and travel time in cars.  A full description of this data and its construction is
+provided in online appendix B.
 
 This specification is identical to that in (\ref{TEENeqn:pill}), however here we 
 include a number of $close$ controls (indexed by $c$).  These $close$ variables are 
@@ -897,13 +901,13 @@ unsurprising that we find some effect for this group.  One possible explanation
 for this finding is that the morning after pill allows less healthy women to 
 select out of child bearing, although given the lack of covariates recording 
 mother's health at the time of childbirth, this cannot be explored fully.  In
-robustness checks which are reported in online appendices, we find that OLS 
-estimates using the rate of fetal death at the level of the municipality 
-(analogous to column 7 of table \ref{TEENtab:BirthRobust}) result in 
-insignificant estimates for the over 35 age group, while the pattern of other
-results remains unchanged.  This further suggests that the effect on the over 35
-age group is quite noisy, and less robust than birth findinds, and the fetal
-death effects at younger ages.
+robustness checks which are reported in online appendices (appendix table 4 in
+online appendix E), we find that OLS estimates using the rate of fetal death at 
+the level of the municipality (analogous to column 7 of table 
+\ref{TEENtab:BirthRobust}) result in insignificant estimates for the over 35 age 
+group, while the pattern of other results remains unchanged. This further 
+suggests that the effect on the over 35 age group is quite noisy, and less robust 
+than birth findinds, and the fetal death effects at younger ages.
 
 %********************************************************************************
 \subsection{Municipality Spillover and Imperfect `Compliance'}
@@ -911,7 +915,7 @@ death effects at younger ages.
 We augment our naive estimates from sections \ref{TEENsscn:rbirths} and
 \ref{TEENsscn:rabortion} to account for between-cluster spillovers in table
 \ref{TEENtab:Spillover}.  These results are estimated according to equation
-(\ref{TEENeqn:spillover}) using a logit regression.  The discussion is section
+(\ref{TEENeqn:spillover}) using a logit regression.  The discussion in section
 \ref{TEENsscn:spilloverID} proposes including controls for areas which are `close 
 enough' to treatment municipalities that they are likely to be affected by
 spillovers.  However, discussion regarding how to determine the threshold has
@@ -937,7 +941,7 @@ a consistent estimate of $\delta$, and assume:\footnote{One situation in which
 this will not provide a consistent estimate of $\delta$ is the case in which 
 spillovers converge, but do not converge to zero.  If for example beyond a 
 certain distance $C$ the effect of spillovers reach some fixed constant, then 
-the null that $delta^{C-1}=\delta^C$ will not be rejected, even though the 
+the null that $\delta^{C-1}=\delta^C$ will not be rejected, even though the 
 marginal $\zeta$ term is not equal to zero.}
 \begin{equation}
 \bigg|\delta-\frac{c}{c+nc}\zeta\bigg|\simeq|\hat\delta^0|<|\hat\delta^1|<\cdots<
@@ -952,8 +956,8 @@ assume that we have included enough `close' municipalities once spillover effect
 are no longer found in the marginal municipality.
 
 In order for these methodologies to uncover a consistent estimate of $\delta$,
-all we require is that there actually are at least \emph{some} control 
-municipalities far enough away from treatment municipalities in which no 
+we require that there are at least \emph{some} control municipalities far enough 
+away from treatment municipalities in which no 
 spillover effects are felt.  As described in (\ref{TEENeqn:DDaextend}), these 
 `non-close' municipalities act as the control group for our diff-in-diff estimator, 
 so if no non-close municipalities exist, no consistent estimator can be formed.  
@@ -961,34 +965,40 @@ Given the relatively large distance between some non-treated municipalities and
 their nearest treated counterpart in the Chilean context, this seems unlikely in 
 this case, although we cannot reject this formally.
 
-Panel A of table \ref{TEENtab:Spillover} estimates using this methodology.  In
-this case, using either of the above methods results in an identical number of 
-close controls.  For both 15-19 year olds and 20-34 year olds, it appears that
-living within 30 km of a treatment municipality results in a spillover effect,
-while for the case of 35-49 year olds no spillover is observed.  Now, based on
-these updated estimates it appears that the true effect of the morning after 
-pill may be significantly higher than that estimated in section 
-\ref{TEENsscn:rbirths}.  Compared to the 4.1\% reduction in teenage births 
-estimated from specification (\ref{TEENeqn:pill}), here we estimate a 6.9\% 
-reduction for women living in treated municipalities ($1-\exp(-0.071)$), with
-sizeable effects also found for those living in close, non-treated 
-municipalities.  Similar patterns are observed for the 20-39 year old group,
-however in this case estimates are increased in magnitude from 3.0\% to 4.2\%.
+Panel A of table \ref{TEENtab:Spillover} estimates the effect of the EC pill 
+using this methodology. For both 15-19 year olds and 20-34 year olds there is
+evidnce to suggest that the arrival of the EC pill affected women living in both
+treated municipalities and close by non-treated municipalites. For both groups,
+tt appears that living within approximatel 15-30 km of a treatment municipality 
+results in a spillover effect, while for the case of 35-49 year olds no spillover
+is observed.  Now, based on these updated estimates it appears that the true 
+effect of the morning after pill may be significantly higher than that estimated 
+in section \ref{TEENsscn:rbirths}.  Compared to the 4.5\% reduction in teenage 
+births estimated in table \ref{TEENtab:PillPreg}, here we estimate a 7.2\% 
+reduction for women living in treated municipalities ($1-\exp(-0.075)$), with 
+sizeable effects also found for those living in nearby, non-treated 
+municipalities.  Similar patterns are observed for the 20-34 year old group,
+however in this case estimates are increased in magnitude from 3.1\% to 4.3\%.
 Figures \ref{TEENfig:Dist1519} and \ref{TEENfig:Dist2034} provide graphical
-support of this methodology.  Here, estimates are calculated based on a wide
-range of $close$ controls, with a step size $d$  of 2.5 km.  In each case,
-the estimated $\hat\delta$ appears to converge when controlling for spillovers
-of up to 30km.
+support of this methodology.  In these figures, estimates are calculated based on 
+a wide range of $close$ controls, with a step size $d$ of 2.5 km, in order to 
+estimate effects with a more finely spaced distance grid.  In the case of 15-19 
+year olds, $\hat\delta$ appears to converge when controlling for spillovers of 
+slightly less than 30km, while for 20-34 year olds, the distance of transmission 
+is shorter: approximately 10km.
 
 In Panel B, similar tests are run for fetal deaths.  In this case it appears 
 that spillovers act only over a shorter range or not at all, however this may 
 owe partially to the fact that fetal death is a relatively uncommon event, so 
 estimates are more imprecise.  Once again however, the inclusion of close 
 municipality controls act to increase the magnitude of treatment effects 
-estimated.  For 15-19 year olds, point estimates move from a 51.7\% reduction 
-in early-gestation fetal deaths, to a 56.6\% reduction, and for 20-39 year olds
-these point estimates move from 13.0\% to 16.1\%, however it is worth noting 
-that these changes are not statistically significant.
+estimated.  For 15-19 year olds, point estimates move from a 37.4\% reduction 
+in early-gestation fetal deaths, to a 40.0\% reduction, and for 20-39 year olds
+these point estimates move from 8.6\% to 8.9\%, however it is worth noting 
+that for this age group, these estimates are not statistically significant.
+In online appendices, we run similar tests using the alternative distance 
+measures of distance over roads and travel time in vehicle, and find broadly
+similar results.
 
 %********************************************************************************
 \subsection{Emergency Contraception and Aggregate Human Capital at Birth}
@@ -998,20 +1008,21 @@ it is not suggested that the morning after pill itself will affect a woman's
 human capital attainment over such a short time frame, if certain subgroups of 
 the population are more likely to access the contraceptive, it is likely that 
 aggregate compositional changes will be seen in both maternal and child human 
-capital outcomes.  There is considerable evidence to this effect when considering 
-access to the oral contraceptive pill \citep{Baileyetal2012,OltmansHungerman2012,
-ChiapporiOreffice2008}, and the arrival of legal abortion \citep{Whitaker2011,
-Ananatetal2009}.
+capital outcomes.  There is considerable evidence of this effect when considering
+long-term outcomes following access to the oral contraceptive pill 
+\citep{Baileyetal2012,OltmansHungerman2012}, and the arrival of legal abortion 
+\citep{Whitaker2011,Ananatetal2009} in the USA.
 
-\Person examine three outcome variables for mothers: years of education, 
-employment status, and a binary variable for marriage, and three outcome variables
-for newborns: weight at birth, weeks of gestation, and length (in cm) at 
-birth.\footnote{These outcomes, particularly birthweight, have been shown to
-improve outcomes including educational attainment and income throughout life 
+We examine three outcome variables for mothers: years of education, employment 
+status, and a binary variable for marriage, and three outcome variables for 
+newborns: weight at birth, weeks of gestation, and length (in cm) at birth.%
+\footnote{These outcomes, particularly birthweight, have been shown to improve 
+outcomes including educational attainment and income throughout life 
 \citep{BehrmanRosenzweig2004}}  Each model is estimated as outlined in 
-(\ref{TEENeqn:pill}) using OLS.  Surprisingly, we find that the morning after
-pill has had no, or very little, effect on aggregate human capital indicators.
-This is the case among mothers, and consequently among newborn babies.
+(\ref{TEENeqn:pill}) using OLS.  In the short term, we find that the morning 
+after pill has had no, or very little, effect on aggregate human capital 
+indicators. This is the case among mothers, and consequently among newborn 
+babies.
 
 Panel A of table \ref{TEENtab:PillAgg} presents estimates by age group.  For
 both teenagers and 20-34 year olds, no effect is seen on any of the variables
@@ -1027,78 +1038,106 @@ in table \ref{TEENtab:PillDeath}.
 Panel B provides estimates for all children born over the period under study.
 Once again, very little evidence is found to suggest that the emergency 
 contraceptive pill has created large-scale compositional effects to birth
-cohorts.  Given the lack of effect found in mothers, it is not surprising
-that similar results are found in babies.  In each case, no effect is observed
-on birthweight, gestational period, or length at birth (with the exception
-of a very small reduction in gestational length for babies born to 20-34 year
-olds).  Each of the reported significance levels is based on a two-tailed 
-$t$-test.  If \person were to correct for multiple hypothesis testing using a
-Bonferroni correction, finding a significant result would be even less likely.
+cohorts, at least over the short time frame of the reform.  Given the lack of 
+effect found in mothers, it is not surprising that similar results are found 
+for their babies.  In each case, no effect is observed on birthweight, 
+gestational period, or length at birth (with the exception of a very small 
+reduction in gestational length for babies born to 20-34 year olds).  Each of 
+the reported significance levels is based on a two-tailed $t$-test.\footnote{In
+the reported results, we test the effect of the reform on various outcome 
+measures.  Given that the results are largely insignificant, we do not correct 
+for multiple hypothesis testing.  If we were to correct using stepdown testing,
+we would be even less likely to reject the null of no effect on maternal or
+birth cohorts.}  
 
 
 %********************************************************************************
 \subsection{Event Study Analysis}
 \label{TEENsscn:eventstudy}
-Robustness of the main estimates to the addition of time-varying controls and
-municipal-specific time trends provides some confidence in the results, however 
-does not directly examine the differential trends assumption underlying 
-diff-in-diff estimation.  In order to examine this assumption more closely, 
-\person run a number of placebo tests.  These placebo tests allow us to examine
-whether the results are driven by pre-existing differences or trends in treatment
-and control municipalities. 
+Robustness of the main estimates to the addition of time-varying controls, 
+inverse propensity score weights, and municipal-specific time trends provides 
+some confidence in the results, however does not directly examine the
+differential trends assumption underlying diff-in-diff estimation.  Unbiased 
+estimates of the reform require that the EC pill and non EC-pill municipalities 
+would have followed similar trends in the absence of the reform.  In order to 
+examine this assumption more closely, we estimate an event study surrounding the 
+arrival of the EC pill.  This test allows for us to examine whether any 
+difference in trends emerges \emph{before} the arrival of the EC pill between 
+treated and non-treated areas, and also the evolution of outcomes after the date 
+of the reform.
 
-XXXX
+We present event studies for 15-19 and 20-34 year olds in figures 
+\ref{TEENfig:Event1519} and \ref{TEENfig:Event2034}.  Point estimates and 
+confidence intervals display the estimates on interactions between lags (or 
+leads) interacted with whether the municipality gave the EC pill or not.  If the
+only difference between EC pill and non EC pill municipalities emerged after the
+reform (rather than prevailing differences in trends prior to the reform), 
+estimates should only be significant in post reform years. Given the time-varying
+nature of the reform, in order to form the event study, we omit as the base case
+the lag 3 years before the start of the reform.  This is necessary given that for
+a municipality which adopts the morning after pill in 2011 (the final reform 
+year), a lag of three years is 2008, entirely before the pill arrived to Chile.
 
-Along with these formal placebo tests, we can examine trends by eye based on
-full data on all births occurring in Chile in the past decade and a half. \Person 
-present graphical results as appendix figures \ref{TEENfig:Trend1519} and 
-\ref{TEENfig:Trend2034}.  These figures suggest that indeed, the sharp 
-discontinuity in births occurs precisely following the arrival of the EC pill 
-to Chile: further evidence in favour of these results owing to the morning after 
-pill, rather than to alternative actions taken in pill and non-pill 
-municipalities.
+As the raw trends presented in figures \ref{TEENfig:Trend1519} and 
+\ref{TEENfig:Trend2034} suggest, formal event studies show that differences 
+between EC pill and non EC-pill municipalities do occur after the arrival of the
+reform.  With the exception of one marginally significant lag for the 20-34 year
+old group, all lags suggest that no significant difference between in trends
+between treated and control areas exist before the reform.  However, after the
+reform differences do emerge, and these are particularly pronounced after the
+reform has been in place for some time (1 or 2 years).
 
 %********************************************************************************
 \section{Conclusions}
 \label{TEENscn:conclusion}
-This study provides the first censal estimates of effect of the emergency
-contraceptive pill.  In contrast to existing studies based on data from the 
-United States, this study focuses on a reform in Chile, a country with high rates
-of teenage pregnancy and undesired childbearing, and where abortion is entirely 
-outlawed.  The lack of abortion or other post-coital birth control technologies 
-means that the arrival of the emergency contraceptive pill heralded the first 
-opportunity for women to control fertility in cases where alternative forms of 
-birth control were not used or failed during intercourse.
+In many countries around the world, access to contraceptives is complicated or
+limited, and this is particularly the case when considering abortion.  However,
+in those areas where contraceptives, including the oral contraceptive pill and 
+abortion, are widely available, the economic literature suggests that these
+technologies can have significant effects on rates of fertility, particularly
+among young women.  Evidence from historical reforms in USA and around the world
+suggest that these reforms may have effects approaching 10\%.  The evidence on
+the effectiveness of the morning after pill is much more limited.  In this paper
+we provide the first national level study of its effect using complete vital
+statistics, in an environment where abortion is completely outlawed. We find that
+in these circumstances, the EC pill may be as or nearly as effective as abortion
+at reducing rates of teenage pregnancy.
 
 By taking advantage of a legal finding which left decisions regarding the 
 availability of the morning after pill in the hands of the mayor of each of
-Chile's 346 municipalities, \person estimate the effect of this technology on 
-fertility, abortion and aggregate human capital outcomes. In contrast to the 
-literature currently available, \person find the emergency contraception has 
-large and significant effect on births and early gestation fetal deaths.  For 
-teenagers, this effect is estimated to be a reduction of 6.9\% and a remarkable 
-55\% in births and early-gestation fetal deaths respectively, while for 20-34 
-year old women these figures are a smaller, but still significant 4.1\% and 
-16.0\%.  It is argued that these early-gestation deaths proxy for illegal 
-abortion, and comparisons with late term deaths add support to this claim.
+Chile's 346 municipalities, we estimate the effect of this technology on 
+fertility, abortion and aggregate human capital outcomes. We find that in Chile,
+emergency contraception has large and significant effect on births and early 
+gestation fetal deaths.  For teenagers, this effect is estimated to be a
+reduction of 7.2\% and a remarkable 40\% in births and early-gestation fetal 
+deaths respectively, while for 20-34 year old women these figures are a smaller, 
+but still significant (in the case of births) of 4.3\% and 8.9\%.  It is argued 
+that these early-gestation deaths proxy for illegal abortion, and comparisons 
+with late term deaths add support to this claim.
 
-Given the permeable nature of municipal boundaries within a country, \person 
-examine the possibility that the arrival of the pill to a given municipality
-is not restricted only to women who live within its boundaries.  Results
-suggest that this may be the case, and that treatment spillovers may endure 
-for as much as 30km. \Person propose an identification strategy which flexibly 
-allows for such spillover effects to be accounted for, while simulatenously 
-recovering consistent estimate of the effect of the treatment in the presence 
-of contaminated (local) control groups.
+In the case of Chile, where women previously had no legal recourse to access
+post-coital contraceptives, the EC pill heralded a large change in their ability
+to control their fertility.  There appears to be significant demand for these
+contraceptives.  During the time period of the reform, young women, for whom
+undesired births can be particularly costly, appear to be willing to travel up
+to 30km from their municipality of residence to gain access to the emergency
+contraceptive pill.  Spillover analysis suggests that smaller reductions in 
+rates of births were felt in untreated areas up to 30km from the nearest EC
+prescribing municipality.
 
 All told, this paper provides considerable evidence that emergency contraception 
-may play an important role in a woman's contraceptive behaviour.  This finding
-is of particular importance to the country under study given that only recently
-has law been implemented making the morning after pill available to all.  This
-also suggests that despite evidence to the contrary in the United States, the 
-emergency contraceptive pill may be an important interim technology in the many 
-countries which currently do not allow alternative forms of post-coital 
-contraception.
+may play an important role in a woman's contraceptive behaviour in Chile.  Using
+a range of estimation techniques and methodologies suggests that in the absence
+of the pill, teenage childbearing in Chile would be approximately 7\% higher, or
+that the arrival of the pill resulted in 4.5 fewer births per 1,000 15-19 year 
+women during these years.  This effect is large, particularly in a context where
+high rates of teenage pregnancy have been quite slow to fall over time. This 
+finding is of particular importance to the country under study given that only 
+recently law has been implemented making the morning after pill available to all.  
+On a broader scale, thse results also suggest that despite evidence to the 
+contrary in the United States, the emergency contraceptive pill may act as an 
+important interim technology in the two thirds of the world's countries which 
+currently restrict access to abortion.
 
 \end{spacing}
 \begin{spacing}{1.4}
