@@ -98,7 +98,8 @@ Damian Clarke and Andrea Bentancor
 
 
 \newpage
-\section{Data Appendix: Births and Deaths}
+\section{Data Appendix}
+\subsection{Births, Deaths and Population}
 Population data from Chile comes from two main sources.  The first is vital 
 statistics data, recording births and fetal deaths which are provided by the 
 Ministry of Health of the Government of Chile (MINSAL).  This data provides 
@@ -246,7 +247,7 @@ body of the paper (figure \ref{TEENfig:BirthDeath}).
 \setlength\parindent{0.25in}
 \setlength\parskip{0.25in}
 
-\section{Data Appendix: Distance to Treatment}
+\subsection{Distance to Treatment}
 Spillover analysis in section \ref{TEENsscn:spillover} of the paper requires
 data on the distance of each non-treatment municipality to the nearest 
 treatment municipality.  Principal measures of distance from treatment is 
@@ -323,8 +324,6 @@ case, less than 1.5\% of non-pill municipalities are greater than 150km
 (minutes) from the nearest pill municipality.}
 \end{figure}
 
-
-
 These alternative measures of distance do not majorly affect the quantitative 
 implication of findings reported in the paper.  Appendix tables \ref{altdist1}
 and \ref{altdist2} replicate table \ref{TEENtab:Spillover} from the paper,
@@ -334,14 +333,8 @@ car. Results from both tables suggest a treatment effect of approximately
 distance respectively, following the spillover methodology outlined in the
 paper.
 
-
-
-
-
-
-
 \clearpage
-\section{Time-Varying Municipality and Region Controls}
+\subsection{Time-Varying Municipality and Region Controls}
 Time-varying municipal controls such as education and health spending, and the
 number of females working in public government is downloaded from the National
 System of Municipal Information (SINIM).  This provides data as far back as
@@ -369,9 +362,6 @@ the level of the municipality.  Once again, processed data and processing
 scripts are made available at the data section of the author's site, and, if 
 desired, raw data is available on the web: 
 \url{http://extranet.injuv.gob.cl/Encuesta_Nacional_de_la_Juventud/contenido/index.php}.
-
-
-
 
 \clearpage
 \section[Additional Details of the Emergency Contraceptive Reform]{The Chilean 
@@ -435,6 +425,29 @@ of the morning after pill to women of any age in any health centre in Chile.
 This became operative on May 28, 2013, meaning that---at least officially---%
 there are no longer any restrictions in place in the country.
 
+While the morning after pill was only legalised in Chile with these reforms,
+the functionality of the morning after pill (the prevention of ovulation) can
+be simulated using an overdose of the traditional oral contraceptive pill 
+(CITE). This is known as the YUZPE method.  We are not aware of any evidence
+or survey data which exists to determine the knowledge of this method among the 
+population of Chilean women.  However, if the arrival of the morning after pill
+reform also brings with it greater awareness of the YUZPE method, we may be
+concerned that we mistakenly infer that this is the effect of the EC pill itself,
+and not increased knowledge of alternative methods.  However, in searching 
+through many official government documents and unofficial documents both prior 
+and posterior to the reform, we find little evidence to suggest that this was
+a widely discussed or suggested method.  In both the 2006 and 2012 revisions of
+the National Laws for the Regulation of Fertility, as well as the Ministry of 
+Health's Manual on Teenage Pregnancy, no mention of this method was made (however 
+the EC pill was mentioned in the 2012 revision of the law as well as the Manual
+on Teenage Pregnancy).  In the only survey data of which we are aware which asks 
+about the YUZPE method \citep{Didesetal2010}, of 162 surveyed municipal health 
+centres, only 3 of these mention suggesting the YUZPE method if the EC pill is 
+not available.  Our reading of the source documents and data suggests that there 
+is no reason to think that the reform is associated with a change in the 
+frequency of the YUZPE method, or that the YUZPE method was particularly widely 
+known in Chile.
+
 \begin{figure}
 \startchronology[align=left, startyear=2004,stopyear=2015, height=0pt, startdate=false, stopdate=false, dateselevation=1pt, arrow=false, box=true]
 %\chronograduation[event][dateselevation=0pt]{2}
@@ -474,6 +487,61 @@ pharmacies without a prescription.}
 \input{../Tables/DeathFullCovars.tex}
 \input{../Tables/SpilloversROAD.tex}
 \input{../Tables/SpilloversTIME.tex}
+\input{../Tables/BirthsBoth.tex}
+
+When we examine the effect only on first births, we see a somewhat smaller, but
+still important 3.5\% reduction in births (or an imprecisely estimated 2.1\% 
+reduction when including controls for condom availability).  This ``First Births''
+column must necessarily be less than or equal to the effect of the morning after 
+pill on all births, given that all births include first births, along with higher 
+order births.  The difference between the results in these two columns allows
+for a rough examination of the magnitude of extensive versus intensive effects
+on fertility.  Were the entire effect of the pill working at the extensive 
+(first birth) margin, we would expect that the coefficients for ``First Births''
+should equal those on ``All Births''.  As is, for the teenage group, we see
+that the coefficient on first births is 51\% of that on all births, suggesting
+that while the extensive margin is important, the morning after pill also has
+important effects at the intensive margin.
+
+
+
+\clearpage
+%-------------------------------------------------------------------------------
+\section{Additional Placebo Tests of the Reform}
+\label{TEENsscn:placebo}
+In the body of the paper we estimate full event-studies surrounding the EC pill
+reform. Here we provide alternative placebo tests using data entirely prior to
+the reform. In order to do se, we run analogous regressions to those outlined in
+specifications (\ref{TEENeqn:pill}) and (\ref{TEENeqn:spillover}) described in 
+the body of the paper, however rather than looking at births following the 
+introduction of the pill, we examine births \emph{preceding} the introduction of 
+the pill.  The logic underlying these tests is that if it is the arrival of the 
+EC pill which reduces undesired births, then there should be no difference 
+between trends in births in pill and non-pill municipalities in years preceding 
+the reform.  If however, the effects are due to general differences in trends in 
+non-pill and pill municipalities, we may expect that an effect would be seen even 
+in the absence of the EC pill.  We thus run the following series of tests:
+\begin{equation}\tag{A1}
+ \label{TEENeqn:placebo}
+birth_{ijt-l} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt}\} + \phi_t + \eta_j + 
+\eta_j\cdot t + \varepsilon_{ijt},
+\end{equation}
+where $l$ refers to a series of lags $l\in 3,4,5$ years.  We choose lags of
+at least 3 years so that all births observed will occur entirely before the 
+arrival of the EC pill in 2008.
+
+These results are presented in Appendix table \ref{TEENtab:Placebo}, both for 
+specification (\ref{TEENeqn:placebo}) and an analogous specification where 
+placebo close municipalities are defined.  These placebo tests support the 
+diff-in-diff specification estimated.  In all but 2 of 30 coefficients, small
+and statistically insignificant results are observed on placebo treatments.  In
+2 of 30 cases, significant effects are found (at the 10\% level), although these 
+are always on placebo `close' treatments, and not on the main treatment itself.  
+Generally this is quite strong evidence in favour of an absence of pre-treatment 
+differential trends, as at 10\% significance levels, it is expected that 
+approximately 3 in 30 coefficients should be falsely accepted (ie a type I error
+should occur).
+
 \input{../Tables/Placebo.tex}
 
 
