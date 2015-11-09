@@ -187,10 +187,10 @@ Arica & 2011 & 0 & 1418 \\ \bottomrule
 We observe 1,605,300 live births and 13,063 fetal deaths occurring to 15-49 year 
 old women from 2006-2012.  Appendix figure \ref{TEENfig:ageHist} plots the 
 distribution of mother's age at birth in Chile over the period of study, while
-figure \ref{TEENfig:ageHistD} plots the distribution of fetal deaths by ages of
-the woman.  For births, the distribution is approximately multi-modal, with a 
-peak for women in their late teens and early 20s, and another peak in the late 
-20s.  As in the USA, the rate of fetal deaths are highest among teenage and 
+appendix figure \ref{TEENfig:ageHistD} plots the distribution of fetal deaths by 
+ages of the woman.  For births, the distribution is approximately multi-modal, 
+with a peak for women in their late teens and early 20s, and another peak in the 
+late 20s.  As in the USA, the rate of fetal deaths are highest among teenage and 
 older women \citep{MacDormanGregory2015}, with the absolute number in Chile 
 being highest among young women.
 
@@ -217,14 +217,14 @@ Government of Chile's vital statistics data.}
 \end{figure}
 
 The population of fertile-aged women in Chile during this period was 
-approximately 4 million.\footnote{According to the 2002 census, the population
+approximately 4.25 million.\footnote{According to the 2002 census, the population
 of Chile was 15,116,435, of which 50.7\% were women.  The most recent estimates
 from INE are 17,556,815, and 50.5\% respectively.}  Over the entire period 
-2006-2012, 28,196,700 fertile aged women were exposed (4 million women per year
-for 7 years).  Appendix figure \ref{TEENfig:Pregtime} displays pregnancy rates 
-by age-group over the period of study, calculated from MINSAL vital statistics
-and INE population data.  These figures are virtually indistinguishable from
-rates published in aggregate data by MINSAL \citep{MINSAL2013}.\footnote{For
+2006-2012, 29,801,999 fertile aged women were exposed (4.25 million women per 
+year for 7 years).  Appendix figure \ref{TEENfig:Pregtime} displays pregnancy 
+rates by age-group over the period of study, calculated from MINSAL vital
+statistics and INE population data. These figures are virtually indistinguishable 
+from rates published in aggregate data by MINSAL \citep{MINSAL2013}.\footnote{For
 example, The Ministry of Health reports that the rate of pregnancy per 1,000
 women aged 15-19 over the same period was: 51.0 per 1,000 in 2006, 53.4/1,000
 in 2007, 54.9/1,000 in 2008, 54.3/1,000 in 2009, 52.0/1,000 in 2010, 
@@ -276,12 +276,12 @@ municipality.}
 As a robustness check, alternative distance measures were also used.
 Firstly, we collated the shortest distance over roads from non-teatment to 
 treatment municipalities.  This was calculated using repeated calls to the 
-Google Distance Matrix API\footnote{Full details can be found at:
+Google Distance Matrix API,\footnote{Full details can be found at:
 \url{https://developers.google.com/maps/documentation/distancematrix/\#api\_key}.
 I have made the computational routine used available on the web at:
-\url{https://github.com/damiancclarke/spillovers/blob/master/source/distCalc/queryDist.py}.}, 
+\url{https://github.com/damiancclarke/spillovers/blob/master/source/distCalc/queryDist.py}.}
 which finds the shortest path over roads.  In the case of Chile, this requires 
-calculating the distances between all 346 municipalities ($346^2/2=59,858$ 
+calculating the distances between all 346 municipalities ($346^2/2=$59,858
 distance pairs) in each year.  Secondly, rather than distance in 
 kilometres, as in Euclidean or road distance, a measure of travel \emph{time} 
 was calculated.  As a proxy for total travel time, travel time by car was 
@@ -325,13 +325,13 @@ case, less than 1.5\% of non-pill municipalities are greater than 150km
 \end{figure}
 
 These alternative measures of distance do not majorly affect the quantitative 
-implication of findings reported in the paper.  Appendix tables \ref{altdist1}
-and \ref{altdist2} replicate table \ref{TEENtab:Spillover} from the paper,
-replacing Euclideand distance with distance over roads, or travel time in 
-car. Results from both tables suggest a treatment effect of approximately 
--0.075 once accounting for spillovers of 30 minutes travel time or 30km of 
-distance respectively, following the spillover methodology outlined in the
-paper.
+implication of findings reported in the paper.  Appendix tables 
+\ref{TEENtab:SpilloverRoads} and  \ref{TEENtab:SpilloverTime} replicate table 
+\ref{TEENtab:Spillover} from the paper, replacing Euclidean distance with 
+distance over roads, or travel time in car. Results from both tables suggest 
+a treatment effect of approximately -0.075 once accounting for spillovers of 
+30 minutes travel time or 30km of distance respectively, following the 
+spillover methodology outlined in the paper.
 
 \clearpage
 \subsection{Time-Varying Municipality and Region Controls}
@@ -346,8 +346,8 @@ from the Electoral Service of Chile (SERVEL).  This provides all electoral
 results from municipal elections for the full time period of this study.  Raw
 data is available online at 
 \url{http://www.servel.cl/ss/site/mobile/padron_electoral_comunal_por_ano_informe_comunal_anual.html}
-or processed as one line per municipality at the data page of the author's
-website linked to above.
+or processed as one line per municipality at the data page of the author
+(Clarke's) webiste: \url{github.com/damiancclarke/PlanB}.
 
 Finally, we calculate data for alternative contraceptive use based on
 a series of regionally representative surveys collected every 3 years beginning
@@ -484,6 +484,56 @@ pharmacies without a prescription.}
 
 \clearpage
 \section{Alternative Specifications and Tests}
+\textbf{Notes for appendix tables}\\
+Appendix Table \ref{TEENtab:aggregateASFR}: Full OLS regressions of 
+age-specific fertility rate (ASFR) and gross fertility rate (GFR) at 
+the municipality level with FEs, trends, and time varying controls.  
+Partial results are displayed in the main paper, in table 
+\ref{TEENtab:BirthRobust}.
+
+\noindent Appendix Table \ref{TEENtab:DeathOLS}: Full OLS regressions 
+of deaths per live birth at the municipality level with FEs, trends,
+and time varying controls.  Referred to in section 
+\ref{TEENsscn:rabortion} of the main paper.
+
+\noindent Appendix table \ref{TEENtab:aggregateLog}: Full OLS regressions 
+of the log(number of births + 1) at the level of the municipality, with
+FEs, trends and time varying controls.  Referred to in section 
+\ref{TEENsscn:rbirths} of the main paper.
+
+\noindent Appendix table \ref{TEENtab:aggregate}: Identical to appendix
+table \ref{TEENtab:aggregateLog}, but using the number rather than the log
+number of births.  Partial results are displayed in the main paper, in 
+table \ref{TEENtab:BirthRobust}.
+
+\noindent Appendix table \ref{TEENtabPregFull}: Identical to main weighted
+logit presented in the paper for the effect of the EC pill on births with 
+full controls, however displaying all control variables in output.
+
+\noindent Appendix table \ref{TEENtabDeathFull}: Identical to main weighted
+logit presented in the paper for the effect of the EC pill on early term
+fetal deaths with full controls, however displaying all control variables in 
+output.
+
+\noindent Appendix table \ref{TEENtab:SpilloverRoads}: Identical to main 
+spillover table in body of the paper (table \ref{TEENtab:Spillover}), but 
+rather than measuring distance to treatment as the Euclidean distance from 
+the centroid of each municipality, distance is measured as kilometres 
+travelled over roads.
+
+\noindent Appendix table \ref{TEENtab:SpilloverRoads}: Identical to main 
+spillover table in body of the paper (table \ref{TEENtab:Spillover}), but 
+rather than measuring distance to treatment as the Euclidean distance from 
+the centroid of each municipality, distance is measured as total travel time
+expected in vehicle.
+
+\noindent Appendix table \ref{TEENtab:PillPregBoth}: Identical to the
+main weighted logit regressions for the effect of the EC pill on births
+(table \ref{TEENtab:PillPreg}), but now looks at both all births versus 
+all women who do not have a birth (first four columns), and all 
+\emph{first} births versus all women who do not have a birth (second four 
+columns).
+
 \input{../Tables/aggregateASFR.tex}
 \input{../Tables/DeathsPerBirth.tex}
 \input{../Tables/aggregateLogBirths.tex}
@@ -494,20 +544,20 @@ pharmacies without a prescription.}
 \input{../Tables/SpilloversTIME.tex}
 \input{../Tables/BirthsBoth.tex}
 
-When we examine the effect only on first births, we see a somewhat smaller, but
-still important 3.5\% reduction in births (or an imprecisely estimated 2.1\% 
-reduction when including controls for condom availability).  This ``First Births''
-column must necessarily be less than or equal to the effect of the morning after 
-pill on all births, given that all births include first births, along with higher 
-order births.  The difference between the results in these two columns allows
-for a rough examination of the magnitude of extensive versus intensive effects
-on fertility.  Were the entire effect of the pill working at the extensive 
-(first birth) margin, we would expect that the coefficients for ``First Births''
-should equal those on ``All Births''.  As is, for the teenage group, we see
-that the coefficient on first births is 51\% of that on all births, suggesting
-that while the extensive margin is important, the morning after pill also has
-important effects at the intensive margin.
-
+%%%When we examine the effect only on first births, we see a somewhat smaller, but
+%%%still important 3.5\% reduction in births (or an imprecisely estimated 2.1\% 
+%%%reduction when including controls for condom availability).  This ``First Births''
+%%%column must necessarily be less than or equal to the effect of the morning after 
+%%%pill on all births, given that all births include first births, along with higher 
+%%%order births.  The difference between the results in these two columns allows
+%%%for a rough examination of the magnitude of extensive versus intensive effects
+%%%on fertility.  Were the entire effect of the pill working at the extensive 
+%%%(first birth) margin, we would expect that the coefficients for ``First Births''
+%%%should equal those on ``All Births''.  As is, for the teenage group, we see
+%%%that the coefficient on first births is 51\% of that on all births, suggesting
+%%%that while the extensive margin is important, the morning after pill also has
+%%%important effects at the intensive margin.
+%%%
 
 
 \clearpage
@@ -580,7 +630,7 @@ to reduce pregnancies by $1-\exp(-0.069)=0.067$, or 6.7\%.  So, we inflate the
 total number of pregnancies for this group (which was 20,713), suggesting that 
 the total number of pregnancies without the pill would have been 22,612 (which
 we calculate as $\frac{20,713}{1-0.067}$).  Thus, the approximate effect of the 
-pill for this group is estaimated as a reduction of 22,200-20,713=1,487
+pill for this group is estimated as a reduction of 22,200-20,713=1,487
 pregnancies.  Similar calculations can be run for each subset, to calculate the
 total estimated effect in each age group.
 
