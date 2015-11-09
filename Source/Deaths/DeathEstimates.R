@@ -24,11 +24,11 @@ rm(list=ls())
 #***(1) Parameters
 #******************************************************************************
 create   <- FALSE
-death    <- TRUE
-Ndeath   <- TRUE
+death    <- FALSE
+Ndeath   <- FALSE
 Ldeath   <- FALSE
-deathTab <- TRUE
-spill    <- FALSE
+deathTab <- FALSE
+spill    <- TRUE
 combine  <- FALSE
 full     <- FALSE
 events   <- FALSE
@@ -595,17 +595,17 @@ if(deathTab){
 
 if(spill){  
   to <- file(paste(tab.dir,"Spillovers_B.tex", sep=""))
-  writeLines(c('\\multicolumn{4}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
+  writeLines(c('\\multicolumn{5}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
                '&&&\\\\',
-               paste(xvar,s1519$b[1],a,s2034$b[1],a,s3549$b[1],s,sep=""),
-               paste('&',s1519$s[1],a,s2034$s[1],a,s3549$s[1],s,sep=""),               
-               paste(xv2,s1519$b[2],a,s2034$b[2],a,s3549$b[2],s,sep=""),
-               paste('&',s1519$s[2],a,s2034$s[2],a,s3549$s[2],s,sep=""),
+               paste(xvar,sAll$b[1],a,s1519$b[1],a,s2034$b[1],a,s3549$b[1],s,sep=""),
+               paste('&' ,sAll$s[1],a,s1519$s[1],a,s2034$s[1],a,s3549$s[1],s,sep=""),               
+               paste(xv2 ,sAll$b[2],a,s1519$b[2],a,s2034$b[2],a,s3549$b[2],s,sep=""),
+               paste('&' ,sAll$s[2],a,s1519$s[2],a,s2034$s[2],a,s3549$s[2],s,sep=""),
                '&&&\\\\',
-               paste(obs,s1519$n,a,s2034$n,a,s3549$n,s,sep=""),
-               paste(R2,s1519$r,a,s2034$r,a,s3549$r,s,sep=""),
+               paste(obs,sAll$n,a,s1519$n,a,s2034$n,a,s3549$n,s,sep=""),
+               paste(R2,sAll$r,a,s1519$r,a,s2034$r,a,s3549$r,s,sep=""),
                '\\hline \\hline \\\\[-1.8ex]',
-               '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               '\\multicolumn{5}{p{12.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
                'All models are estimated using logistic regressions, and',
                'coefficients are reported as log odds.  Each regression includes',
                'comuna and year fixed effects and comuna-specific trends, and',
@@ -618,17 +618,17 @@ if(spill){
   close(to)
 
   to <- file(paste(tab.dir,"SpilloversROAD_B.tex", sep=""))
-  writeLines(c('\\multicolumn{4}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
+  writeLines(c('\\multicolumn{5}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
                '&&&\\\\',
-               paste(xvar,sr1519$b[1],a,sr2034$b[1],a,sr3549$b[1],s,sep=""),
-               paste('&',sr1519$s[1],a,sr2034$s[1],a,sr3549$s[1],s,sep=""),               
-               paste(xv2,sr1519$b[2],a,sr2034$b[2],a,sr3549$b[2],s,sep=""),
-               paste('&',sr1519$s[2],a,sr2034$s[2],a,sr3549$s[2],s,sep=""),
+               paste(xvar,sAll$b[1],a,s1519$b[1],a,s2034$b[1],a,s3549$b[1],s,sep=""),
+               paste('&' ,sAll$s[1],a,s1519$s[1],a,s2034$s[1],a,s3549$s[1],s,sep=""),               
+               paste(xv2 ,sAll$b[2],a,s1519$b[2],a,s2034$b[2],a,s3549$b[2],s,sep=""),
+               paste('&' ,sAll$s[2],a,s1519$s[2],a,s2034$s[2],a,s3549$s[2],s,sep=""),
                '&&&\\\\',
-               paste(obs,sr1519$n,a,sr2034$n,a,sr3549$n,s,sep=""),
-               paste(R2,sr1519$r,a,sr2034$r,a,sr3549$r,s,sep=""),
+               paste(obs,sAll$n,a,s1519$n,a,s2034$n,a,s3549$n,s,sep=""),
+               paste(R2,sAll$r,a,s1519$r,a,s2034$r,a,s3549$r,s,sep=""),
                '\\hline \\hline \\\\[-1.8ex]',
-               '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               '\\multicolumn{5}{p{12.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
                'All models are estimated using logistic regressions, and',
                'coefficients are reported as log odds.  Each regression includes',
                'comuna and year fixed effects and comuna-specific trends, and',
@@ -641,17 +641,17 @@ if(spill){
   close(to)
 
   to <- file(paste(tab.dir,"SpilloversTIME_B.tex", sep=""))
-  writeLines(c('\\multicolumn{4}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
+  writeLines(c('\\multicolumn{5}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
                '&&&\\\\',
-               paste(xvar,st1519$b[1],a,st2034$b[1],a,st3549$b[1],s,sep=""),
-               paste('&',st1519$s[1],a,st2034$s[1],a,st3549$s[1],s,sep=""),               
-               paste(xv2,st1519$b[2],a,st2034$b[2],a,st3549$b[2],s,sep=""),
-               paste('&',st1519$s[2],a,st2034$s[2],a,st3549$s[2],s,sep=""),
+               paste(xvar,sAll$b[1],a,s1519$b[1],a,s2034$b[1],a,s3549$b[1],s,sep=""),
+               paste('&' ,sAll$s[1],a,s1519$s[1],a,s2034$s[1],a,s3549$s[1],s,sep=""),               
+               paste(xv2 ,sAll$b[2],a,s1519$b[2],a,s2034$b[2],a,s3549$b[2],s,sep=""),
+               paste('&' ,sAll$s[2],a,s1519$s[2],a,s2034$s[2],a,s3549$s[2],s,sep=""),
                '&&&\\\\',
-               paste(obs,st1519$n,a,st2034$n,a,st3549$n,s,sep=""),
-               paste(R2,st1519$r,a,st2034$r,a,st3549$r,s,sep=""),
+               paste(obs,sAll$n,a,s1519$n,a,s2034$n,a,s3549$n,s,sep=""),
+               paste(R2,sAll$r,a,s1519$r,a,s2034$r,a,s3549$r,s,sep=""),
                '\\hline \\hline \\\\[-1.8ex]',
-               '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               '\\multicolumn{5}{p{12.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
                'All models are estimated using logistic regressions, and',
                'coefficients are reported as log odds.  Each regression includes',
                'comuna and year fixed effects and comuna-specific trends, and',
