@@ -24,13 +24,15 @@ rm(list=ls())
 #***(1) Parameters
 #******************************************************************************
 create   <- FALSE
-death    <- FALSE
-Ndeath   <- FALSE
-deathTab <- FALSE
+death    <- TRUE
+Ndeath   <- TRUE
+Ldeath   <- FALSE
+deathTab <- TRUE
 spill    <- FALSE
 combine  <- FALSE
 full     <- FALSE
-events   <- TRUE
+events   <- FALSE
+PSweight <- FALSE
 
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -45,6 +47,7 @@ require(xtable)
 require(rms)
 require(sandwich)
 require(lmtest)
+require(plyr)
 require(stargazer)
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
@@ -62,7 +65,7 @@ graf.dir <- paste(proj.dir, "Figures/", sep="")
 Names <- c("dom_comuna","trend","trend2","pill","mujer","party","votes"      ,
            "outofschool","healthspend","healthstaff","healthtraining"        , 
            "educationspend","femalepoverty","year","urban","educationmunicip",
-           "condom","usingcont","femaleworkers")
+           "condom","usingcont","femaleworkers","poverty","popln")
 
 
 #******************************************************************************
@@ -113,7 +116,8 @@ pillest <- function(outresults,d,n,regex,dim) {
   }
   
   if(dim==1|dim==2) {
-      null  <- glm(cbind(successes,failures) ~ 1, family="binomial",data=d)
+      null  <- glm(cbind(successes,failures) ~ 1,
+                   family="binomial",data=d,weights=WT)
       Lfull <- as.numeric(logLik(outresults))
       Lnull <- as.numeric(logLik(null))
       R2    <- 1 - Lfull/Lnull
@@ -126,7 +130,7 @@ pillest <- function(outresults,d,n,regex,dim) {
   se    <- paste("(", format(round(se,3),nsmall=3),")", sep="")
   R2    <- format(round(R2,3),nsmall=3)
   n     <- format(n,big.mark=",",scientific=F)
-  
+
   return(list("b" = beta, "s" = se, "p" = p, "r" = R2, "n" = n))
 }
 
@@ -144,6 +148,7 @@ robust.se <- function(model, cluster) {
 datcollapse <- function(age_sub,deathtype,dat) {
   dat        <- dat[dat$age %in% age_sub,]
   dat        <- dat[dat$pregnant == 1,]
+  dat$popln  <- ave(dat$n,dat$dom_comuna,dat$year,FUN=sum)
   dat$Q      <- dat$earlyQ+dat$lateQ
   dat$early  <- dat$earlyQ+dat$earlyP
   dat$late   <- dat$lateQ+dat$lateP
@@ -162,7 +167,8 @@ datcollapse <- function(age_sub,deathtype,dat) {
                                       dat$healthtraining,dat$educationspend,
                                       dat$femalepoverty,dat$urbBin,dat$year,
                                       dat$educationmunicip,dat$condom      ,
-                                      dat$usingcont,dat$femaleworkers),
+                                      dat$usingcont,dat$femaleworkers      ,
+                                      dat$poverty,dat$popln),
                               function(vec) {sum(na.omit(vec))})
   names(dat)    <- c("close15","close30","close45",Names,"n","death")
   dat$failures  <- dat$n 
@@ -177,21 +183,73 @@ datcollapse <- function(age_sub,deathtype,dat) {
                                      dat$educationspend,dat$femalepoverty   ,
                                      dat$year,dat$urban,dat$educationmunicip,
                                      dat$condom,dat$usingcont,
-                                     dat$femaleworkers),
+                                     dat$femaleworkers,dat$poverty,dat$popln),
                                function(vec) {sum(na.omit(vec))})
   names(mod) <- c("close15","close30","close45",Names,"failures","successes")
   return(mod)
 }
 
+inversePS <- function(age_sub,deathtype,dat) {
+    #CALCULATE PROPENSITY SCORE WEIGHT FOR EACH COMUNA BASED ON
+    #PILL/NON-PILL STATUS.  USE FULL SET OF CONTROLS TO PREDICT PSCORE.
+
+    psdat <- datcollapse(age_sub,deathtype,dat)
+    psdat$conservative[psdat$party=="UDI"|psdat$party=="RN"] <- 1
+    psdat$conservative[is.na(psdat$conservative)] <- 0
+
+    psdat <- aggregate.data.frame(psdat[,c("pill","mujer","conservative"  ,
+                                           "votes","outofschool"          ,
+                                           "healthspend","healthstaff"    ,
+                                           "healthtraining","usingcont"   ,
+                                           "femalepoverty","femaleworkers",
+                                           "condom","educationspend"      ,
+                                           "educationmunicip","popln")],
+                                  by=list(psdat$dom_comuna), FUN=mean)
+    psdat$pillind[psdat$pill>0]<-1
+    psdat$pillind[is.na(psdat$pillind)]<-0
+    
+    PSc <- glm(pillind ~ mujer + conservative + votes + outofschool +
+               healthspend + healthstaff + healthtraining           +
+               usingcont + femalepoverty + condom + femaleworkers   +
+               educationspend+ educationmunicip + popln,
+               family=binomial, data=psdat)
+    psdat$predict<-predict(PSc,type="response")
+    psdat$WT[psdat$pillind==1] <- 1/psdat$predict
+    psdat$WT[psdat$pillind==0] <- 1/(1-psdat$predict)
+    
+    colnames(psdat)[1]<-"dom_comuna"
+    wts <- psdat[,(names(psdat) %in% c("dom_comuna", "WT"))]
+    return(wts)
+}
+
+
 #******************************************************************************
 #***(4b) Main Functions
 #******************************************************************************
-death_pmod <- function(age_sub,deathtype,numb) {
- 
-    formod <- datcollapse(age_sub,deathtype,orig)
+death_pmod <- function(age_sub,deathtype,numb,PSwt) {
 
+    formod <- datcollapse(age_sub,deathtype,orig)
+    if(PSwt) {
+        wts <- inversePS(age_sub,deathtype,orig)
+        formod <- join(formod,wts,by="dom_comuna",type="left",match="all")
+
+        xPS <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)    +
+                   factor(dom_comuna) + factor(dom_comuna):trend,
+                   family="binomial", data=formod, weights=WT)
+        
+        clusters <- mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+        xPS$coefficients2  <- robust.se(xPS,clusters)[[2]]
+        n  <- sum(formod$successes) + sum(formod$failures)
+        
+        s0 <- pillest(xPS, formod, n, "pill", 1)
+        return(s0)
+        
+    } else {
+        formod$WT <- 1
+    }
+    
     formod$meanP  <- ave(formod$pill, group=formod$dom_comuna) 
-  
+    
     x  <- glm(cbind(successes,failures) ~ factor(dom_comuna) + factor(year) +
               factor(dom_comuna):trend + factor(pill) + factor(party)       + 
               factor(mujer) + votes + outofschool + educationspend          + 
@@ -225,10 +283,11 @@ death_pmod <- function(age_sub,deathtype,numb) {
     }
 }
 
-NumDeath <- function(age_sub,deathtype) {
+NumDeath <- function(age_sub,deathtype,R)  {
     dat <- orig
     dat <- dat[dat$age %in% age_sub,]
     dat <- dat[dat$pregnant == 1,]
+    dat$popln  <- ave(dat$n,dat$dom_comuna,dat$year,FUN=sum)
   
     dat <- aggregate.data.frame(dat[,c("n",deathtype)],
                                 by=list(dat$dom_comuna,dat$year-2005       ,
@@ -238,11 +297,12 @@ NumDeath <- function(age_sub,deathtype) {
                                     dat$healthtraining,dat$educationspend  ,
                                     dat$femalepoverty,dat$urbBin,dat$year  ,
                                     dat$educationmunicip,dat$condom        ,
-                                    dat$usingcont,dat$femaleworkers)       ,
+                                    dat$usingcont,dat$femaleworkers        ,
+                                    dat$poverty,dat$popln)                 ,
                                 function(vec) {sum(na.omit(vec))})
     names(dat) <- c(Names,"n","death")
 
-    dat$FDbirth <- (dat$death/dat$n)*1000
+    if (R) dat$FDbirth <- (dat$death/dat$n)*1000
     
     xFl  <- lm(FDbirth ~ factor(dom_comuna) + factor(year)                   +
                factor(dom_comuna):trend + factor(pill) + factor(party)       + 
@@ -264,17 +324,44 @@ NumDeath <- function(age_sub,deathtype) {
 #==============================================================================
 closegen <- function(d1,d2,dat) {
     dat2 <- dat
-    dat2$newvar <- NA  
+    # EUCLIDEAN DISTANCE
+    dat2$newvar <- NA
     dat2$newvar[dat2$pilldistance > d1 & dat2$pilldistance <= d2 &
                 !(dat2$pilldistance)==0] <- 1
     dat2$newvar[is.na(dat2$newvar)]<-0
-    names(dat2)<-c(names(dat),paste('close',d2,sep=""))
-    return(dat2)
+    
+    # ROAD DISTANCE
+#    dat2$newvar2 <- NA
+#    dat2$newvar2[dat2$roadDist/1000 > d1 & dat2$roadDist/1000 <= d2 &
+#                 !(dat2$roadDist)==0] <- 1
+#    dat2$newvar2[is.na(dat2$newvar2)]<-0
+    
+    # TRAVEL TIME
+#    dat2$newvar3 <- NA
+#    dat2$newvar3[dat2$travelTime/60 > d1 & dat2$travelTime/60 <= d2 &
+#                 !(dat2$travelTime)==0] <- 1
+#    dat2$newvar3[is.na(dat2$newvar3)]<-0
+    
+#    names(dat2)<-c(names(dat),paste('close',d2,sep=""),paste('road',d2,sep=""),
+#                   paste('time',d2,sep=""))
+     names(dat2)<-c(names(dat),paste('close',d2,sep=""))
+     return(dat2)
 }
 
-spillovers <- function(age_sub,deathtype) {
-    mod <- datcollapse(age_sub,deathtype,orig)
-  
+spillovers <- function(age_sub,deathtype,road,time) {
+    mod    <- datcollapse(age_sub,deathtype,orig)
+    mod$WT <- 1
+    if(road) {
+        mod$close15 <- mod$road15
+        mod$close30 <- mod$road30
+        mod$close45 <- mod$road45
+    }
+    if(time) {
+        mod$close15 <- mod$time15
+        mod$close30 <- mod$time30
+        mod$close45 <- mod$time45
+    }
+    
     xspill <- glm(cbind(successes,failures) ~ factor(dom_comuna) + factor(year) +
                   factor(dom_comuna):trend + factor(party) + factor(pill)     + 
                   factor(mujer) + votes + outofschool + educationspend        + 
@@ -287,7 +374,7 @@ spillovers <- function(age_sub,deathtype) {
     xspill$coefficients2 <- robust.se(xspill,clusters)[[2]]
     #xspill$newse<-vcovHC(xspill, type="HC")
     #xspill$coefficients2 <- coeftest(xspill,xspill$newse)
-  
+    
     n  <- sum(mod$successes) + sum(mod$failures)
     s1 <- pillest(xspill,mod,n,"pill|close",2)
   
@@ -305,13 +392,14 @@ event <- function(age_sub,deathtype) {
   
     formod <- aggregate.data.frame(dat[,c("n",deathtype)],
                                    by=list(dat$dom_comuna,dat$year-2005        ,
-                                       (dat$year-2005)^2,dat$pill,dat$mujer ,
-                                       dat$party,dat$votop,dat$outofschool  ,
+                                       (dat$year-2005)^2,dat$pill,dat$mujer    ,
+                                       dat$party,dat$votop,dat$outofschool     ,
                                        dat$healthspend,dat$healthstaff         ,
                                        dat$healthtraining,dat$educationspend   ,
-                                       dat$femalepoverty,dat$urbBin,dat$year,
+                                       dat$femalepoverty,dat$urbBin,dat$year   ,
                                        dat$educationmunicip,dat$condom         ,
-                                       dat$usingcont,dat$femaleworkers)        ,
+                                       dat$usingcont,dat$femaleworkers         ,
+                                       dat$poverty,dat$popln)                  ,
                                    function(vec) {sum(na.omit(vec))})
     names(formod) <- c(Names,"n","death")
 
@@ -369,39 +457,73 @@ event <- function(age_sub,deathtype) {
 #***(5) Estimate
 #******************************************************************************
 if(death){
-    p1519 <- death_pmod(age_sub = 15:19, "death",1)
-    p2034 <- death_pmod(age_sub = 20:34, "death",1)
-    p3549 <- death_pmod(age_sub = 35:49, "death",1)
-    e1519 <- death_pmod(age_sub = 15:19,"earlyP",1)
-    e2034 <- death_pmod(age_sub = 20:34,"earlyP",1)
-    e3549 <- death_pmod(age_sub = 35:49,"earlyP",1)
-    l1519 <- death_pmod(age_sub = 15:19, "lateP",1)
-    l2034 <- death_pmod(age_sub = 20:34, "lateP",1)
-    l3549 <- death_pmod(age_sub = 35:40, "lateP",1)
+    print("Prob Death All")
+    pAll  <- death_pmod(age_sub = 15:49, "death",1,PSwt=FALSE)
+    p1519 <- death_pmod(age_sub = 15:19, "death",1,PSwt=FALSE)
+    p2034 <- death_pmod(age_sub = 20:34, "death",1,PSwt=FALSE)
+    p3549 <- death_pmod(age_sub = 35:49, "death",1,PSwt=FALSE)
+    print("Prob Death Early")
+    eAll  <- death_pmod(age_sub = 15:49,"earlyP",1,PSwt=FALSE)
+    e1519 <- death_pmod(age_sub = 15:19,"earlyP",1,PSwt=FALSE)
+    e2034 <- death_pmod(age_sub = 20:34,"earlyP",1,PSwt=FALSE)
+    e3549 <- death_pmod(age_sub = 35:49,"earlyP",1,PSwt=FALSE)
+    print("Prob Death Late")
+    lAll  <- death_pmod(age_sub = 15:49, "lateP",1,PSwt=FALSE)
+    l1519 <- death_pmod(age_sub = 15:19, "lateP",1,PSwt=FALSE)
+    l2034 <- death_pmod(age_sub = 20:34, "lateP",1,PSwt=FALSE)
+    l3549 <- death_pmod(age_sub = 35:40, "lateP",1,PSwt=FALSE)
+}
+
+if(PSweight){
+    p1519 <- death_pmod(age_sub = 15:19, "death",1,PSwt=TRUE)
+    p2034 <- death_pmod(age_sub = 20:34, "death",1,PSwt=TRUE)
+    p3549 <- death_pmod(age_sub = 35:49, "death",1,PSwt=TRUE)
+    e1519 <- death_pmod(age_sub = 15:19,"earlyP",1,PSwt=TRUE)
+    e2034 <- death_pmod(age_sub = 20:34,"earlyP",1,PSwt=TRUE)
+    e3549 <- death_pmod(age_sub = 35:49,"earlyP",1,PSwt=TRUE)
+    l1519 <- death_pmod(age_sub = 15:19, "lateP",1,PSwt=TRUE)
+    l2034 <- death_pmod(age_sub = 20:34, "lateP",1,PSwt=TRUE)
+    l3549 <- death_pmod(age_sub = 35:40, "lateP",1,PSwt=TRUE)
 }
 
 if(Ndeath) {
-    n1519  <- NumDeath(age_sub = 15:19, "death")
-    n2034  <- NumDeath(age_sub = 20:34, "death")
-    n3549  <- NumDeath(age_sub = 35:49, "death")
-    ne1519 <- NumDeath(age_sub = 15:19,"earlyP")
-    ne2034 <- NumDeath(age_sub = 20:34,"earlyP")
-    ne3549 <- NumDeath(age_sub = 35:49,"earlyP")
-    nl1519 <- NumDeath(age_sub = 15:19, "lateP")
-    nl2034 <- NumDeath(age_sub = 20:34, "lateP")
-    nl3549 <- NumDeath(age_sub = 35:40, "lateP")
+    print("Num Death All")
+    nAll   <- NumDeath(age_sub = 15:49, "death",R=TRUE)
+    n1519  <- NumDeath(age_sub = 15:19, "death",R=TRUE)
+    n2034  <- NumDeath(age_sub = 20:34, "death",R=TRUE)
+    n3549  <- NumDeath(age_sub = 35:49, "death",R=TRUE)
+    print("Num Death Early")
+    neAll  <- NumDeath(age_sub = 15:49,"earlyP",R=TRUE)
+    ne1519 <- NumDeath(age_sub = 15:19,"earlyP",R=TRUE)
+    ne2034 <- NumDeath(age_sub = 20:34,"earlyP",R=TRUE)
+    ne3549 <- NumDeath(age_sub = 35:49,"earlyP",R=TRUE)
+    print("Num Death Late")
+    nlAll  <- NumDeath(age_sub = 15:49, "lateP",R=TRUE)
+    nl1519 <- NumDeath(age_sub = 15:19, "lateP",R=TRUE)
+    nl2034 <- NumDeath(age_sub = 20:34, "lateP",R=TRUE)
+    nl3549 <- NumDeath(age_sub = 35:40, "lateP",R=TRUE)
 }
 
 if(spill){
-    s1519 <- spillovers(age_sub = 15:19,"earlyP")
-    s2034 <- spillovers(age_sub = 20:34,"earlyP")
-    s3549 <- spillovers(age_sub = 35:40,"earlyP")
+    print("Spillover Models")
+    sAll  <- spillovers(age_sub = 15:49,"earlyP",road=FALSE,time=FALSE)
+    s1519 <- spillovers(age_sub = 15:19,"earlyP",road=FALSE,time=FALSE)
+    s2034 <- spillovers(age_sub = 20:34,"earlyP",road=FALSE,time=FALSE)
+    s3549 <- spillovers(age_sub = 35:49,"earlyP",road=FALSE,time=FALSE)
+#    print("Spillover Models (Time)")
+#    st1519 <- spillovers(age_sub = 15:19,"earlyP",road=FALSE,time=TRUE)
+#    st2034 <- spillovers(age_sub = 20:34,"earlyP",road=FALSE,time=TRUE)
+#    st3549 <- spillovers(age_sub = 35:49,"earlyP",road=FALSE,time=TRUE)
+#    print("Spillover Models (Road)")
+#    sr1519 <- spillovers(age_sub = 15:19,"earlyP",road=TRUE,time=FALSE)
+#    sr2034 <- spillovers(age_sub = 20:34,"earlyP",road=TRUE,time=FALSE)
+#    sr3549 <- spillovers(age_sub = 35:49,"earlyP",road=TRUE,time=FALSE)
 }
 
 if(full) {
-  full1519 <- death_pmod(age_sub = 15:19,"earlyP",2)
-  full2034 <- death_pmod(age_sub = 20:34,"earlyP",2)
-  full3549 <- death_pmod(age_sub = 35:49,"earlyP",2)
+  full1519 <- death_pmod(age_sub = 15:19,"earlyP",2,PSwt=FALSE)
+  full2034 <- death_pmod(age_sub = 20:34,"earlyP",2,PSwt=FALSE)
+  full3549 <- death_pmod(age_sub = 35:49,"earlyP",2,PSwt=FALSE)
 }
 #******************************************************************************
 #***(6) Export
@@ -424,6 +546,14 @@ if(deathTab){
                '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]',
                '\\hline\\hline\\\\[-1.8ex]','& All & Early & Late \\\\',
                '& Deaths & Gestation & Gestation \\\\ \\midrule',
+               '\\multicolumn{4}{l}{\\textsc{All Women}} \\\\',
+               '&&&\\\\',
+               paste(xvar,pAll$beta,a,eAll$beta,a,lAll$beta, s,sep=""),
+               paste(a,pAll$s,a,eAll$s,a,lAll$s,s,sep=""),'&&&\\\\',
+               paste(dpb,pAll$db,a,eAll$db,a,lAll$db,s,sep=""),
+               paste(obs,pAll$n,a,eAll$n,a,lAll$n,s,sep=""),
+               paste(R2,pAll$R2,a,eAll$R2,a,lAll$R2,s,sep=""),
+               '&&&\\\\',
                '\\multicolumn{4}{l}{\\textsc{15-19 year olds}} \\\\',
                '&&&\\\\',
                paste(xvar,p1519$beta,a,e1519$beta,a,l1519$beta, s,sep=""),
@@ -463,7 +593,7 @@ if(deathTab){
   close(to)
 }
 
-if(deathTab){  
+if(spill){  
   to <- file(paste(tab.dir,"Spillovers_B.tex", sep=""))
   writeLines(c('\\multicolumn{4}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
                '&&&\\\\',
@@ -486,6 +616,53 @@ if(deathTab){
                '\\normalsize\\end{tabular}\\end{table}'),to)
   
   close(to)
+
+  to <- file(paste(tab.dir,"SpilloversROAD_B.tex", sep=""))
+  writeLines(c('\\multicolumn{4}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
+               '&&&\\\\',
+               paste(xvar,sr1519$b[1],a,sr2034$b[1],a,sr3549$b[1],s,sep=""),
+               paste('&',sr1519$s[1],a,sr2034$s[1],a,sr3549$s[1],s,sep=""),               
+               paste(xv2,sr1519$b[2],a,sr2034$b[2],a,sr3549$b[2],s,sep=""),
+               paste('&',sr1519$s[2],a,sr2034$s[2],a,sr3549$s[2],s,sep=""),
+               '&&&\\\\',
+               paste(obs,sr1519$n,a,sr2034$n,a,sr3549$n,s,sep=""),
+               paste(R2,sr1519$r,a,sr2034$r,a,sr3549$r,s,sep=""),
+               '\\hline \\hline \\\\[-1.8ex]',
+               '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               'All models are estimated using logistic regressions, and',
+               'coefficients are reported as log odds.  Each regression includes',
+               'comuna and year fixed effects and comuna-specific trends, and',
+               'the full set of time-varying controls described in table',
+               '\\ref{TEENtab:PillPreg}.  \\citet{Conley1999} standard errors are',
+               'reported.',
+               paste(sig,'\\end{footnotesize}}',sep=""),
+               '\\normalsize\\end{tabular}\\end{table}'),to)
+  
+  close(to)
+
+  to <- file(paste(tab.dir,"SpilloversTIME_B.tex", sep=""))
+  writeLines(c('\\multicolumn{4}{l}{\\textsc{\\noindent Panel B: Fetal Deaths}}\\\\',
+               '&&&\\\\',
+               paste(xvar,st1519$b[1],a,st2034$b[1],a,st3549$b[1],s,sep=""),
+               paste('&',st1519$s[1],a,st2034$s[1],a,st3549$s[1],s,sep=""),               
+               paste(xv2,st1519$b[2],a,st2034$b[2],a,st3549$b[2],s,sep=""),
+               paste('&',st1519$s[2],a,st2034$s[2],a,st3549$s[2],s,sep=""),
+               '&&&\\\\',
+               paste(obs,st1519$n,a,st2034$n,a,st3549$n,s,sep=""),
+               paste(R2,st1519$r,a,st2034$r,a,st3549$r,s,sep=""),
+               '\\hline \\hline \\\\[-1.8ex]',
+               '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               'All models are estimated using logistic regressions, and',
+               'coefficients are reported as log odds.  Each regression includes',
+               'comuna and year fixed effects and comuna-specific trends, and',
+               'the full set of time-varying controls described in table',
+               '\\ref{TEENtab:PillPreg}.  \\citet{Conley1999} standard errors are',
+               'reported.',
+               paste(sig,'\\end{footnotesize}}',sep=""),
+               '\\normalsize\\end{tabular}\\end{table}'),to)
+  
+  close(to)
+
 }  
 
 if(full) {
@@ -520,6 +697,20 @@ if(combine){
     to <- file(paste(tab.dir,"Spillovers.tex", sep=""))
     writeLines(c(spillA,spillB),to)
     close(to)
+
+    spillA <- readLines(paste(tab.dir,"SpilloversROAD_A.tex", sep=""))
+    spillB <- readLines(paste(tab.dir,"Spillovers_B.tex", sep=""))  
+
+    to <- file(paste(tab.dir,"SpilloversROAD.tex", sep=""))
+    writeLines(c(spillA,spillB),to)
+    close(to)
+
+    spillA <- readLines(paste(tab.dir,"SpilloversTIME_A.tex", sep=""))
+    spillB <- readLines(paste(tab.dir,"Spillovers_B.tex", sep=""))  
+
+    to <- file(paste(tab.dir,"SpilloversTIME.tex", sep=""))
+    writeLines(c(spillA,spillB),to)
+    close(to)
 }
 
 if(deathTab) {
@@ -531,6 +722,13 @@ if(deathTab) {
                  '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]',
                  '\\hline\\hline\\\\[-1.8ex]','& All & Early & Late \\\\',
                  '& Deaths & Gestation & Gestation \\\\ \\midrule',
+                 '\\multicolumn{4}{l}{\\textsc{All Women}} \\\\',
+                 '&&&\\\\',
+                 paste(xvn,nAll$beta,a,neAll$beta,a,nlAll$beta, s,sep=""),
+                 paste(a,nAll$s,a,neAll$s,a,nlAll$s,s,sep=""),'&&&\\\\',
+                 paste(obs,nAll$n,a,neAll$n,a,nlAll$n,s,sep=""),
+                 paste('R-squared&',nAll$R2,a,neAll$R2,a,nlAll$R2,s,sep=""),
+                 '&&&\\\\',
                  '\\multicolumn{4}{l}{\\textsc{15-19 year olds}} \\\\',
                  '&&&\\\\',
                  paste(xvn,n1519$beta,a,ne1519$beta,a,nl1519$beta, s,sep=""),
