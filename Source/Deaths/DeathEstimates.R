@@ -28,8 +28,8 @@ death    <- FALSE
 Ndeath   <- FALSE
 Ldeath   <- FALSE
 deathTab <- FALSE
-spill    <- TRUE
-combine  <- FALSE
+spill    <- FALSE
+combine  <- TRUE
 full     <- FALSE
 events   <- FALSE
 PSweight <- FALSE
@@ -578,14 +578,17 @@ if(deathTab){
                paste(obs,p3549$n,a,e3549$n,a,l3549$n,s,sep=""),
                paste(R2,p3549$R2,a,e3549$R2,a,l3549$R2,s,sep=""),
                '\\hline \\hline \\\\[-1.8ex]',
-               '\\multicolumn{4}{p{10cm}}{\\begin{footnotesize}\\textsc{Notes:}',
-               'Total fetal deaths for each group are',
-               paste(p1519$c,", ",p2034$c,", and ",p3549$c, sep=""),
-               ' for 15-19, 20-34 and 35-49 year olds respectively.  All',
-               'regressions include year and comuna fixed-effects, and',
-               'comuna-specific trends.  Each regression also includes the',
-               'full set of time varying controls described in table',
-               '\\ref{TEENtab:PillPreg}.  Standard errors are clustered by',
+               '\\multicolumn{4}{p{10cm}}{\\begin{footnotesize}\\textsc{Notes:} ',
+               'Total fetal deaths for each group are'                           ,
+               paste(p1519$c,", ",p2034$c,", and ",p3549$c, sep="")              ,
+               ' for 15-19, 20-34 and 35-49 year olds respectively. Regressions ',
+               'are estimated by weighted logit, where 1 indicates a fetal death',
+               ' and 0 a live birth.  Weights are the populations of women in   ',
+               'each municipality who are observed with each outcome. All       ',
+               'regressions include year and comuna fixed-effects, and          ',
+               'comuna-specific trends.  Each regression also includes the      ',
+               'full set of time varying controls described in table            ',
+               '\\ref{TEENtab:PillPreg}.  Standard errors are clustered by      ',
                'comuna.',
                paste(sig,'\\end{footnotesize}}',sep=""),
                '\\normalsize\\end{tabular}\\end{table}'),to)
@@ -605,7 +608,7 @@ if(spill){
                paste(obs,sAll$n,a,s1519$n,a,s2034$n,a,s3549$n,s,sep=""),
                paste(R2,sAll$r,a,s1519$r,a,s2034$r,a,s3549$r,s,sep=""),
                '\\hline \\hline \\\\[-1.8ex]',
-               '\\multicolumn{5}{p{12.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               '\\multicolumn{5}{p{11.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
                'All models are estimated using logistic regressions, and',
                'coefficients are reported as log odds.  Each regression includes',
                'comuna and year fixed effects and comuna-specific trends, and',
@@ -628,7 +631,7 @@ if(spill){
                paste(obs,sAll$n,a,s1519$n,a,s2034$n,a,s3549$n,s,sep=""),
                paste(R2,sAll$r,a,s1519$r,a,s2034$r,a,s3549$r,s,sep=""),
                '\\hline \\hline \\\\[-1.8ex]',
-               '\\multicolumn{5}{p{12.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               '\\multicolumn{5}{p{11.8cm}}{\\begin{footnotesize}\\textsc{Notes:}',
                'All models are estimated using logistic regressions, and',
                'coefficients are reported as log odds.  Each regression includes',
                'comuna and year fixed effects and comuna-specific trends, and',
@@ -651,7 +654,7 @@ if(spill){
                paste(obs,sAll$n,a,s1519$n,a,s2034$n,a,s3549$n,s,sep=""),
                paste(R2,sAll$r,a,s1519$r,a,s2034$r,a,s3549$r,s,sep=""),
                '\\hline \\hline \\\\[-1.8ex]',
-               '\\multicolumn{5}{p{12.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
+               '\\multicolumn{5}{p{11.8cm}}{\\begin{footnotesize}\\textsc{Notes:}',
                'All models are estimated using logistic regressions, and',
                'coefficients are reported as log odds.  Each regression includes',
                'comuna and year fixed effects and comuna-specific trends, and',
