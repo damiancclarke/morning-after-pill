@@ -30,9 +30,9 @@ rm(list=ls())
 #==============================================================================
 create <- FALSE
 preg   <- FALSE
-Npreg  <- TRUE
-Lpreg  <- TRUE
-prTab  <- TRUE
+Npreg  <- FALSE
+Lpreg  <- FALSE
+prTab  <- FALSE
 spill  <- FALSE
 full   <- FALSE
 aboe   <- FALSE
@@ -55,7 +55,7 @@ require("rms"      )
 require("plyr"     )
 require("glmmML"   )
 require("sandwich" )
-require("stargazer")
+#require("stargazer")
 require("lmtest"   )
 require("plotrix"  )
 
@@ -175,7 +175,7 @@ closegen <- function(d1,d2,dat) {
     dat2$newvar3[is.na(dat2$newvar3)]<-0
 
     names(dat2)<-c(names(dat),paste('close',d2,sep=""),paste('road',d2,sep=""),
-									 paste('time',d2,sep=""))
+                   paste('time',d2,sep=""))
     return(dat2)
 }
 
@@ -218,8 +218,8 @@ datcollapse <- function(age_sub,order_sub,ver,dat) {
 
     fmod <- aggregate.data.frame(dat[,c("failures","successes")],
                                  by=list(dat$close15,dat$close30,dat$close45,
-																		 dat$road15,dat$road30,dat$road45       ,
-																		 dat$time15,dat$time30,dat$time45       ,
+                                     dat$road15,dat$road30,dat$road45       ,
+                                     dat$time15,dat$time30,dat$time45       ,
                                      dat$dom_comuna,dat$year-2005           ,
                                      (dat$year-2005)^2,dat$pill,dat$mujer   ,
                                      dat$party,dat$votop,dat$outofschool    ,
@@ -231,8 +231,8 @@ datcollapse <- function(age_sub,order_sub,ver,dat) {
                                      dat$region,dat$popln),
                                  function(vec) {sum(na.omit(vec))})
     names(fmod) <- c("close15","close30","close45","road15","road30","road45",
- 										 "time15","time30","time45",Names,"failures","successes")
-
+                     "time15","time30","time45",Names,"failures","successes")
+    
     if(ver==2) {
         fmod<-merge(fmod,full,all.y=TRUE)
         fmod$successes[is.na(fmod$successes)]<-0
@@ -378,31 +378,35 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
 }
 
 
-NumMod <- function(age_sub,order_sub,rate,logm) {
+NumMod <- function(age_sub,order_sub,rate,logm,wt) {
   
     formod <- datcollapse(age_sub, order_sub,2,orig)
     names(formod)[32] <- "births"  #this used to be 26 (June 30, 2015)
-
+    formod$weight <- 1
+    
     if(rate) {
         formod$births <- (formod$births/formod$popln)*1000
     }
     if(logm) {
         formod$births<-log(formod$births+1)
     }
+    if(wt) {
+        formod$weight <- formod$popln
+    }
     
     xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)    +
-              factor(dom_comuna):trend, data=formod)
+              factor(dom_comuna):trend, data=formod, weights=weight)
     xct <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend       +
               factor(year) + factor(pill) + factor(party) + factor(mujer)  +
               votes + outofschool + educationspend + educationmunicip      +
               healthspend + healthtraining + healthstaff + femalepoverty   + 
-              femaleworkers + condom, data=formod  )
+              femaleworkers + condom, data=formod, weights=weight)
     xsp <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend       +
               factor(year) + factor(pill) + factor(party) + factor(mujer)  +
               votes + outofschool + educationspend + educationmunicip      +
               healthspend + healthtraining + healthstaff + femalepoverty   +
               condom + femaleworkers + factor(close15) + factor(close30)   +
-              + factor(close45),  data=formod)
+              + factor(close45),  data=formod, weights=weight)
 
 
     clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
@@ -515,37 +519,37 @@ rangeest <- function(age_sub,order_sub,measure,title,xlabl){
         dat$failures  <- (1-dat$pregnant)*dat$n
         dat$successes <- dat$pregnant*dat$n    
         names(dat) <- c(n1,"c1","c2","r1","r2","t1","t2","failures","successes")  
-
-				if(measure=="dist") { 
-					formod <- aggregate.data.frame(dat[,c("failures","successes")],
-                    by=list(dat$c1,dat$c2,dat$dom_comuna,dat$year-2005         ,
-		 									 (dat$year-2005)^2,dat$pill,dat$mujer,dat$party,dat$votop,
-											 dat$outofschool,dat$healthspend,dat$healthstaff         ,
-											 dat$healthtraining,dat$educationspend,dat$femalepoverty ,
-											 dat$urbBin,dat$year,dat$educationmunicip,dat$condom     ,
-										   dat$usingcont,dat$femaleworkers,dat$region,dat$popln),
-														function(vec) {sum(na.omit(vec))})
-				}
-				if(measure=="road") { 
-					formod <- aggregate.data.frame(dat[,c("failures","successes")],
-                    by=list(dat$r1,dat$r2,dat$dom_comuna,dat$year-2005         ,
-		 									 (dat$year-2005)^2,dat$pill,dat$mujer,dat$party,dat$votop,
-											 dat$outofschool,dat$healthspend,dat$healthstaff         ,
-											 dat$healthtraining,dat$educationspend,dat$femalepoverty ,
-											 dat$urbBin,dat$year,dat$educationmunicip,dat$condom     ,
-										   dat$usingcont,dat$femaleworkers,dat$region,dat$popln),
-														function(vec) {sum(na.omit(vec))})
-				}
-				if(measure=="time") {
-					formod <- aggregate.data.frame(dat[,c("failures","successes")],
-                    by=list(dat$t1,dat$t2,dat$dom_comuna,dat$year-2005         ,
-		 									 (dat$year-2005)^2,dat$pill,dat$mujer,dat$party,dat$votop,
-											 dat$outofschool,dat$healthspend,dat$healthstaff         ,
-											 dat$healthtraining,dat$educationspend,dat$femalepoverty ,
-											 dat$urbBin,dat$year,dat$educationmunicip,dat$condom     ,
-										   dat$usingcont,dat$femaleworkers,dat$region,dat$popln),
-														function(vec) {sum(na.omit(vec))})
-				}
+        
+        if(measure=="dist") { 
+            formod <- aggregate.data.frame(dat[,c("failures","successes")],
+               by=list(dat$c1,dat$c2,dat$dom_comuna,dat$year-2005         ,
+                   (dat$year-2005)^2,dat$pill,dat$mujer,dat$party,dat$votop,
+                   dat$outofschool,dat$healthspend,dat$healthstaff         ,
+                   dat$healthtraining,dat$educationspend,dat$femalepoverty ,
+                   dat$urbBin,dat$year,dat$educationmunicip,dat$condom     ,
+                   dat$usingcont,dat$femaleworkers,dat$region,dat$popln),
+                                           function(vec) {sum(na.omit(vec))})
+        }
+        if(measure=="road") { 
+            formod <- aggregate.data.frame(dat[,c("failures","successes")],
+                 by=list(dat$r1,dat$r2,dat$dom_comuna,dat$year-2005         ,
+                    (dat$year-2005)^2,dat$pill,dat$mujer,dat$party,dat$votop,
+                    dat$outofschool,dat$healthspend,dat$healthstaff         ,
+                    dat$healthtraining,dat$educationspend,dat$femalepoverty ,
+                    dat$urbBin,dat$year,dat$educationmunicip,dat$condom     ,
+                    dat$usingcont,dat$femaleworkers,dat$region,dat$popln),
+                                           function(vec) {sum(na.omit(vec))})
+        }
+        if(measure=="time") {
+            formod <- aggregate.data.frame(dat[,c("failures","successes")],
+               by=list(dat$t1,dat$t2,dat$dom_comuna,dat$year-2005         ,
+                   (dat$year-2005)^2,dat$pill,dat$mujer,dat$party,dat$votop,
+                   dat$outofschool,dat$healthspend,dat$healthstaff         ,
+                   dat$healthtraining,dat$educationspend,dat$femalepoverty ,
+                   dat$urbBin,dat$year,dat$educationmunicip,dat$condom     ,
+                   dat$usingcont,dat$femaleworkers,dat$region,dat$popln),
+                                           function(vec) {sum(na.omit(vec))})
+        }
         names(formod) <- c("close1","closemarg",Names,"failures","successes")
         
         xrange <- glm(cbind(successes,failures) ~ factor(dom_comuna)          + 
@@ -565,17 +569,17 @@ rangeest <- function(age_sub,order_sub,measure,title,xlabl){
     }
 
     postscript(paste(graf.dir,title,sep=""),horizontal = FALSE, 
-							 onefile = FALSE, paper = "special",height=7, width=9)
-	  plot(distance,pillbeta, type="b",ylim=c(-0.10,-0.02),lwd=2,pch=20,
+               onefile = FALSE, paper = "special",height=7, width=9)
+    plot(distance,pillbeta, type="b",ylim=c(-0.10,-0.02),lwd=2,pch=20,
          col="darkgreen", ylab="Estimate of Effect on Treated Cluster",
-				 xlab=xlabl)
+         xlab=xlabl)
     points(distance,pillbeta-1.96*pillse,type="l",lty=3,pch=20)
     points(distance,pillbeta+1.96*pillse,type="l",lty=3,pch=20)
     legend("topright",legend=c("Point Estimate","95% CI"),
            text.col=c("darkgreen","black"),pch=c(20,NA),lty=c(1,3),
            col=c("darkgreen","black"))
     dev.off()
-
+    
     
     return(data.frame(distance,pillbeta,pillse,closebeta,closese))
 }
@@ -656,23 +660,28 @@ if(preg|ChMund){
 
 if(Npreg){
     print("Number of Pregnancy OLS")
-    N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE,logm=FALSE)
-    N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=FALSE,logm=FALSE)
-    N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=FALSE,logm=FALSE)
-    NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=FALSE,logm=FALSE)
+    N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=F,wt=F)
+    N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=F,wt=F)
+    N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=F,wt=F)
+    NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=F,wt=F)
     
-    r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=TRUE,logm=FALSE)
-    r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=TRUE,logm=FALSE)
-    r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=TRUE,logm=FALSE)
-    rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=TRUE,logm=FALSE)
+    r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=T,logm=F,wt=F)
+    r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=T,logm=F,wt=F)
+    r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=T,logm=F,wt=F)
+    rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=T,logm=F,wt=F)
+
+    w1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=T,logm=F,wt=T)
+    w2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=T,logm=F,wt=T)
+    w3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=T,logm=F,wt=T)
+    wAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=T,logm=F,wt=T)
 }
 
 if(Lpreg){
     print("ln(Number of Pregnancy) OLS")
-    l1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=FALSE,logm=TRUE)
-    l2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=FALSE,logm=TRUE)
-    l3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=FALSE,logm=TRUE)
-    lAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=FALSE,logm=TRUE)
+    l1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=T)
+    l2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=T)
+    l3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=T)
+    lAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=T)
 }
 
 if(spill){
@@ -722,18 +731,18 @@ if(aboe) {
 
 if(ranges) {
     raDist1519  <- rangeest(age_sub = 15:19, 1:100,"dist","Dist1519.eps",
-									 "Distance From Treatment Cluster (km)")
+                            "Distance From Treatment Cluster (km)")
     raRoad1519  <- rangeest(age_sub = 15:19, 1:100,"road","Dist1519road.eps",
-									 "Distance From Treatment Cluster (shortest distance by road)")
+                            "Distance From Treatment Cluster (shortest distance by road)")
     raTime1519  <- rangeest(age_sub = 15:19, 1:100,"time","Dist1519time.eps",
-									 "Distance From Treatment Cluster (minutes in travel time)")
-
+                            "Distance From Treatment Cluster (minutes in travel time)")
+    
     raDist2034  <- rangeest(age_sub = 20:34, 1:100,"dist","Dist2034.eps",
-									 "Distance From Treatment Cluster (km)")
+                            "Distance From Treatment Cluster (km)")
     raRoad2034  <- rangeest(age_sub = 20:34, 1:100,"road","Dist2034road.eps",
-									 "Distance From Treatment Cluster (shortest distance by road)")
+                            "Distance From Treatment Cluster (shortest distance by road)")
     raTime2034  <- rangeest(age_sub = 20:34, 1:100,"time","Dist2034time.eps",
-									 "Distance From Treatment Cluster (minutes in travel time)")
+                            "Distance From Treatment Cluster (minutes in travel time)")
 }
 
 
