@@ -28,11 +28,11 @@ rm(list=ls())
 #==============================================================================
 #=== (1) Parameters
 #==============================================================================
-create <- FALSE
+create <- TRUE
 preg   <- FALSE
-Npreg  <- FALSE
-Lpreg  <- FALSE
-prTab  <- FALSE
+Npreg  <- TRUE
+Lpreg  <- TRUE
+prTab  <- TRUE
 spill  <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
@@ -54,11 +54,11 @@ ipak <- function(pkg) {
        install.packages(new.pkg, dependencies = TRUE)
     sapply(pkg, require, character.only = TRUE)
 }
-pk <- c("MatchIt","xtable","rms","plyr","glmmML","sandwich","lmtest","plotrix")
-ipak(pk)
+packages <- c("MatchIt","xtable","rms","plyr","glmmML","sandwich","lmtest",
+	      "plotrix","foreign","reshape","gdata","Hmisc")
+ipak(packages)
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
-proj.dir <- "/media/ubuntu/Impar/universidades/Oxford/DPhil/Thesis/Teens/"
 
 brth.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
 code.dir <- paste(proj.dir, "Source/Births/"   ,sep="")
@@ -97,12 +97,12 @@ orig <- read.csv(f)
 #==============================================================================
 stars <- function(p,B) {
     b <- ifelse(p < 0.01,
-                paste(format(round(B,3),nsmall=3),"$^{***}$",sep=""),
-                ifelse(p < 0.05,
-                       paste(format(round(B,3),nsmall=3),"$^{**}$",sep=""),
-                       ifelse(p < 0.1,
-                              paste(format(round(B,3),nsmall=3),"$^{*}$",sep=""),
-                              format(round(B,3),nsmall=3))))
+            paste(format(round(B,3),nsmall=3),"$^{***}$",sep=""),
+            ifelse(p < 0.05,
+               paste(format(round(B,3),nsmall=3),"$^{**}$",sep=""),
+               ifelse(p < 0.1,
+                   paste(format(round(B,3),nsmall=3),"$^{*}$",sep=""),
+                   format(round(B,3),nsmall=3))))
     b  <- sub('-', '$-$', b)  
     return(b)
 }
@@ -134,7 +134,7 @@ pillest <- function(outresults,d,n,regex,dim) {
         R2 <- summary(outresults)$r.squared
     }
     beta  <- stars(p,beta)
-    se    <- paste("(", format(round(se,3),nsmall=3),")", sep="")
+    se    <- paste("[", format(round(se,3),nsmall=3),"]", sep="")
     R2    <- format(round(R2,3),nsmall=3)
     n     <- format(n,big.mark=",",scientific=F)
     
@@ -380,7 +380,7 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
 NumMod <- function(age_sub,order_sub,rate,logm,wt) {
   
     formod <- datcollapse(age_sub, order_sub,2,orig)
-    names(formod)[32] <- "births"  #this used to be 26 (June 30, 2015)
+    names(formod)[32] <- "births" 
     formod$weight <- 1
     
     if(rate) {
@@ -393,7 +393,9 @@ NumMod <- function(age_sub,order_sub,rate,logm,wt) {
         formod$weight <- formod$popln
     }
     
-    xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)    +
+    xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill),
+              data=formod, weights=weight)
+    xtr <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill)    +
               factor(dom_comuna):trend, data=formod, weights=weight)
     xct <- lm(births ~ factor(dom_comuna) + factor(dom_comuna):trend       +
               factor(year) + factor(pill) + factor(party) + factor(mujer)  +
@@ -405,27 +407,29 @@ NumMod <- function(age_sub,order_sub,rate,logm,wt) {
               votes + outofschool + educationspend + educationmunicip      +
               healthspend + healthtraining + healthstaff + femalepoverty   +
               condom + femaleworkers + factor(close15) + factor(close30)   +
-              + factor(close45),  data=formod, weights=weight)
-
-
+              + factor(close45), data=formod, weights=weight)
+    
     clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
     xba$coefficients2 <- robust.se(xba,clusters)[[2]]
+    xtr$coefficients2 <- robust.se(xtr,clusters)[[2]]
     xct$coefficients2 <- robust.se(xct,clusters)[[2]]
     xsp$coefficients2 <- robust.se(xsp,clusters)[[2]]
   
  
     formod$WT <- 1
     n  <- nrow(formod)
+    mn <- round(wtd.mean(formod$births,weights=formod$weight),2)
     s1 <- pillest(xba, formod, n, "pill", 10)
-    s2 <- pillest(xct, formod, n, "pill", 10)
-    s3 <- pillest(xsp, formod, n, "pill", 10)
+    s2 <- pillest(xtr, formod, n, "pill", 10)
+    s3 <- pillest(xct, formod, n, "pill", 10)
+    s4 <- pillest(xsp, formod, n, "pill", 10)
     
-    betas <- paste(s1$b, "&", s2$b, "&", s3$b, sep="")
-    ses   <- paste(s1$s, "&", s2$s, "&", s3$s, sep="")
-    n     <- paste(s1$n, '&', s2$n, '&', s3$n, sep='')
-    r     <- paste(s1$r, '&', s2$r, '&', s3$r, sep='')
-
-    return(list("b" = betas,"se" = ses, "n" = n, "r" = r))  
+    betas <- paste(s1$b, "&", s2$b, "&", s3$b, "&", s4$b, sep="")
+    ses   <- paste(s1$s, "&", s2$s, "&", s3$s, "&", s4$s, sep="")
+    n     <- paste(s1$n, '&', s2$n, '&', s3$n, '&', s4$n, sep='')
+    r     <- paste(s1$r, '&', s2$r, '&', s3$r, '&', s4$r, sep='')
+    mean  <- paste(mn,'&',mn,'&',mn,'&',mn,'&',sep='')
+    return(list("b" = betas,"se" = ses, "n" = n, "r" = r, "m"=mean))  
 }
 
 
@@ -658,29 +662,43 @@ if(preg|ChMund){
 }
 
 if(Npreg){
-    print("Number of Pregnancy OLS")
-    N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=F,wt=F)
-    N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=F,wt=F)
-    N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=F,wt=F)
-    NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=F,wt=F)
-    
+    print("Pregnancy Rate - weighted")
+    w1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=T,logm=F,wt=T)
+    w2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=T,logm=F,wt=T)
+    w3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=T,logm=F,wt=T)
+    wAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=T,logm=F,wt=T)
+
+    print("Number of Pregnancy - weighted")
+    x1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=F,wt=T)
+    x2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=F,wt=T)
+    x3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=F,wt=T)
+    xAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=F,wt=T)
+
+    print("Pregnancy Rate - unweighted")
     r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=T,logm=F,wt=F)
     r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=T,logm=F,wt=F)
     r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=T,logm=F,wt=F)
     rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=T,logm=F,wt=F)
 
-    w1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=T,logm=F,wt=T)
-    w2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=T,logm=F,wt=T)
-    w3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=T,logm=F,wt=T)
-    wAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=T,logm=F,wt=T)
+    print("Number of Pregnancy - unweighted")
+    N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=F,wt=F)
+    N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=F,wt=F)
+    N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=F,wt=F)
+    NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=F,wt=F)
 }
 
 if(Lpreg){
-    print("ln(Number of Pregnancy) OLS")
-    l1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=T)
-    l2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=T)
-    l3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=T)
-    lAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=T)
+    print("ln(Number of Pregnancy) OLS - unweighted")
+    l1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=T,wt=F)
+    l2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=T,wt=F)
+    l3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=T,wt=F)
+    lAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=T,wt=F)
+
+    print("ln(Number of Pregnancy) OLS - weighted")
+    m1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=T,wt=T)
+    m2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=T,wt=T)
+    m3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=T,wt=T)
+    mAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=T,wt=T)
 }
 
 if(spill){
@@ -690,15 +708,15 @@ if(spill){
     c3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=FALSE,road=FALSE)
     cAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=FALSE,road=FALSE)
     print("Spillover Models (Road)")
-    cr1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=FALSE,road=TRUE)
-    cr2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=FALSE,road=TRUE)
-    cr3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=FALSE,road=TRUE)
-    crAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=FALSE,road=TRUE)
+    d1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=FALSE,road=TRUE)
+    d2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=FALSE,road=TRUE)
+    d3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=FALSE,road=TRUE)
+    dAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=FALSE,road=TRUE)
     print("Spillover Models (Time)")
-    ct1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=TRUE,road=FALSE)
-    ct2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=TRUE,road=FALSE)
-    ct3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=TRUE,road=FALSE)
-    ctAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=TRUE,road=FALSE)
+    e1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=TRUE,road=FALSE)
+    e2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=TRUE,road=FALSE)
+    e3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=TRUE,road=FALSE)
+    eAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=TRUE,road=FALSE)
 
 }  
 
@@ -708,12 +726,6 @@ if(invPS){
     ps2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1,PSwt=TRUE)
     ps3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1,PSwt=TRUE)
     psAll  <- runmod(age_sub = 15:49, order_sub = 1:100,1,PSwt=TRUE)
-}
-
-if(full) {
-    full1519 <- runmod(age_sub = 15:19, order_sub = 1:100,2)
-    full2034 <- runmod(age_sub = 20:34, order_sub = 1:100,2)
-    full3549 <- runmod(age_sub = 35:49, order_sub = 1:100,2)
 }
 
 if(aboe) {
@@ -812,7 +824,8 @@ obs  <- 'Observations&'
 R2   <- 'McFadden\'s $R^2$&'
 sig  <- '$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01'
 
-if(prTab){
+prTab2 = FALSE
+if(prTab2){
 to <-file(paste(tab.dir,"Births.tex", sep=""))
 writeLines(c('\\begin{table}[!htbp] \\centering',
            '\\caption{The Effect of the Morning After Pill on Pregnancy}',
@@ -967,15 +980,23 @@ if(spill){
              '& Women & Year olds & Year olds & Year olds \\\\ \\midrule',
              '\\multicolumn{5}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
              '& & & & \\\\',
-             paste(xvar,crAll$b[1],'&',cr1519$b[1],'&',cr2034$b[1],'&',cr3549$b[1],'\\\\',sep=""),
-             paste('&',crAll$s[1],'&',cr1519$s[1],'&',cr2034$s[1],'&',cr3549$s[1],'\\\\',sep=""),            
-             paste(xv2,crAll$b[2],'&',cr1519$b[2],'&',cr2034$b[2],'&',cr3549$b[2],'\\\\',sep=""),
-             paste('&',crAll$s[2],'&',cr1519$s[2],'&',cr2034$s[2],'&',cr3549$s[2],'\\\\',sep=""),
-             paste(xv3,crAll$b[3],'&',cr1519$b[3],'&',cr2034$b[3],'&',cr3549$b[3],'\\\\',sep=""),
-             paste('&',crAll$s[3],'&',cr1519$s[3],'&',cr2034$s[3],'&',cr3549$s[3],'\\\\',sep=""), 
+               paste(xvar,dAll$b[1],'&',d1519$b[1],'&',
+                     d2034$b[1],'&',d3549$b[1],'\\\\',sep=""),
+               paste('&' ,dAll$s[1],'&',d1519$s[1],'&',
+                     d2034$s[1],'&',d3549$s[1],'\\\\',sep=""),            
+               paste(xv2 ,dAll$b[2],'&',d1519$b[2],'&',
+                     d2034$b[2],'&',d3549$b[2],'\\\\',sep=""),
+               paste('&' ,dAll$s[2],'&',d1519$s[2],'&',
+                     d2034$s[2],'&',d3549$s[2],'\\\\',sep=""),
+               paste(xv3, dAll$b[3],'&',d1519$b[3],'&',
+                     d2034$b[3],'&',d3549$b[3],'\\\\',sep=""),
+               paste('&', dAll$s[3],'&',d1519$s[3],'&',
+                     d2034$s[3],'&',d3549$s[3],'\\\\',sep=""), 
              '& & & & \\\\',
-             paste(obs,crAll$n,'&',cr1519$n,'&',cr2034$n,'&',cr3549$n,'\\\\',sep=""),
-             paste(R2,crAll$r,'&',cr1519$r,'&',cr2034$r,'&',cr3549$r,'\\\\ \\midrule',sep="")),
+               paste(obs,dAll$n,'&',d1519$n,'&',d2034$n,
+                     '&',d3549$n,'\\\\',sep=""),
+               paste(R2,dAll$r,'&',d1519$r,'&',d2034$r,
+                     '&',d3549$r,'\\\\ \\midrule',sep="")),
              to)
   close(to)
   
@@ -992,17 +1013,27 @@ if(spill){
              '& Women & Year olds & Year olds & Year olds \\\\ \\midrule',
              '\\multicolumn{5}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
              '& & & & \\\\',
-             paste(xvar,ctAll$b[1],'&',ct1519$b[1],'&',ct2034$b[1],'&',ct3549$b[1],'\\\\',sep=""),
-             paste('&',ctAll$s[1],'&',ct1519$s[1],'&',ct2034$s[1],'&',ct3549$s[1],'\\\\',sep=""),            
-             paste(xv2,ctAll$b[2],'&',ct1519$b[2],'&',ct2034$b[2],'&',ct3549$b[2],'\\\\',sep=""),
-             paste('&',ctAll$s[2],'&',ct1519$s[2],'&',ct2034$s[2],'&',ct3549$s[2],'\\\\',sep=""),
-             paste(xv3,ctAll$b[3],'&',ct1519$b[3],'&',ct2034$b[3],'&'           ,'\\\\',sep=""),
-             paste('&',ctAll$s[3],'&',ct1519$s[3],'&',ct2034$s[3],'&'           ,'\\\\',sep=""), 
-             paste(xv4,ctAll$b[4],'&',ct1519$b[4],'&'           ,'&'           ,'\\\\',sep=""),
-             paste('&',ctAll$s[4],'&',ct1519$s[4],'&'           ,'&'           ,'\\\\',sep=""), 
+               paste(xvar,eAll$b[1],'&',e1519$b[1],'&',
+                     e2034$b[1],'&',e3549$b[1],'\\\\',sep=""),
+               paste('&', eAll$s[1],'&',e1519$s[1],'&',
+                     e2034$s[1],'&',e3549$s[1],'\\\\',sep=""),            
+               paste(xv2, eAll$b[2],'&',e1519$b[2],'&',
+                     e2034$b[2],'&',e3549$b[2],'\\\\',sep=""),
+               paste('&', eAll$s[2],'&',e1519$s[2],'&',
+                     e2034$s[2],'&',e3549$s[2],'\\\\',sep=""),
+               paste(xv3, eAll$b[3],'&',e1519$b[3],'&',
+                     e2034$b[3],'&'           ,'\\\\',sep=""),
+               paste('&', eAll$s[3],'&',e1519$s[3],'&',
+                     e2034$s[3],'&'           ,'\\\\',sep=""), 
+               paste(xv4, eAll$b[4],'&',e1519$b[4],'&'
+                    ,'&'           ,'\\\\',sep=""),
+               paste('&', eAll$s[4],'&',e1519$s[4],'&'
+                    ,'&'           ,'\\\\',sep=""), 
              '& & & & \\\\',
-             paste(obs,ctAll$n,'&',ct1519$n,'&',ct2034$n,'&',ct3549$n,'\\\\',sep=""),
-             paste(R2,ctAll$r,'&',ct1519$r,'&',ct2034$r,'&',ct3549$r,'\\\\ \\midrule',sep="")),
+               paste(obs, eAll$n,'&',e1519$n,'&',
+                     e2034$n,'&',e3549$n,'\\\\',sep=""),
+               paste(R2,  eAll$r,'&',e1519$r,'&',
+                     e2034$r,'&',e3549$r,'\\\\ \\midrule',sep="")),
              to)
   close(to)
 }
@@ -1043,171 +1074,387 @@ close(to)
 }
 
 
-
 if(prTab){
-    to <-file(paste(tab.dir,"aggregateBirths.tex", sep=""))
+    to <-file(paste(tab.dir,"aggregateASFR.tex", sep=""))
     writeLines(c('\\begin{table}[!htbp] \\centering',
-                 '\\caption{OLS Estimates Based on Aggregate Comunal Data}',
-                 '\\label{TEENtab:aggregate}',
+                 '\\caption{The Effect of the EC Pill on Birth Rates}',
+                 '\\label{TEENtab:aggregateASFR}',
                  '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
                  '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '& N Births & N Births & N Births \\\\',
-                 '&(1)&(2)&(3) \\\\ \\hline',
-                 ' & & & \\\\',
-                 paste('Pill (All Women)   &',NAll$b,'\\\\',sep=""),
-                 paste('                   &',NAll$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',NAll$n,'\\\\',sep=""),
-                 paste('R-squared          &',NAll$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (15-19 years) &',N1519$b,'\\\\',sep=""),
-                 paste('                   &',N1519$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',N1519$n,'\\\\',sep=""),
-                 paste('R-squared          &',N1519$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (20-34 years) &',N2034$b,'\\\\',sep=""),
-                 paste('                   &',N2034$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',N2034$n,'\\\\',sep=""),
-                 paste('R-squared          &',N2034$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (35-49 years) &',N3549$b,'\\\\',sep=""),
-                 paste('                   &',N3549$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',N3549$n,'\\\\',sep=""),
-                 paste('R-squared          &',N3549$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (All Groups)  &',NAll$b,'\\\\',sep=""),
-                 paste('                   &',NAll$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',NAll$n,'\\\\',sep=""),
-                 paste('R-squared          &',NAll$r,'\\\\',sep=""),
+                 '& Birth Rate & Birth Rate & Birth Rate & Birth Rate \\\\',
+                 '&(1)&(2)&(3)&(4) \\\\ \\hline',
+                 '\\multicolumn{5}{l}{\\textbf{',
+                 '\\noindent Panel A: All Women}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',wAll$b,'\\\\',sep=""),
+                 paste('            &',wAll$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',wAll$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',wAll$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 15-19 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',w1519$b,'\\\\',sep=""),
+                 paste('            &',w1519$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',w1519$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',w1519$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel C: 20-34 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',w2034$b,'\\\\',sep=""),
+                 paste('            &',w2034$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',w2034$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',w2034$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 35-49 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',w3549$b,'\\\\',sep=""),
+                 paste('            &',w3549$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',w3549$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',w3549$m,'\\\\',sep=""),
                  '\\hline \\\\[-1.8ex] ', 
-                 '{\\small Year \\& Comuna FEs} & Y & Y & Y \\\\',
-                 '{\\small Trend, Controls} & & Y & Y \\\\', 
-                 '{\\small Spillovers} & & & Y \\\\',
+                 '{\\small Year \\& Comuna FEs}             &Y&Y&Y&Y \\\\',
+                 '{\\small Municipal-Specific Linear Trends}& &Y&Y&Y \\\\', 
+                 '{\\small Time Varying Controls}           & & &Y&Y \\\\', 
+                 '{\\small Spillovers}                      & & & &Y \\\\',
                  '\\hline \\hline \\\\[-1.8ex]',
-                 '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
-                 'Each panel presents difference-in-difference results for a',
-                 'regression of the total count of pregnancies for the age',
-                 'group in each municipality.  All models are estimated by OLS',
-                 'and standard errors are clustered at the level of the comuna.',
-                 'Controls are described in table \\ref{TEENtab:PillPreg}.',
+                 '\\multicolumn{5}{p{12.6cm}}{\\begin{footnotesize}'       ,
+                 '\\textsc{Notes:} Each panel presents population-weighted',
+                 ' difference-in-difference results for a regression of '  ,
+                 'age-specific fertility rates (ASFR) for the age group in',
+                 ' each municipality.  ASFR is defined as the number of   ',
+                 'births per 1,000 women.  In the case of all women, this ',
+                 'is called the General Fertility Rate (GFR). All models  ',
+                 'are estimated by OLS, and each municipalities is        ',
+                 'weighted by the population of women. Time varying       ',
+                 'controls included in the regression consist of party    ',
+                 'dummies for the mayor in power, the mayor\'s gender, the',
+                 ' vote margin of the mayor, the percent of girls out of  ',
+                 'highschool, education spending spending by both the     ',
+                 'municipality and the Ministry of Education, total       ',
+                 'health spending and health spending on staff and        ',
+                 'training, the percent of female heads of households     ',
+                 'living below the poverty line, the percent of female    ',
+                 'workers in professional positions in the Municipality,  ',
+                 'and condom availability (measured at the level of the   ',
+                 'region). Standard errors are clustered at the level of  ',
+                 'the municipality.',
                  paste(sig, '\\end{footnotesize}}', sep=""),
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
 
-    to <-file(paste(tab.dir,"aggregateASFR.tex", sep=""))
+    to <-file(paste(tab.dir,"aggregateASFRunweight.tex", sep=""))
     writeLines(c('\\begin{table}[!htbp] \\centering',
-                 '\\caption{OLS Estimates Based on Aggregate Age-Specific Fertility Rate}',
-                 '\\label{TEENtab:aggregateASFR}',
+                 '\\caption{The Effect of the EC Pill on Birth Rates}',
+                 '\\label{TEENtab:aggregateASFRunweight}',
                  '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
                  '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '& ASFR & ASFR & ASFR \\\\',
-                 '&(1)&(2)&(3) \\\\ \\hline',
-                 ' & & & \\\\',
-                 paste('Pill (All Women)   &',rAll$b,'\\\\',sep=""),
-                 paste('                   &',rAll$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',rAll$n,'\\\\',sep=""),
-                 paste('R-squared          &',rAll$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (15-19 years) &',r1519$b,'\\\\',sep=""),
-                 paste('                   &',r1519$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',r1519$n,'\\\\',sep=""),
-                 paste('R-squared          &',r1519$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (20-34 years) &',r2034$b,'\\\\',sep=""),
-                 paste('                   &',r2034$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',r2034$n,'\\\\',sep=""),
-                 paste('R-squared          &',r2034$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (35-49 years) &',r3549$b,'\\\\',sep=""),
-                 paste('                   &',r3549$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',r3549$n,'\\\\',sep=""),
-                 paste('R-squared          &',r3549$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (All Groups)  &',rAll$b,'\\\\',sep=""),
-                 paste('                   &',rAll$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',rAll$n,'\\\\',sep=""),
-                 paste('R-squared          &',rAll$r,'\\\\',sep=""),
+                 '& Birth Rate & Birth Rate & Birth Rate & Birth Rate \\\\',
+                 '&(1)&(2)&(3)&(4) \\\\ \\hline',
+                 '\\multicolumn{5}{l}{\\textbf{',
+                 '\\noindent Panel A: All Women}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',rAll$b,'\\\\',sep=""),
+                 paste('            &',rAll$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',rAll$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',rAll$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 15-19 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',r1519$b,'\\\\',sep=""),
+                 paste('            &',r1519$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',r1519$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',r1519$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel C: 20-34 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',r2034$b,'\\\\',sep=""),
+                 paste('            &',r2034$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',r2034$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',r2034$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 35-49 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',r3549$b,'\\\\',sep=""),
+                 paste('            &',r3549$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',r3549$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',r3549$m,'\\\\',sep=""),
                  '\\hline \\\\[-1.8ex] ', 
-                 '{\\small Year \\& Comuna FEs} & Y & Y & Y \\\\',
-                 '{\\small Trend, Controls} & & Y & Y \\\\', 
-                 '{\\small Spillovers} & & & Y \\\\',
+                 '{\\small Year \\& Comuna FEs}             &Y&Y&Y&Y \\\\',
+                 '{\\small Municipal-Specific Linear Trends}& &Y&Y&Y \\\\', 
+                 '{\\small Time Varying Controls}           & & &Y&Y \\\\', 
+                 '{\\small Spillovers}                      & & & &Y \\\\',
                  '\\hline \\hline \\\\[-1.8ex]',
-                 '\\multicolumn{4}{p{9.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
-                 'Each panel presents difference-in-difference results for a',
-                 'regression of the age-specific fertility rate (ASFR) for the age',
-                 'group in each municipality.  ASFR is defined as the number of',
-                 'births per 1,000 women.  In the case of all women, this is called',
-                 'the General Fertility Rate (GFR). All models are estimated by OLS',
-                 'and standard errors are clustered at the level of the comuna.',
-                 'Controls are described in table \\ref{TEENtab:PillPreg}.',
+                 '\\multicolumn{5}{p{12.6cm}}{\\begin{footnotesize}'     ,
+                 '\\textsc{Notes:} Each panel presents unweighted       ',
+                 'difference-in-difference results for a regression of  ',
+                 'age-specific fertility rates (ASFR) for the age group ',
+                 'in each municipality.  Specifications are identical to',
+                 ' table \\ref{TEENtab:aggregateASFR}, however are not  ',
+                 'weighted for population. Standard errors are clustered',
+                 'at the level of the municipality.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
+
+    to <-file(paste(tab.dir,"aggregateBirths.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{The Effect of the EC Pill on Total Births}',
+                 '\\label{TEENtab:aggregate}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '& N Births & N Births & N Births & N Births \\\\',
+                 '&(1)&(2)&(3)&(4) \\\\ \\hline',
+                 '\\multicolumn{5}{l}{\\textbf{',
+                 '\\noindent Panel A: All Women}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',xAll$b,'\\\\',sep=""),
+                 paste('            &',xAll$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',xAll$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',xAll$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 15-19 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',x1519$b,'\\\\',sep=""),
+                 paste('            &',x1519$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',x1519$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',x1519$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel C: 20-34 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',x2034$b,'\\\\',sep=""),
+                 paste('            &',x2034$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',x2034$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',x2034$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 35-49 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',r3549$b,'\\\\',sep=""),
+                 paste('            &',r3549$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',r3549$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',r3549$m,'\\\\',sep=""),
+                 '\\hline \\\\[-1.8ex] ', 
+                 '{\\small Year \\& Comuna FEs}             &Y&Y&Y&Y \\\\',
+                 '{\\small Municipal-Specific Linear Trends}& &Y&Y&Y \\\\', 
+                 '{\\small Time Varying Controls}           & & &Y&Y \\\\', 
+                 '{\\small Spillovers}                      & & & &Y \\\\',
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{5}{p{12.6cm}}{\\begin{footnotesize}'     ,
+                 '\\textsc{Notes:} Each panel presents population       ',
+                 'weighted difference-in-difference results for a       ',
+                 'regression of the total number of births for the age  ',
+                 'group in each municipality. Specifications are        ',
+                 'identical to table \\ref{TEENtab:aggregateASFR},      ',
+                 'however birth weights are replaced by the total number',
+                 ' of births. Standard errors are clustered             ',
+                 'at the level of the municipality.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
+
+    to <-file(paste(tab.dir,"aggregateBirthsunweight.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{The Effect of the EC Pill on Total Births}',
+                 '\\label{TEENtab:aggregateunweight}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '& N Births & N Births & N Births & N Births \\\\',
+                 '&(1)&(2)&(3)&(4) \\\\ \\hline',
+                 '\\multicolumn{5}{l}{\\textbf{',
+                 '\\noindent Panel A: All Women}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',xAll$b,'\\\\',sep=""),
+                 paste('            &',xAll$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',xAll$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',xAll$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 15-19 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',x1519$b,'\\\\',sep=""),
+                 paste('            &',x1519$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',x1519$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',x1519$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel C: 20-34 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',x2034$b,'\\\\',sep=""),
+                 paste('            &',x2034$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',x2034$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',x2034$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 35-49 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',r3549$b,'\\\\',sep=""),
+                 paste('            &',r3549$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',r3549$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',r3549$m,'\\\\',sep=""),
+                 '\\hline \\\\[-1.8ex] ', 
+                 '{\\small Year \\& Comuna FEs}             &Y&Y&Y&Y \\\\',
+                 '{\\small Municipal-Specific Linear Trends}& &Y&Y&Y \\\\', 
+                 '{\\small Time Varying Controls}           & & &Y&Y \\\\', 
+                 '{\\small Spillovers}                      & & & &Y \\\\',
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{5}{p{12.6cm}}{\\begin{footnotesize}'     ,
+                 '\\textsc{Notes:} Each panel presents unweighted       ',
+                 'difference-in-difference results for a regression of  ',
+                 'the total number of births for the age group in each  ',
+                 ' municipality. Specifications are identical to table  ',
+                 '\\ref{TEENtab:aggregate}, however unweighted          ',
+                 'municipality averages are used. Standard errors are   ',
+                 'clustered at the level of the municipality.',
                  paste(sig, '\\end{footnotesize}}', sep=""),
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
 
     to <-file(paste(tab.dir,"aggregateLogBirths.tex", sep=""))
     writeLines(c('\\begin{table}[!htbp] \\centering',
-                 '\\caption{OLS Estimates Based on Aggregate log(Births)}',
+                 '\\caption{The Effect of the EC Pill on log(Births)}',
                  '\\label{TEENtab:aggregateLog}',
                  '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
                  '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '& log(Births) & log(Births) & log(Births) \\\\',
-                 '&(1)&(2)&(3) \\\\ \\hline',
-                 ' & & & \\\\',
-                 paste('Pill (All Women)   &',lAll$b,'\\\\',sep=""),
-                 paste('                   &',lAll$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',lAll$n,'\\\\',sep=""),
-                 paste('R-squared          &',lAll$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (15-19 years) &',l1519$b,'\\\\',sep=""),
-                 paste('                   &',l1519$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',l1519$n,'\\\\',sep=""),
-                 paste('R-squared          &',l1519$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (20-34 years) &',l2034$b,'\\\\',sep=""),
-                 paste('                   &',l2034$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',l2034$n,'\\\\',sep=""),
-                 paste('R-squared          &',l2034$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (35-49 years) &',l3549$b,'\\\\',sep=""),
-                 paste('                   &',l3549$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',l3549$n,'\\\\',sep=""),
-                 paste('R-squared          &',l3549$r,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Pill (All Groups)  &',lAll$b,'\\\\',sep=""),
-                 paste('                   &',lAll$s,'\\\\',sep=""),
-                 ' & & & \\\\',
-                 paste('Observations       &',lAll$n,'\\\\',sep=""),
-                 paste('R-squared          &',lAll$r,'\\\\',sep=""),
+                 '& log(Births) & log(Births) & log(Births) & log(Births) \\\\',
+                 '&(1)&(2)&(3)&(4) \\\\ \\hline',
+                 '\\multicolumn{5}{l}{\\textbf{',
+                 '\\noindent Panel A: All Women}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',mAll$b,'\\\\',sep=""),
+                 paste('            &',mAll$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',mAll$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',mAll$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 15-19 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',m1519$b,'\\\\',sep=""),
+                 paste('            &',m1519$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',m1519$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',m1519$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel C: 20-34 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',m2034$b,'\\\\',sep=""),
+                 paste('            &',m2034$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',m2034$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',m2034$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 35-49 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',m3549$b,'\\\\',sep=""),
+                 paste('            &',m3549$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',m3549$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',m3549$m,'\\\\',sep=""),
                  '\\hline \\\\[-1.8ex] ', 
-                 '{\\small Year \\& Comuna FEs} & Y & Y & Y \\\\',
-                 '{\\small Trend, Controls} & & Y & Y \\\\', 
-                 '{\\small Spillovers} & & & Y \\\\',
+                 '{\\small Year \\& Comuna FEs}             &Y&Y&Y&Y \\\\',
+                 '{\\small Municipal-Specific Linear Trends}& &Y&Y&Y \\\\', 
+                 '{\\small Time Varying Controls}           & & &Y&Y \\\\', 
+                 '{\\small Spillovers}                      & & & &Y \\\\',
                  '\\hline \\hline \\\\[-1.8ex]',
-                 '\\multicolumn{4}{p{11.1cm}}{\\begin{footnotesize}\\textsc{Notes:} ',
-                 'Each panel presents difference-in-difference results for a        ',
-                 'regresion of log(births+1) for the age group in each municipality.',
-                 'The estimation sample consists of all municipalities and years    ',
-                 'that have a population of at least 1 woman in the age group in    ',
-                 'question. All models are estimated by OLS and standard errors are ',
-                 'clustered at the level of the comuna. Controls are described in   ',
-                 'table \\ref{TEENtab:PillPreg}.',
+                 '\\multicolumn{5}{p{12.6cm}}{\\begin{footnotesize}'     ,
+                 '\\textsc{Notes:} Each panel presents population       ',
+                 'weighted difference-in-difference results for a       ',
+                 'regression of the log(Births+1) for the age group in  ',
+                 'each  municipality. Specifications are identical to   ',
+                 'table \\ref{TEENtab:aggregateASFR}, however logs are  ',
+                 ' used in place of birth rates. Standard errors are    ',
+                 'clustered at the level of the municipality.',
                  paste(sig, '\\end{footnotesize}}', sep=""),
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
 
+
+    to <-file(paste(tab.dir,"aggregateLogsunweight.tex", sep=""))
+    writeLines(c('\\begin{table}[!htbp] \\centering',
+                 '\\caption{The Effect of the EC Pill on log(Births)}',
+                 '\\label{TEENtab:aggregateLogunweight}',
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+                 '& log(Births)&log(Births)&log(Births)&log(Births) \\\\',
+                 '&(1)&(2)&(3)&(4) \\\\ \\hline',
+                 '\\multicolumn{5}{l}{\\textbf{',
+                 '\\noindent Panel A: All Women}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',lAll$b,'\\\\',sep=""),
+                 paste('            &',lAll$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',lAll$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',lAll$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 15-19 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',l1519$b,'\\\\',sep=""),
+                 paste('            &',l1519$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',l1519$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',l1519$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel C: 20-34 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',l2034$b,'\\\\',sep=""),
+                 paste('            &',l2034$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',l2034$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',l2034$m,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel B: 35-49 year olds}} \\\\',
+                 ' & & & & \\\\',
+                 paste('EC Pill     &',l3549$b,'\\\\',sep=""),
+                 paste('            &',l3549$s,'\\\\',sep=""),
+                 ' & & & & \\\\',
+                 paste('Observations&',l3549$n,'\\\\',sep=""),
+                 paste('Mean Rate   &',l3549$m,'\\\\',sep=""),
+                 '\\hline \\\\[-1.8ex] ', 
+                 '{\\small Year \\& Comuna FEs}             &Y&Y&Y&Y \\\\',
+                 '{\\small Municipal-Specific Linear Trends}& &Y&Y&Y \\\\', 
+                 '{\\small Time Varying Controls}           & & &Y&Y \\\\', 
+                 '{\\small Spillovers}                      & & & &Y \\\\',
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{5}{p{12.6cm}}{\\begin{footnotesize}'     ,
+                 '\\textsc{Notes:} Each panel presents unweighted       ',
+                 'difference-in-difference results for a regression of  ',
+                 'the total log(Births+1) for the age group in each     ',
+                 ' municipality. Specifications are identical to table  ',
+                 '\\ref{TEENtab:aggregateLog}, however unweighted       ',
+                 'municipality averages are used. Standard errors are   ',
+                 'clustered at the level of the municipality.',
+                 paste(sig, '\\end{footnotesize}}', sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
 }
 
 if(ChMund){
