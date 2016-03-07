@@ -34,7 +34,6 @@ Npreg  <- FALSE
 Lpreg  <- FALSE
 prTab  <- FALSE
 spill  <- FALSE
-full   <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
 events <- FALSE
@@ -49,17 +48,17 @@ age_range     <- c(15,49)
 #==============================================================================
 #=== (2) Libraries, directories
 #==============================================================================
-require("MatchIt"  )
-require("xtable"   )
-require("rms"      )
-require("plyr"     )
-require("glmmML"   )
-require("sandwich" )
-#require("stargazer")
-require("lmtest"   )
-require("plotrix"  )
+ipak <- function(pkg) {
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg))
+       install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+pk <- c("MatchIt","xtable","rms","plyr","glmmML","sandwich","lmtest","plotrix")
+ipak(pk)
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
+proj.dir <- "/media/ubuntu/Impar/universidades/Oxford/DPhil/Thesis/Teens/"
 
 brth.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
 code.dir <- paste(proj.dir, "Source/Births/"   ,sep="")
@@ -1006,53 +1005,6 @@ if(spill){
              paste(R2,ctAll$r,'&',ct1519$r,'&',ct2034$r,'&',ct3549$r,'\\\\ \\midrule',sep="")),
              to)
   close(to)
-}
-
-if(full) {
-  stargazer(full1519, full2034,  full3549,
-          title="The Morning After Pill and Pregnancy: Full Covariates",
-          align=TRUE, label="TEENtabPregFull",omit.stat=c("LL","ser","f"),
-          keep=c("pill","mujer","votes","outofschool","educationspend",
-                 "educationmunicip","healthspend","healthtraining",
-                 "healthstaff","femalepoverty","femaleworkers"), 
-          column.labels=c("15-19 year olds","20-34 year olds","35-49 year olds"),
-          column.separate=(c(1,1,1)),
-          out=paste(tab.dir, "PregFullCovars2.tex", sep=""),
-          dep.var.labels="Pregnancy",
-          covariate.labels=c("Morning After Pill","Female Mayor","Mayor's Support",
-                             "Out of School","Total Education Spending", 
-                             "Municipal Education Spending", "Health Spending",
-                             "Health Training", "Health Staff", "Female Poverty",
-                             "Female Workers"),
-          notes="\\begin{footnotesize} \\textsc{Notes:} Each model is identical to 
-            column (4) of table \\ref{TEENtab:PillPreg}.  A description of each 
-            variable is also provided in table \\ref{TEENtab:PillPreg}.  Municipality
-            dummies and trends and political party dummies have been omitted for 
-            clarity. ^{*}p$<$0.1; ^{**}p$<$0.05; ^{***}p$<$0.01 
-            \\end{footnotesize}",
-            notes.align="l", notes.append=FALSE, 
-            table.placement="htpb!")
-
-  ##Read in file and grep out certain undesired features
-  replaceT <- function(filename,find,replace) {
-    worfile  <- file(filename)
-    editfile <- readLines(workfile)
-    newfile  <- gsub(find,replace,editfile,fixed=T)
-    writeLines(newfile,workfile) 
-    close(workfile)  
-  }
-  fix <-paste(tab.dir,"PregFullCovars2.tex", sep="")
-  replaceT(fix,"lD{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3}",'lccc')
-  replaceT(fix,"{\\textit{Dependent variable:}}",'{Pregnancy}')
-  replaceT(fix,"15-19 year olds","15-19")
-  replaceT(fix,"20-34 year olds","20-34")
-  replaceT(fix,"35-49 year olds","35-49")
-  replaceT(fix,"35-49} \\\\","35-49} \\\\ & year olds & year olds & year olds \\\\ ")  
-  replaceT(fix,"^{*}","$^{*}$")
-  replaceT(fix,"^{**}","$^{**}$")
-  replaceT(fix,"^{***}","$^{***}$")
-  replaceT(fix,"Observations","Years $\\times$ Municipality")
-  replaceT(fix,"\\textit{Note:}  & \\multicolumn{3}{l","\\multicolumn{4}{p{10.8cm}")
 }
 
 if(aboe) {

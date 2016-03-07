@@ -30,7 +30,6 @@ Ldeath   <- FALSE
 deathTab <- FALSE
 spill    <- FALSE
 combine  <- TRUE
-full     <- FALSE
 events   <- FALSE
 PSweight <- FALSE
 
@@ -43,14 +42,18 @@ pat           <- "P"
 #******************************************************************************
 #***(2) Libraries, directories
 #******************************************************************************
-require(xtable)
-require(rms)
-require(sandwich)
-require(lmtest)
-require(plyr)
-require(stargazer)
+ipak <- function(pkg){
+     new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+     	 if (length(new.pkg))
+     install.packages(new.pkg, dependencies = TRUE)
+     sapply(pkg, require, character.only = TRUE)
+}
+
+packages <- c("xtable","rms","sandwich","lmtest","plyr")
+ipak(packages)
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
+proj.dir <- "/media/ubuntu/Impar/universidades/Oxford/DPhil/Thesis/Teens/"
 
 brth.dir <- paste(proj.dir, "Data/Nacimientos/",sep="")
 code.dir <- paste(proj.dir, "Source/Deaths/",sep="")
@@ -667,31 +670,6 @@ if(spill){
   close(to)
 
 }  
-
-if(full) {
-stargazer(full1519, full2034,  full3549,
-          title="The Morning After Pill and Fetal Death: Full Covariates",
-          align=TRUE, label="TEENtabDeathFull",omit.stat=c("LL","ser","f"),
-          keep=c("pill","mujer","votes","outofschool","educationspend",
-                 "educationmunicip","healthspend","healthtraining",
-               "healthstaff","femalepoverty","femaleworkers"), 
-          column.labels=c("15-19 year olds","20-34 year olds","35-49 year olds"),
-          column.separate=(c(1,1,1)),
-          out=paste(tab.dir, "DeathFullCovars.tex", sep=""),
-          dep.var.labels="Fetal Death (0-20 Weeks)",
-          covariate.labels=c("Morning After Pill","Female Mayor","Mayor's Support",
-                             "Out of School","Total Education Spending", 
-                             "Municipal Education Spending", "Health Spending",
-                             "Health Training", "Health Staff", "Female Poverty",
-                             "Female Workers"),
-          notes="\\begin{footnotesize} \\textsc{Notes:} Each model is identical to 
-          column (2) of table \\ref{TEENtab:PillDeath}.  A description of each 
-          variable is also provided in table \\ref{TEENtab:PillPreg}.  Municipality
-          dummies and trends and political party dummies have been omitted for 
-          clarity. $^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01 
-          \\end{footnotesize}", notes.align="l",
-          notes.append=FALSE, table.placement="htpb!")
-}
 
 if(combine){
     spillA <- readLines(paste(tab.dir,"Spillovers_A.tex", sep=""))
