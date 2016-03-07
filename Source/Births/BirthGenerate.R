@@ -10,7 +10,19 @@
 #
 # This is a refactorization of managedata_KEL_20131124.R. This code has been 
 # written by KEL, with updates by DCC to incorporate additional time varying 
-# controls and pill distance data.
+# controls and pill distance data. Population data has been processed from raw
+# INE data sheets by running the xls2csv.py dump script.
+#
+# Given that the comuna numbering has changed in Chile in 2000, 2007, and 2010,
+# a cross walk must take into account these changes.  There are (at least) two
+# ways to do this. One is to first match comunas with new numbers (2010 - 2012),
+# then match using the prior numbers (2007-2009), then finally match with the
+# earliest numbers, before appending all matched data.  This is what is done in
+# this version of the script.  The other method is to build one cross-walk which
+# with each comuna's unique number in each year, giving a C*T cross-walk, which
+# can then be matched all in one go.  This has been tested, and gives identical
+# results. To see this file, please request "BirthGenerateAlternative.R" from
+# the corresponding author.
 #
 # prior to running this function the following directories must be defined:
 #   > pop.dir (contains all population files from INE converted to .csv)
@@ -24,14 +36,7 @@
 prep_s1_data <- function(age_range,usecom,filename) {
 
   #=============================================================================
-  # (1) libraries
-  #=============================================================================
-  require(foreign)
-  require(reshape)
-  require(gdata)
-  
-  #=============================================================================
-  # (2) comuna rename function
+  # (1) comuna rename function
   #=============================================================================
   remove_accents <- function(string) {
     string <- trim(string)
@@ -44,14 +49,7 @@ prep_s1_data <- function(age_range,usecom,filename) {
   }
   
   #=============================================================================
-  # (3) extract csv sheets from excel population data
-  #=============================================================================
-  if(F) {
-    system('python ~universidades/Oxford/DPhil/Thesis/Teens/Source/xls2csv.py')
-  }
-  
-  #=============================================================================
-  # (4) Import and format popluation data
+  # (2) Import and format popluation data
   #=============================================================================
   regions <- c(paste("0",1:9,sep=""),10:15)
   f.vec <- paste("SalComUsuarios-",regions, "Tok_1_ESAcal.csv",sep="")
@@ -105,13 +103,14 @@ prep_s1_data <- function(age_range,usecom,filename) {
   }
   
   #Run over each region and stack into flat file
+  #84770 lines = 346*((2012-2006)+1)*((49-15)+1)
   
   tab.lst <- lapply(f.vec,clean_pop_csv) 
   tot <- do.call("rbind",tab.lst)
   tot <- as.data.frame(tot)
   
   #=============================================================================
-  # (5) Rename comuna for merging with pill data
+  # (3) Rename comuna for merging with pill data
   #=============================================================================
   tot$dom_comuna <- apply(as.matrix(tot$dom_comuna),2,remove_accents)
   
@@ -124,7 +123,7 @@ prep_s1_data <- function(age_range,usecom,filename) {
   tot$dom_comuna[tot$dom_comuna == "PEDRO AGUIRRE CERDA"] <- "PEDRO AGUIRRE CERDA"
   
   #=============================================================================
-  # (6) Birth data
+  # (4) Birth data
   #=============================================================================
   f <- paste(brth.dir,"Nacimientos_Chile_20002012.dta",sep="")
   tmp <- read.dta(f)
@@ -143,7 +142,7 @@ prep_s1_data <- function(age_range,usecom,filename) {
   names(tmp) <- c("comuna","ano_nac","edad_m","hij_total","n")
 
   #=============================================================================
-  # (6a) Comuna id in birth data
+  # (4a) Comuna id in birth data
   #=============================================================================
   f <- paste(com.dir, "regionescomunas_short.csv",sep="")
   map <- read.csv(f,sep=";")
