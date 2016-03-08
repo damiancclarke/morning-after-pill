@@ -14,28 +14,31 @@
 
 rm(list=ls())
 
-#*******************************************************************************
-#***(1) Directories, libraries
-#*******************************************************************************
+#===============================================================================
+#===(1) Libraries, directories
+#===============================================================================
+ipak <- function(pkg) {
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg))
+        install.packages(new.pkg, dependencies = TRUE)
+    sapply(pkg, require, character.only = TRUE)
+}
+packages <- c("data.table","doBy","ggplot2","SDMTools","lattice","texreg")
+ipack(packages)
+
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
 
-brth.dir <- paste(proj.dir, "Data/Nacimientos/", sep="")
-com.dir  <- paste(proj.dir, "Data/Comunas/", sep="")
-codB.dir <- paste(proj.dir, "Source/Births/",sep="")
-codD.dir <- paste(proj.dir, "Source/Deaths/",sep="")
-deth.dir <- paste(proj.dir, "Data/Deaths/", sep="")
-graf.dir <- paste(proj.dir, "Figures/", sep="")
-ma.dir   <- paste(proj.dir, "Data/PAE/", sep="")
-outt.dir <- paste(proj.dir, "Tables/", sep="")
-pol.dir  <- paste(proj.dir, "Data/Alcaldes/",sep="")
-pop.dir  <- paste(proj.dir, "Data/Population/",sep="")
 
-library("data.table")
-library("doBy")
-library("ggplot2")
-library("SDMTools")
-library("lattice")
-library("texreg")
+brth.dir <- paste(proj.dir, "Data/Nacimientos/", sep="")
+com.dir  <- paste(proj.dir, "Data/Comunas/"    , sep="")
+codB.dir <- paste(proj.dir, "Source/Births/"   , sep="")
+codD.dir <- paste(proj.dir, "Source/Deaths/"   , sep="")
+deth.dir <- paste(proj.dir, "Data/Deaths/"     , sep="")
+graf.dir <- paste(proj.dir, "Figures/"         , sep="")
+ma.dir   <- paste(proj.dir, "Data/PAE/"        , sep="")
+outt.dir <- paste(proj.dir, "Tables/"          , sep="")
+pol.dir  <- paste(proj.dir, "Data/Alcaldes/"   , sep="")
+pop.dir  <- paste(proj.dir, "Data/Population/" , sep="")
 
 create     <- FALSE
 comunas    <- FALSE
@@ -50,9 +53,9 @@ sumplots   <- FALSE
 ptest      <- TRUE 
 distplots  <- FALSE
 
-#*******************************************************************************
-#***(2) Load required data
-#*******************************************************************************
+#===============================================================================
+#===(2) Load required data
+#===============================================================================
 births <- read.csv(paste(brth.dir,"S1Data_granular_covars.csv", sep=""))
 deaths <- read.csv(paste(deth.dir,"S1Data_deaths_covars.csv", sep=""))
 
@@ -86,9 +89,9 @@ if(create) {
     prep_s1_data_deaths(age_range,week,pat,FALSE,filenameD)
     
 }
-#*******************************************************************************
-#***(3) Main Functions
-#*******************************************************************************
+#===============================================================================
+#===(3) Main Functions
+#===============================================================================
 comunaSum <- function() {
     comd <- deaths
     all  <- deaths
@@ -98,8 +101,8 @@ comunaSum <- function() {
     all <- do.call(data.frame, aggregate(. ~ g, all,
                                          function(x) c(mean = mean(x), sd=sd(x))))
     
-                                        #comd <- format(round(comd,3), nsmall=3)
-                                        #all  <- format(round(all,3), nsmall=3)
+    #comd <- format(round(comd,3), nsmall=3)
+    #all  <- format(round(all,3), nsmall=3)
     
     comd <- format(comd, digits=3, big.mark=",", scientific=F)
     all  <- format(all,  digits=3, big.mark=",", scientific=F)
@@ -270,6 +273,7 @@ pilltest <- function(dat) {
                       file=paste(outt.dir,"PillChoice.tex",sep=""),
                       caption="Comuna Characteristics and Pill Decisions",
                       omit.coef="(region)|(year)|(Intercept)|(Adj.)|(RMS)",
+                      stars = c(0.01, 0.05,0.1),
                       custom.coef.names=c(NA,"Out of School",
                           "Health Spending","Health Staff",
                           "Education Spending","Education Level",
@@ -298,9 +302,10 @@ if(ptest) {
     regfile[38] = "Year FE&Y&Y&Y&Y\\\\ Region FE &&Y&&Y\\\\ \\bottomrule"
     writeLines(regfile,paste(outt.dir,"PillChoice.tex",sep=""))
 }
-#*******************************************************************************
-#***(4) Run Summary Functions
-#*******************************************************************************
+
+#===============================================================================
+#===(4) Run Summary Functions
+#===============================================================================
 if(comunas) {
     cs <- comunaSum()
 }
@@ -319,12 +324,12 @@ pmn  <-format(round(wt.mean(births$pregnant[births$pill==0],
                             births$n[births$pill==0]),3), nsmall=3)
 psdn <-format(round(wt.sd(births$pregnant[births$pill==0],
                           births$n[births$pill==0]),3), nsmall=3)
-#*******************************************************************************
-#***(5) Export Results to Summary Table
+
+#===============================================================================
+#===(5) Export Results to Summary Table
 ### NOTE: Currently women and child level stats below are copy and pasted from
-### estpost in the Stata file.  This is very ad hoc but is only as a stop-gap
-### to get first draft written up (2014/01/12)
-#*******************************************************************************
+### estpost in the Stata file. 
+#===============================================================================
 if(tables) {
 a  <- "&&"
 v1 <- "Poverty &&"
@@ -395,8 +400,8 @@ writeLines(c('\\begin{table}[htpb!] \\centering',
              'parentheses.  Poverty refers to the \\% of the municipality',
              'below the poverty line, conservative is a binary variable',
              'indicating if the mayor comes from a politically conservative',
-             'party','health and education spending are measured in thousands',
-             'of Chilean',
+             'party (UDI or RN), health and education spending are measured',
+             ' in thousands of Chilean',
              'pesos, and pill distance measures the distance (in km) to the',
              'nearest municipality which reports prescribing emergency',
              'contraceptives.  Pregnancies are reported as \\% of all women',
