@@ -24,7 +24,7 @@ ipak <- function(pkg) {
     sapply(pkg, require, character.only = TRUE)
 }
 packages <- c("data.table","doBy","ggplot2","SDMTools","lattice","texreg")
-ipack(packages)
+ipak(packages)
 
 proj.dir <- "~/universidades/Oxford/DPhil/Thesis/Teens/"
 
@@ -298,6 +298,11 @@ pilltest <- function(dat) {
 if(ptest) {
     tester    <- pilltest(births)
     regfile   <- readLines(paste(outt.dir,"PillChoice.tex",sep=""),-1)
+    long=length(regfile)
+    for (i in 1:long){
+        regfile[i] = gsub("\\(", "[", regfile[i])
+        regfile[i] = gsub("\\)", "]", regfile[i])
+    }
     regfile[8]  = "&(1)&(2)&(3)&(4) \\\\ \\midrule"
     regfile[38] = "Year FE&Y&Y&Y&Y\\\\ Region FE &&Y&&Y\\\\ \\bottomrule"
     writeLines(regfile,paste(outt.dir,"PillChoice.tex",sep=""))
@@ -414,9 +419,9 @@ writeLines(c('\\begin{table}[htpb!] \\centering',
 close(sumfile)
 }
 
-#*******************************************************************************
-#***(6) Graphical Results
-#*******************************************************************************
+#===============================================================================
+#===(6) Graphical Results
+#===============================================================================
 if (pillgraph) {
     pillS <- read.csv(paste(ma.dir,"PillDist.csv", sep=""), sep=";")  
     pillM <- read.csv(paste(ma.dir,"Pill_MinSal.csv", sep=""), sep=";")    
