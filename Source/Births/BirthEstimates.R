@@ -30,13 +30,13 @@ rm(list=ls())
 #==============================================================================
 create <- FALSE
 preg   <- FALSE
-Npreg  <- TRUE
-Lpreg  <- TRUE
-prTab  <- TRUE
+Npreg  <- FALSE
+Lpreg  <- FALSE
+prTab  <- FALSE
 spill  <- FALSE
 aboe   <- FALSE
 ranges <- FALSE
-events <- FALSE
+events <- TRUE
 ChMund <- FALSE
 invPS  <- FALSE
 robust <- FALSE
@@ -590,10 +590,18 @@ rangeest <- function(age_sub,order_sub,measure,title,xlabl){
 #==============================================================================
 #=== (4c) Event study
 #==============================================================================
-event <- function(age_sub,order_sub) {
+event <- function(age_sub,order_sub,logm) {
   
-    formod <- datcollapse(age_sub, order_sub,1,orig)
+    formod <- datcollapse(age_sub,order_sub,2,orig)
     formod <- formod[with(formod,order(dom_comuna,trend)), ]
+    names(formod)[32] <- "births"
+
+    if(logm) {
+        formod$births<-log(formod$births+1)
+    } else {
+        formod$births <- (formod$births/formod$popln)*1000
+    }
+    
 
     formod$pillbinary <- ave(formod$pill,formod$dom_comuna,FUN=sum)
     formod$treatCom[formod$pillbinary>0]  <- 1
@@ -622,17 +630,11 @@ event <- function(age_sub,order_sub) {
     formod$pillp2[formod$pill==1 & formod$pilltotal==3] <- 1
     formod$pillp2[is.na(formod$pillp2)]                 <- 0
 
-
-
-
-    eventS  <- glm(cbind(successes,failures) ~ factor(year)                      +
-                   factor(dom_comuna) + factor(dom_comuna):trend + votes         +
-                   factor(party) + factor(mujer) + outofschool + educationspend  +
-                   educationmunicip + healthspend + healthtraining + healthstaff +
-                   femalepoverty + femaleworkers + condom + factor(pilln5)       +
-                   factor(pilln4) + factor(pilln2) + factor(pilln1)              +
-                   factor(pillp0) + factor(pillp1) + factor(pillp2),
-                   family="binomial", data=formod)
+    eventS <- lm(births ~ factor(year) + factor(dom_comuna)        +
+                 factor(dom_comuna):trend + factor(pilln5)         +
+                 factor(pilln4) + factor(pilln2) + factor(pilln1)  +
+                 factor(pillp0) + factor(pillp1) + factor(pillp2),
+                 data=formod, weights=popln)
     clusters <-mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
     eventS$coefficients2 <- robust.se(eventS,clusters)[[2]]
 
@@ -758,55 +760,34 @@ if(ranges) {
 
 
 if(events){
-    note <- "Points and confidence intervals represent etimates for a
-    full event study. Each point represents treatment interacted with n years
-    prior/posterior to the reform. Lag 3 is omitted as the arbitrary base category."
-    note <- sub("\n","",note)
-    note <- gsub("  "," ",note)
-                  
+    eventPlot <- function(res,name,min,max) {
+        postscript(paste(graf.dir,name,sep=""),
+                   horizontal = FALSE, onefile = FALSE, paper = "special",
+                   height=7, width=9)
+
+        plotCI(res$eventyr,res$b,ui=res$b+1.96*res$s,li=res$b-1.96*res$s,
+               ylim=c(min,max), ylab="Estimate", xlab="Event Year",
+               cex.lab=1.25, cex.axis=1.25, cex.main=1.25, cex.sub=1.25)
     
-    e1519 <- event(age_sub=15:19, order_sub=1)
-    
-    postscript(paste(graf.dir,"Event1519.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
+        points(res$eventyr,res$b,type="l",lwd=2,pch=20)
+        abline(h =  0  , lwd=1, col="gray60", lty = 2)
+        abline(v = -0.1, lwd=2, col="red")
+        dev.off()
+    }
+    e1519 <- event(15:19,1,logm=FALSE)
+    e2034 <- event(20:34,1,logm=FALSE)
+    eAll  <- event(15:49,1,logm=FALSE)
+    eventPlot(e1519,"Event1519.eps",-10,5)
+    eventPlot(e2034,"Event2034.eps",-10,5)
+    eventPlot(eAll ,"EventAll.eps" ,-5,2.5)
 
-    plotCI(e1519$eventyr,e1519$b,ui=e1519$b+1.96*e1519$s,li=e1519$b-1.96*e1519$s,
-           ylim=c(-0.2,0.10), ylab="Estimate", xlab="Event Year",
-           cex.lab=1.25, cex.axis=1.25, cex.main=1.25, cex.sub=1.25)
-    
-    points(e1519$eventyr,e1519$b,type="l",lwd=2,pch=20)
-    abline(h =  0  , lwd=1, col="gray60", lty = 2)
-    abline(v = -0.1, lwd=2, col="red")
-    dev.off()
-    
+    e1519 <- event(15:19,1,logm=TRUE)
+    e2034 <- event(20:34,1,logm=TRUE)
+    eAll  <- event(15:49,1,logm=TRUE)
+    eventPlot(e1519,"Event1519_log.eps",-0.3,0.15)
+    eventPlot(e2034,"Event2034_log.eps",-0.3,0.15)
+    eventPlot(eAll ,"EventAll_log.eps" ,-0.2,0.1)
 
-    e2034 <- event(age_sub=20:34, order_sub=1)
-    postscript(paste(graf.dir,"Event2034.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-
-    plotCI(e2034$eventyr,e2034$b,ui=e2034$b+1.96*e2034$s,li=e2034$b-1.96*e2034$s,
-           ylim=c(-0.2,0.10), ylab="Estimate", xlab="Event Year",
-           cex.lab=1.25, cex.axis=1.25, cex.main=1.25, cex.sub=1.25)
-    points(e2034$eventyr,e2034$b,type="l",lwd=2,pch=20)
-    abline(h =  0  , lwd=1, col="gray60", lty = 2)
-    abline(v = -0.1, lwd=2, col="red")
-    dev.off()
-
-
-    e3549 <- event(age_sub=35:49, order_sub=1)
-    postscript(paste(graf.dir,"Event3549.eps",sep=""),
-             horizontal = FALSE, onefile = FALSE, paper = "special",
-             height=7, width=9)
-    plotCI(e3549$eventyr,e3549$b,ui=e3549$b+1.96*e3549$s,li=e3549$b-1.96*e3549$s,
-           ylab="Estimate", xlab="Event Year",
-           cex.lab=1.25, cex.axis=1.25, cex.main=1.25, cex.sub=1.25)
-    points(e3549$eventyr,e3549$b,type="l",lwd=2,pch=20)
-    abline(h =  0  , lwd=1, col="gray60", lty = 2)
-    abline(v = -0.1, lwd=2, col="red")
-
-    dev.off()
 }
 
 
