@@ -25,9 +25,9 @@ rm(list=ls())
 #******************************************************************************
 create   <- FALSE
 death    <- FALSE
-Ndeath   <- FALSE
+Ndeath   <- T
 Ldeath   <- FALSE
-deathTab <- FALSE
+deathTab <- T
 spill    <- FALSE
 combine  <- FALSE
 events   <- FALSE
@@ -305,11 +305,11 @@ NumDeath <- function(age_sub,deathtype,R,wt)  {
     names(dat) <- c(Names,"n","death")
     dat$weight <- 1
 
-    if (R)    dat$FDbirth <- (dat$death/dat$n)*1000
-    if (wt)   dat$weight  <- dat$popln
+    if (R)    dat$FDb    <- (dat$death/dat$n)*1000
+    if (wt)   dat$weight <- dat$popln
     
     
-    xFl  <- lm(FDbirth ~ factor(dom_comuna) + factor(year)                   +
+    xFl  <- lm(FDb ~ factor(dom_comuna) + factor(year)                       +
                factor(dom_comuna):trend + factor(pill) + factor(party)       + 
                factor(mujer) + votes + outofschool + educationspend          + 
                educationmunicip + healthspend + healthtraining + healthstaff +
@@ -320,8 +320,8 @@ NumDeath <- function(age_sub,deathtype,R,wt)  {
     
     n  <- nrow(dat)
     s2 <- pillest(xFl, dat, n, "pill", 10)
-
-    return(list("beta" = s2$b, "se" = s2$s, "R2" = s2$r, "n" = s2$n))
+    mn <- format(round(wtd.mean(dat$FDb,weights=dat$popln),2),nsmall=2) 
+    return(list("b" = s2$b, "se" = s2$s, "R2" = s2$r, "n" = s2$n, "m"=mn))
 }
 
 #==============================================================================
@@ -461,7 +461,7 @@ if(death){
 }
 
 if(Ndeath) {
-    print("Rate Death")
+    print("Rate Death (weighted)")
     wAll   <- NumDeath(15:49, "death",T,F)
     w1519  <- NumDeath(15:19, "death",T,F)
     w2034  <- NumDeath(20:34, "death",T,F)
@@ -475,7 +475,7 @@ if(Ndeath) {
     wl2034 <- NumDeath(20:34, "lateP",T,F)
     wl3549 <- NumDeath(35:40, "lateP",T,F)
 
-    print("Rate Death (weighted)")
+    print("Rate Death (unweighted)")
     xAll   <- NumDeath(15:49, "death",T,T)
     x1519  <- NumDeath(15:19, "death",T,T)
     x2034  <- NumDeath(20:34, "death",T,T)
@@ -489,7 +489,7 @@ if(Ndeath) {
     xl2034 <- NumDeath(20:34, "lateP",T,T)
     xl3549 <- NumDeath(35:40, "lateP",T,T)
 
-    print("Num Death")
+    print("Num Death (weighted)")
     nAll   <- NumDeath(15:49, "death",T,F)
     n1519  <- NumDeath(15:19, "death",T,F)
     n2034  <- NumDeath(20:34, "death",T,F)
@@ -503,7 +503,7 @@ if(Ndeath) {
     nl2034 <- NumDeath(20:34, "lateP",T,F)
     nl3549 <- NumDeath(35:40, "lateP",T,F)
 
-    print("Rate Death (weighted)")
+    print("Rate Death (unweighted)")
     oAll   <- NumDeath(15:49, "death",T,T)
     o1519  <- NumDeath(15:19, "death",T,T)
     o2034  <- NumDeath(20:34, "death",T,T)
@@ -520,82 +520,133 @@ if(Ndeath) {
 
 if(spill){
     print("Spillover Models")
-    sAll  <- spillovers(age_sub = 15:49,"earlyP",road=FALSE,time=FALSE)
-    s1519 <- spillovers(age_sub = 15:19,"earlyP",road=FALSE,time=FALSE)
-    s2034 <- spillovers(age_sub = 20:34,"earlyP",road=FALSE,time=FALSE)
-    s3549 <- spillovers(age_sub = 35:49,"earlyP",road=FALSE,time=FALSE)
+    sAll  <- spillovers(age_sub = 15:49,"earlyP",F,F)
+    s1519 <- spillovers(age_sub = 15:19,"earlyP",F,F)
+    s2034 <- spillovers(age_sub = 20:34,"earlyP",F,F)
+    s3549 <- spillovers(age_sub = 35:49,"earlyP",F,F)
 }
 
 #******************************************************************************
 #***(6) Export
 #******************************************************************************
 xvar <- 'Morning After Pill &'
+xvn  <- 'Emergency Contraceptive Pill &'
 xv2  <- 'Close $<15$ km &'
 xv3  <- 'Close $30-60$ km &'
 obs  <- 'Observations&'
-R2   <- 'McFadden\'s $R^2$&'
+R2   <- 'R-Squared'
 sig  <- '$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01;'
-dpb  <- 'Mean (deaths/live birth)&'
+dpb  <- 'Mean (fetal deaths/live birth)&'
 s    <- '\\\\'
 a    <- '&'
 
-if(deathTab){
-  to <- file(paste(tab.dir,"Deaths.tex", sep=""))
-  writeLines(c('\\begin{table}[htpb!] \\centering',
-               '\\caption{The Effect of the Morning After Pill on Fetal Deaths}',
-               '\\label{TEENtab:PillDeath}',
-               '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]',
-               '\\hline\\hline\\\\[-1.8ex]','& All & Early & Late \\\\',
-               '& Deaths & Gestation & Gestation \\\\ \\midrule',
-               '\\multicolumn{4}{l}{\\textsc{All Women}} \\\\',
-               '&&&\\\\',
-               paste(xvar,pAll$beta,a,eAll$beta,a,lAll$beta, s,sep=""),
-               paste(a,pAll$s,a,eAll$s,a,lAll$s,s,sep=""),'&&&\\\\',
-               paste(dpb,pAll$db,a,eAll$db,a,lAll$db,s,sep=""),
-               paste(obs,pAll$n,a,eAll$n,a,lAll$n,s,sep=""),
-               paste(R2,pAll$R2,a,eAll$R2,a,lAll$R2,s,sep=""),
-               '&&&\\\\',
-               '\\multicolumn{4}{l}{\\textsc{15-19 year olds}} \\\\',
-               '&&&\\\\',
-               paste(xvar,p1519$beta,a,e1519$beta,a,l1519$beta, s,sep=""),
-               paste(a,p1519$s,a,e1519$s,a,l1519$s,s,sep=""),'&&&\\\\',
-               paste(dpb,p1519$db,a,e1519$db,a,l1519$db,s,sep=""),
-               paste(obs,p1519$n,a,e1519$n,a,l1519$n,s,sep=""),
-               paste(R2,p1519$R2,a,e1519$R2,a,l1519$R2,s,sep=""),
-               '&&&\\\\',
-               '\\multicolumn{4}{l}{\\textsc{20-34 year olds}} \\\\',
-               '&&&\\\\',
-               paste(xvar,p2034$beta,a,e2034$beta,a,l2034$beta,s,sep=""),
-               paste(a,p2034$s,a,e2034$s,a,l2034$s,s,sep=""),'&&&\\\\',
-               paste(dpb,p2034$db,a,e2034$db,a,l2034$db,s,sep=""),
-               paste(obs,p2034$n,a,e2034$n,a,l2034$n,s,sep=""),
-               paste(R2,p2034$R2,a,e2034$R2,a,l2034$R2,s,sep=""),
-               '&&&\\\\',
-               '\\multicolumn{4}{l}{\\textsc{35-49 year olds}} \\\\',
-               '&&&\\\\',
-               paste(xvar,p3549$beta,a,e3549$beta,a,l3549$beta,s,sep=""),
-               paste(a,p3549$s,a,e3549$s,a,l3549$s,s,sep=""),'&&&\\\\',
-               paste(dpb,p3549$db,a,e3549$db,a,l3549$db,s,sep=""),
-               paste(obs,p3549$n,a,e3549$n,a,l3549$n,s,sep=""),
-               paste(R2,p3549$R2,a,e3549$R2,a,l3549$R2,s,sep=""),
-               '\\hline \\hline \\\\[-1.8ex]',
-               '\\multicolumn{4}{p{10cm}}{\\begin{footnotesize}\\textsc{Notes:} ',
-               'Total fetal deaths for each group are'                           ,
-               paste(p1519$c,", ",p2034$c,", and ",p3549$c, sep="")              ,
-               ' for 15-19, 20-34 and 35-49 year olds respectively. Regressions ',
-               'are estimated by weighted logit, where 1 indicates a fetal death',
-               ' and 0 a live birth.  Weights are the populations of women in   ',
-               'each municipality who are observed with each outcome. All       ',
-               'regressions include year and comuna fixed-effects, and          ',
-               'comuna-specific trends.  Each regression also includes the      ',
-               'full set of time varying controls described in table            ',
-               '\\ref{TEENtab:PillPreg}.  Standard errors are clustered by      ',
-               'comuna.',
-               paste(sig,'\\end{footnotesize}}',sep=""),
-               '\\normalsize\\end{tabular}\\end{table}'),to)
+if(deathTab) {
+    to <- file(paste(tab.dir,"DeathsPerBirth.tex", sep=""))
+    writeLines(c('\\begin{table}[htpb!] \\centering'                        ,
+                 '\\caption{The Effect of the EC Pill on Fetal Death Rates}',
+                 '\\label{TEENtab:DeathOLS}'                                ,
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]'  ,
+                 '\\hline\\hline\\\\[-1.8ex]'                               ,
+                 '& All    & Early     & Late      \\\\'                    ,
+                 '& Deaths & Gestation & Gestation \\\\ \\midrule'          ,
+                 '\\multicolumn{4}{l}{\\noindent \\textbf{'                 ,
+                 'Panel A: All Women}} \\\\'                                ,
+                 paste(xvn, wAll$b, a, weAll$b, a, wlAll$b, s, sep="")      ,
+                 paste(a  , wAll$s, a, weAll$s, a, wlAll$s, s, sep="")      ,
+                 '& & & \\\\'                                               ,
+                 paste(obs, wAll$n, a, weAll$n, a, wlAll$n, s, sep="")      ,
+                 paste(dpb, wAll$m, a, weAll$m, a, wlAll$m, s, sep="")      ,
+                 '&&&\\\\'                                                  ,
+                 '\\multicolumn{4}{l}{\\noindent \\textbf{'                 ,
+                 'Panel B: 15-19 year olds}} \\\\'                          ,
+                 paste(xvn, w1519$b, a, we1519$b, a, wl1519$b, s, sep="")   ,
+                 paste(a  , w1519$s, a, we1519$s, a, wl1519$s, s, sep="")   ,
+                 '& & & \\\\'                                               ,
+                 paste(obs, w1519$n, a, we1519$n, a, wl1519$n, s, sep="")   ,
+                 paste(dpb, w1519$m, a, we1519$m, a, wl1519$m, s, sep="")   ,
+                 '&&&\\\\'                                                  ,
+                 '\\multicolumn{4}{l}{\\noindent \\textbf{'                 ,
+                 'Panel C: 20-34 year olds}} \\\\'                          ,
+                 paste(xvn, w2034$b, a, we2034$b, a, wl2034$b, s, sep="")   ,
+                 paste(a  , w2034$s, a, we2034$s, a, wl2034$s, s, sep="")   ,
+                 '& & & \\\\'                                               ,
+                 paste(obs, w2034$n, a, we2034$n, a, wl2034$n, s, sep="")   ,
+                 paste(dpb, w2034$m, a, we2034$m, a, wl2034$m, s, sep="")   ,
+                 '&&&\\\\'                                                  ,
+                 '\\multicolumn{4}{l}{\\noindent \\textbf{'                 ,
+                 'Panel C: 35-49 year olds}} \\\\'                          ,
+                 paste(xvn, w3549$b, a, we3549$b, a, wl3549$b, s, sep="")   ,
+                 paste(a  , w3549$s, a, we3549$s, a, wl3549$s, s, sep="")   ,
+                 '& & & \\\\'                                               ,
+                 paste(obs, w3549$n, a, we3549$n, a, wl3549$n, s, sep="")   ,
+                 paste(dpb, w3549$m, a, we3549$m, a, wl3549$m, s, sep="")   ,
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{4}{p{10.2cm}}{\\begin{footnotesize}        ',
+                 '\\textsc{Notes:} Each panel presents weighted difference-',
+                 'in-difference results for a regression of the fetal      ',
+                 'death rate (deaths per 1,000 live births) on the EC      ',
+                 'reform for the age group in question. All models are     ',
+                 'estimated by OLS, and each municipality is weighted by   ',
+                 'the number of live births. All regressions include the   ',
+                 'controls documented in table \\ref{TEENtab:aggregateASFR}.',
+                 'Standard errors are clustered at the level of the        ',
+                 'municipality.'                                            ,
+                 paste(sig,'\\end{footnotesize}}',sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
 
-  close(to)
+    to <- file(paste(tab.dir,"DeathsPerBirthunweight.tex", sep=""))
+    writeLines(c('\\begin{table}[htpb!] \\centering'                        ,
+                 '\\caption{The Effect of EC on Fetal Deaths (Unweighted) }',
+                 '\\label{TEENtab:DeathOLSunweight}'                        ,
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]'  ,
+                 '\\hline\\hline\\\\[-1.8ex]'                               ,
+                 '& All    & Early     & Late      \\\\'                    ,
+                 '& Deaths & Gestation & Gestation \\\\ \\midrule'          ,
+                 '\\multicolumn{4}{l}{\\noindent \\textbf{'                 ,
+                 'Panel A: All Women}} \\\\'                                ,
+                 paste(xvn, xAll$b, a, xeAll$b, a, xlAll$b, s, sep="")      ,
+                 paste(a  , xAll$s, a, xeAll$s, a, xlAll$s, s, sep="")      ,
+                 '& & & \\\\'                                               ,
+                 paste(obs, xAll$n, a, xeAll$n, a, xlAll$n, s, sep="")      ,
+                 paste(dpb, xAll$m, a, xeAll$m, a, xlAll$m, s, sep="")      ,
+                 '&&&\\\\'                                                  ,
+                 '\\multicolumn{4}{l}{\\noindent \\textbf{'                 ,
+                 'Panel B: 15-19 year olds}} \\\\'                          ,
+                 paste(xvn, x1519$b, a, xe1519$b, a, xl1519$b, s, sep="")   ,
+                 paste(a  , x1519$s, a, xe1519$s, a, xl1519$s, s, sep="")   ,
+                 '& & & \\\\'                                               ,
+                 paste(obs, x1519$n, a, xe1519$n, a, xl1519$n, s, sep="")   ,
+                 paste(dpb, x1519$m, a, xe1519$m, a, xl1519$m, s, sep="")   ,
+                 '&&&\\\\'                                                  ,
+                 '\\multicolumn{4}{l}{\\noindent \\textbf{'                 ,
+                 'Panel C: 20-34 year olds}} \\\\'                          ,
+                 paste(xvn, x2034$b, a, xe2034$b, a, xl2034$b, s, sep="")   ,
+                 paste(a  , x2034$s, a, xe2034$s, a, xl2034$s, s, sep="")   ,
+                 '& & & \\\\'                                               ,
+                 paste(obs, x2034$n, a, xe2034$n, a, xl2034$n, s, sep="")   ,
+                 paste(dpb, x2034$m, a, xe2034$m, a, xl2034$m, s, sep="")   ,
+                 '&&&\\\\'                                                  ,
+                 '\\multicolumn{4}{l}{\\noindent \\textbf{'                 ,
+                 'Panel C: 35-49 year olds}} \\\\'                          ,
+                 paste(xvn, x3549$b, a, xe3549$b, a, xl3549$b, s, sep="")   ,
+                 paste(a  , x3549$s, a, xe3549$s, a, xl3549$s, s, sep="")   ,
+                 '& & & \\\\'                                               ,
+                 paste(obs, x3549$n, a, xe3549$n, a, xl3549$n, s, sep="")   ,
+                 paste(dpb, x3549$m, a, xe3549$m, a, xl3549$m, s, sep="")   ,
+                 '\\hline \\hline \\\\[-1.8ex]',
+                 '\\multicolumn{4}{p{11.4cm}}{\\begin{footnotesize}        ',
+                 '\\textsc{Notes:} Each panel presents unweighted          ',
+                 'difference-in-difference results for a regression of the ',
+                 'fetal death rate (deaths per 1,000 live births) on the EC',
+                 'reform for the age group in question. Refer to table     ',
+                 '\\ref{TEENtab:DeathOLS} for full notes.  Standard errors ',
+                 'are clustered at the level of the municipality.          ',
+                 paste(sig,'\\end{footnotesize}}',sep=""),
+                 '\\normalsize\\end{tabular}\\end{table}'),to)
+    close(to)
 }
+
 
 if(spill){  
   to <- file(paste(tab.dir,"Spillovers_B.tex", sep=""))
@@ -692,57 +743,6 @@ if(combine){
     close(to)
 }
 
-if(deathTab) {
-    xvn <- 'Morning After Pill  \\hspace{1.6cm} &'
-    to <- file(paste(tab.dir,"DeathsPerBirth.tex", sep=""))
-    writeLines(c('\\begin{table}[htpb!] \\centering',
-                 '\\caption{The Effect of the EC Pill on Fetal Death Rates}',
-                 '\\label{TEENtab:DeathOLS}',
-                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}\\\\[-1.8ex]',
-                 '\\hline\\hline\\\\[-1.8ex]','& All & Early & Late \\\\',
-                 '& Deaths & Gestation & Gestation \\\\ \\midrule',
-                 '\\multicolumn{4}{l}{\\textsc{All Women}} \\\\',
-                 '&&&\\\\',
-                 paste(xvn,nAll$beta,a,neAll$beta,a,nlAll$beta, s,sep=""),
-                 paste(a,nAll$s,a,neAll$s,a,nlAll$s,s,sep=""),'&&&\\\\',
-                 paste(obs,nAll$n,a,neAll$n,a,nlAll$n,s,sep=""),
-                 paste('R-squared&',nAll$R2,a,neAll$R2,a,nlAll$R2,s,sep=""),
-                 '&&&\\\\',
-                 '\\multicolumn{4}{l}{\\textsc{15-19 year olds}} \\\\',
-                 '&&&\\\\',
-                 paste(xvn,n1519$beta,a,ne1519$beta,a,nl1519$beta, s,sep=""),
-                 paste(a,n1519$s,a,ne1519$s,a,nl1519$s,s,sep=""),'&&&\\\\',
-                 paste(obs,n1519$n,a,ne1519$n,a,nl1519$n,s,sep=""),
-                 paste('R-squared&',n1519$R2,a,ne1519$R2,a,nl1519$R2,s,sep=""),
-                 '&&&\\\\',
-                 '\\multicolumn{4}{l}{\\textsc{20-34 year olds}} \\\\',
-                 '&&&\\\\',
-                 paste(xvar,n2034$beta,a,ne2034$beta,a,nl2034$beta,s,sep=""),
-                 paste(a,n2034$s,a,ne2034$s,a,nl2034$s,s,sep=""),'&&&\\\\',
-                 paste(obs,n2034$n,a,ne2034$n,a,nl2034$n,s,sep=""),
-                 paste('R-squared&',n2034$R2,a,ne2034$R2,a,nl2034$R2,s,sep=""),
-                 '&&&\\\\',
-                 '\\multicolumn{4}{l}{\\textsc{35-49 year olds}} \\\\',
-                 '&&&\\\\',
-                 paste(xvar,n3549$beta,a,ne3549$beta,a,nl3549$beta,s,sep=""),
-                 paste(a,n3549$s,a,ne3549$s,a,nl3549$s,s,sep=""),'&&&\\\\',
-                 paste(obs,n3549$n,a,ne3549$n,a,nl3549$n,s,sep=""),
-                 paste('R-squared&',n3549$R2,a,ne3549$R2,a,ne3549$R2,s,sep=""),
-                 '\\hline \\hline \\\\[-1.8ex]',
-                 '\\multicolumn{4}{p{10cm}}{\\begin{footnotesize}\\textsc{Notes:}',
-                 'Each regression uses as its dependent variable fetal deaths ',
-                 'divided by live births in the comuna and age group and is ',
-                 'estimated by OLS.  All',
-                 'regressions include year and comuna fixed-effects, and',
-                 'comuna-specific trends.  Each regression also includes the',
-                 'full set of time varying controls described in table',
-                 '\\ref{TEENtab:PillPreg}.  Standard errors are clustered by',
-                 'comuna.',
-                 paste(sig,'\\end{footnotesize}}',sep=""),
-                 '\\normalsize\\end{tabular}\\end{table}'),to)
-
-    close(to)
-}
 
 if(events){
     e1519 <- event(age_sub=15:19, "earlyP")
