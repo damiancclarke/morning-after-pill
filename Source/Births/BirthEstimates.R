@@ -28,18 +28,18 @@ rm(list=ls())
 #==============================================================================
 #=== (1) Parameters
 #==============================================================================
-create <- FALSE
+create <- F
 preg   <- FALSE
-Npreg  <- FALSE
-Lpreg  <- FALSE
+Npreg  <- T
+Lpreg  <- T
 prTab  <- FALSE
 spill  <- FALSE
-aboe   <- FALSE
+aboe   <- F
 ranges <- FALSE
-events <- TRUE
+events <- F
 ChMund <- FALSE
-invPS  <- FALSE
-robust <- FALSE
+invPS  <- T
+robust <- T
 
 birth_y_range <- 2006:2012
 pill_y_range  <- birth_y_range - 1
@@ -283,27 +283,10 @@ inversePS <- function(age_sub,order_sub,dat) {
 #==============================================================================
 #=== (4a) Run various models to test effect of PAE on pregnancy 
 #==============================================================================
-runmod <- function(age_sub,order_sub,num,PSwt) {
+runmod <- function(age_sub,order_sub,num) {
   
     formod <- datcollapse(age_sub,order_sub,1,orig)
-    if(PSwt) {
-        wts <- inversePS(age_sub,order_sub,orig)
-        formod <- join(formod,wts,by="dom_comuna",type="left",match="all")
-
-        xPS <- glm(cbind(successes,failures) ~ factor(year) + factor(pill)    +
-                   factor(dom_comuna) + factor(dom_comuna):trend,
-                   family="binomial", data=formod, weights=WT)
-
-        clusters <- mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
-        xPS$coefficients2  <- robust.se(xPS,clusters)[[2]]
-        n  <- sum(formod$successes) + sum(formod$failures)
-        
-        s0 <- pillest(xPS,   formod, n, "pill", 1)
-        return(s0)
-        
-    } else {
-        formod$WT <- 1
-    }
+    formod$WT <- 1
     
     if(num==1) {
         xnT <-  glm(cbind(successes,failures) ~ factor(year) + factor(pill)   +
@@ -377,7 +360,7 @@ runmod <- function(age_sub,order_sub,num,PSwt) {
 }
 
 
-NumMod <- function(age_sub,order_sub,rate,logm,wt) {
+NumMod <- function(age_sub,order_sub,rate,logm,wt,PSwt) {
   
     formod <- datcollapse(age_sub, order_sub,2,orig)
     names(formod)[32] <- "births" 
@@ -391,6 +374,20 @@ NumMod <- function(age_sub,order_sub,rate,logm,wt) {
     }
     if(wt) {
         formod$weight <- formod$popln
+    }
+    if(PSwt) {
+        wts <- inversePS(age_sub,order_sub,orig)
+        formod <- join(formod,wts,by="dom_comuna",type="left",match="all")
+
+        xPS <- lm(births ~ factor(year) + factor(pill) +
+                   factor(dom_comuna), data=formod, weights=WT)
+
+        clusters <- mapply(paste,"dom_comuna.",formod$dom_comuna,sep="")
+        xPS$coefficients2  <- robust.se(xPS,clusters)[[2]]
+        n  <- nrow(formod)
+        
+        s0 <- pillest(xPS, formod, n, "pill", 10)
+        return(s0)        
     }
     
     xba <- lm(births ~ factor(dom_comuna) + factor(year) + factor(pill),
@@ -652,55 +649,55 @@ event <- function(age_sub,order_sub,logm) {
 #==============================================================================
 if(preg|ChMund){
     print("Rate of Pregnancy Logits")
-    a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1,PSwt=FALSE)
-    a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1,PSwt=FALSE)
-    a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1,PSwt=FALSE)
-    aAll  <- runmod(age_sub = 15:49, order_sub = 1:100,1,PSwt=FALSE)
-    if(preg) {
-        b1519 <- runmod(age_sub = 15:19, order_sub = 1,1,PSwt=FALSE)
-        b2034 <- runmod(age_sub = 20:34, order_sub = 1,1,PSwt=FALSE)
-        b3549 <- runmod(age_sub = 35:49, order_sub = 1,1,PSwt=FALSE)
+    a1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1)
+    a2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1)
+    a3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1)
+    aAll  <- runmod(age_sub = 15:49, order_sub = 1:100,1)
+    if(preg) {                                          
+        b1519 <- runmod(15:19, 1, 1)
+        b2034 <- runmod(20:34, 1, 1)
+        b3549 <- runmod(35:49, 1, 1)
     }
 }
 
 if(Npreg){
     print("Pregnancy Rate - weighted")
-    w1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=T,logm=F,wt=T)
-    w2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=T,logm=F,wt=T)
-    w3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=T,logm=F,wt=T)
-    wAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=T,logm=F,wt=T)
+    w1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=T,logm=F,wt=T,F)
+    w2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=T,logm=F,wt=T,F)
+    w3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=T,logm=F,wt=T,F)
+    wAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=T,logm=F,wt=T,F)
 
-    print("Number of Pregnancy - weighted")
-    x1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=F,wt=T)
-    x2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=F,wt=T)
-    x3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=F,wt=T)
-    xAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=F,wt=T)
-
-    print("Pregnancy Rate - unweighted")
-    r1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=T,logm=F,wt=F)
-    r2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=T,logm=F,wt=F)
-    r3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=T,logm=F,wt=F)
-    rAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=T,logm=F,wt=F)
-
+    print("Number of Pregnancy - weighted")                              
+    x1519 <- NumMod(15:19, 1:100, F, F, T, F)
+    x2034 <- NumMod(20:34, 1:100, F, F, T, F)
+    x3549 <- NumMod(35:49, 1:100, F, F, T, F)
+    xAll  <- NumMod(15:49, 1:100, F, F, T, F)
+    
+    print("Pregnancy Rate - unweighted")                                 
+    r1519 <- NumMod(15:19, 1:100, T, F, F, F)
+    r2034 <- NumMod(20:34, 1:100, T, F, F, F)
+    r3549 <- NumMod(35:49, 1:100, T, F, F, F)
+    rAll  <- NumMod(15:49, 1:100, T, F, F, F)
+    
     print("Number of Pregnancy - unweighted")
-    N1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=F,wt=F)
-    N2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=F,wt=F)
-    N3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=F,wt=F)
-    NAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=F,wt=F)
+    N1519 <- NumMod(15:19, 1:100, F, F, F, F)
+    N2034 <- NumMod(20:34, 1:100, F, F, F, F)
+    N3549 <- NumMod(35:49, 1:100, F, F, F, F)
+    NAll  <- NumMod(15:49, 1:100, F, F, F, F)
 }
 
 if(Lpreg){
     print("ln(Number of Pregnancy) OLS - unweighted")
-    l1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=T,wt=F)
-    l2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=T,wt=F)
-    l3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=T,wt=F)
-    lAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=T,wt=F)
+    l1519 <- NumMod(15:19, 1:100, F, T, F, F)
+    l2034 <- NumMod(20:34, 1:100, F, T, F, F)
+    l3549 <- NumMod(35:49, 1:100, F, T, F, F)
+    lAll  <- NumMod(15:49, 1:100, F, T, F, F)
 
     print("ln(Number of Pregnancy) OLS - weighted")
-    m1519 <- NumMod(age_sub = 15:19, order_sub = 1:100,rate=F,logm=T,wt=T)
-    m2034 <- NumMod(age_sub = 20:34, order_sub = 1:100,rate=F,logm=T,wt=T)
-    m3549 <- NumMod(age_sub = 35:49, order_sub = 1:100,rate=F,logm=T,wt=T)
-    mAll  <- NumMod(age_sub = 15:49, order_sub = 1:100,rate=F,logm=T,wt=T)
+    m1519 <- NumMod(15:19, 1:100, F, T, T, F)
+    m2034 <- NumMod(20:34, 1:100, F, T, T, F)
+    m3549 <- NumMod(35:49, 1:100, F, T, T, F)
+    mAll  <- NumMod(15:49, 1:100, F, T, T, F)
 }
 
 if(spill){
@@ -710,36 +707,36 @@ if(spill){
     c3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,F,F)
     cAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,F,F)
     print("Spillover Models (Road)")
-    d1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,F,T)
-    d2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,F,T)
-    d3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,F,T)
-    dAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,F,T)
+    d1519 <- spillovers(15:19, 1:100, F, T)
+    d2034 <- spillovers(20:34, 1:100, F, T)
+    d3549 <- spillovers(35:49, 1:100, F, T)
+    dAll  <- spillovers(15:49, 1:100, F, T)
     print("Spillover Models (Time)")
-    e1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,T,F)
-    e2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,T,F)
-    e3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,T,F)
-    eAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,T,F)
+    e1519 <- spillovers(15:19, 1:100, T, F)
+    e2034 <- spillovers(20:34, 1:100, T, F)
+    e3549 <- spillovers(35:49, 1:100, T, F)
+    eAll  <- spillovers(15:49, 1:100, T, F)
 
 }  
 
 if(invPS){
     print("Rate of Pregnancy Models with Inverse Propensity Weights")
-    ps1519 <- runmod(age_sub = 15:19, order_sub = 1:100,1,PSwt=TRUE)
-    ps2034 <- runmod(age_sub = 20:34, order_sub = 1:100,1,PSwt=TRUE)
-    ps3549 <- runmod(age_sub = 35:49, order_sub = 1:100,1,PSwt=TRUE)
-    psAll  <- runmod(age_sub = 15:49, order_sub = 1:100,1,PSwt=TRUE)
+    ps1519 <- NumMod(15:19, 1:100, T, F, F, T)
+    ps2034 <- NumMod(20:34, 1:100, T, F, F, T)
+    ps3549 <- NumMod(35:49, 1:100, T, F, F, T)
+    psAll  <- NumMod(15:49, 1:100, T, F, F, T)
 }
 
 if(aboe) {
-    NPp18   <- countpreg(age_sub = 15:18, order_sub = 1:100,1)
-    NPp19   <- countpreg(age_sub = 20:49, order_sub = 1:100,1)
-    NPc1518 <- countpreg(age_sub = 15:18, order_sub = 1:100,2)
-    NPc1519 <- countpreg(age_sub = 20:49, order_sub = 1:100,2)
-    NPc3018 <- countpreg(age_sub = 15:18, order_sub = 1:100,3)
-    NPc3019 <- countpreg(age_sub = 19:49, order_sub = 1:100,3) 
+    NPp18   <- countpreg(15:18,  1:100, 1)
+    NPp19   <- countpreg(20:49,  1:100, 1)
+    NPc1518 <- countpreg(15:18,  1:100, 2)
+    NPc1519 <- countpreg(20:49,  1:100, 2)
+    NPc3018 <- countpreg(15:18,  1:100, 3)
+    NPc3019 <- countpreg(19:49,  1:100, 3)
     
-    boe18 <- spillovers(age_sub = 15:18, order_sub = 1:100)
-    boe19 <- spillovers(age_sub = 19:49, order_sub = 1:100)
+    boe18 <- spillovers(15:18,  1:100, F, F)
+    boe19 <- spillovers(19:49,  1:100, F, F)
 }
 
 if(ranges) {
@@ -796,7 +793,7 @@ if(events){
 #===            1st block: Pregnancy Results
 #===            2nd block: Spillover Results
 #==============================================================================
-xvar <- 'Morning After Pill &'
+xvar <- 'Emergency Contraceptive Pill &'
 xv2  <- 'Close $<15$ km &'
 xv3  <- 'Close 15-30 km &'
 xv4  <- 'Close 30-45 km &'
@@ -804,256 +801,6 @@ xv4  <- 'Close 30-45 km &'
 obs  <- 'Observations&'
 R2   <- 'McFadden\'s $R^2$&'
 sig  <- '$^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01'
-
-prTab2 = FALSE
-if(prTab2){
-to <-file(paste(tab.dir,"Births.tex", sep=""))
-writeLines(c('\\begin{table}[!htbp] \\centering',
-           '\\caption{The Effect of the Morning After Pill on Pregnancy}',
-           '\\label{TEENtab:PillPreg}',
-           '\\begin{tabular}{@{\\extracolsep{5pt}}lcccc}',
-           '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-           '&Pr(Birth)&Pr(Birth)&Pr(Birth)&Pr(Birth)\\\\ ',
-           '&(1)&(2)&(3)&(4)\\\\ \\hline',
-           '\\multicolumn{5}{l}{\\textsc{\\noindent All Women}} \\\\',
-           ' & & & & \\\\',
-           paste(xvar,aAll$b,'\\\\', sep=""), 
-           paste(' &', aAll$se, '\\\\',sep=""), 
-           ' & & & & \\\\',
-           paste(obs, aAll$n,'\\\\', sep=""), 
-           paste(R2, aAll$r,'\\\\', sep=""), 
-           ' & & & & \\\\',
-           '\\multicolumn{5}{l}{\\textsc{\\noindent 15-19 year olds}} \\\\',
-           ' & & & & \\\\',
-           paste(xvar,a1519$b,'\\\\', sep=""), 
-           paste(' &', a1519$se, '\\\\', sep=""), 
-           ' & & & & \\\\',
-           paste(obs, a1519$n, '\\\\', sep=""), 
-           paste(R2, a1519$r,'\\\\', sep=""), 
-           ' & & & & \\\\',
-           '\\multicolumn{5}{l}{\\textsc{\\noindent 20-34 year olds}} \\\\',
-           ' & & & & \\\\', 
-           paste(xvar,a2034$b,'\\\\', sep=""), 
-           paste(' &', a2034$se, '\\\\', sep=""), 
-           ' & & & & \\\\',
-           paste(obs, a2034$n,'\\\\', sep=""), 
-           paste(R2, a2034$r,'\\\\', sep=""), 
-           ' & & & & \\\\',
-           '\\multicolumn{5}{l}{\\textsc{\\noindent 35-49 year olds}} \\\\',
-           ' & & & & \\\\', 
-           paste(xvar,a3549$b,'\\\\', sep=""), 
-           paste(' &', a3549$se,'\\\\', sep=""), 
-          ' & & & & \\\\',
-           paste('Observations&',a3549$n,'\\\\', sep=""), 
-           paste(R2, a3549$r,'\\\\', sep=""), 
-           '\\hline \\\\[-1.8ex] ', 
-           '{\\small Trends \\& FEs} & Y & Y & Y & Y \\\\',
-           '{\\small Political Controls} & & Y & Y & Y \\\\', 
-           '{\\small Health, Educ, Gender Controls} & & & Y & Y\\\\',
-           '{\\small Condom Availability} & & & & Y\\\\', 
-           '\\hline \\hline \\\\[-1.8ex]',
-           '\\multicolumn{5}{p{13.2cm}}{\\begin{footnotesize}\\textsc{Notes:}',
-           ' Birth is a binary variable taking 1 for women who give birth    ',
-           'and 0 if the woman does not give birth. All models are estimated ',
-           ' by weighted logit, where weights are the number of women who    ',
-           'give birth or do not give birth (respectively). Observations     ',
-           'refer to the weighted number of women. Municipality and          ',
-           ' year fixed effects are included, and standard errors are        ',
-           'clustered at the level of the municipality. All coefficients are ',
-           'reported as log odds and in each case Pill is a binary variable  ',
-           'referring to the availability of the morning after pill in the   ',
-           'woman\'s municipality and (lagged) year. Political controls are  ',
-           'party dummies for the mayor in power, the mayor\'s gender, and   ',
-           'the vote margin of the mayor.  Health and education controls     ',
-           'are the percent of girls out of highschool, education spending   ',
-           'spending by both the municipality and the Ministry of Education  ',
-           'and total health spending and health spending on staff and       ',
-           'training.  Gender controls are the percent of female heads of    ',
-           ' households living below the poverty line, and the percent of    ',
-           'female workers in professional positions in the Municipality,    ',
-           'and condom availability is measured from survey data at the      ',
-           'level of the region.',
-           paste(sig, '\\end{footnotesize}}', sep=""),
-           '\\normalsize\\end{tabular}\\end{table}'),to)
-close(to)
-
-to <-file(paste(tab.dir,"BirthsBoth.tex", sep=""))
-writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
-           '\\caption{The Effect of the Morning After Pill on Pregnancy}',
-           '\\label{TEENtab:PillPregBoth}',
-           '\\begin{tabular}{@{\\extracolsep{5pt}}lccccp{1mm}cccc}',
-           '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-           '&\\multicolumn{4}{c}{All Births}&&\\multicolumn{4}{c}{First Births}',
-           '\\\\ \\cmidrule(r){2-5} \\cmidrule(r){7-10}',
-           '&(1)&(2)&(3)&(4)&&(5)&(6)&(7)&(8)\\\\ \\hline',
-           '\\multicolumn{10}{l}{\\textsc{\\noindent 15-19 year olds}} \\\\',
-           ' & & & & & & & & & \\\\',
-           paste(xvar,a1519$b,'&&',b1519$b,'\\\\', sep=""), 
-           paste(' &', a1519$se,'&&', b1519$se, '\\\\', sep=""), 
-           ' & & & & & & & & & \\\\',
-           paste(obs, a1519$n,'&&',b1519$n,'\\\\', sep=""), 
-           paste(R2, a1519$r,'&&',b1519$r,'\\\\', sep=""), 
-           ' & & & & & & & & & \\\\',
-           '\\multicolumn{10}{l}{\\textsc{\\noindent 20-34 year olds}} \\\\',
-           ' & & & & & & & & & \\\\', 
-           paste(xvar,a2034$b,'&&',b2034$b,'\\\\', sep=""), 
-           paste(' &', a2034$se,'&&', b2034$se, '\\\\', sep=""), 
-           ' & & & & & & & & & \\\\',
-           paste(obs, a2034$n,'&&',b2034$n,'\\\\', sep=""), 
-           paste(R2, a2034$r,'&&',b2034$r,'\\\\', sep=""), 
-           ' & & & & & & & & & \\\\',
-           '\\multicolumn{10}{l}{\\textsc{\\noindent 35-49 year olds}} \\\\',
-           ' & & & & & & & & & \\\\', 
-           paste(xvar,a3549$b,'&&',b3549$b,'\\\\', sep=""), 
-           paste(' &', a3549$se,'&&', b3549$se, '\\\\', sep=""), 
-          ' & & & & & & & & & \\\\',
-           paste('Observations&',a3549$n,'&&',b3549$n,'\\\\', sep=""), 
-           paste(R2, a3549$r,'&&',b3549$r,'\\\\', sep=""), 
-           '\\hline \\\\[-1.8ex] ', 
-           '{\\small Trends \\& FEs} & Y & Y & Y & Y && Y & Y & Y & Y \\\\',
-           '{\\small Political Controls} & & Y & Y & Y && & Y & Y & Y \\\\', 
-           '{\\small Health, Educ, Gender Controls} & & & Y & Y && & & Y & Y \\\\',
-           '{\\small Condom Availability} & & & & Y && & & & Y \\\\', 
-           '\\hline \\hline \\\\[-1.8ex]',
-           '\\multicolumn{10}{p{22cm}}{\\begin{footnotesize}\\textsc{Notes:}',
-           'Refer to notes in table \\ref{TEENtab:PillPreg} of the paper.   ',
-           'For all births, logits are estimated where women giving birth   ',
-           'in the year are assigned the value 1, and women not giving birth',
-           ' are assigned zero.  For first births, only women who have their',
-           ' first birth are assigned one.  All women who do not give birth ',
-           ' are assigned the value of zero, so results are expressed as    ',
-           ' first births/all women not giving birth.                       ',
-           paste(sig, '\\end{footnotesize}}', sep=""),
-           '\\normalsize\\end{tabular}\\end{table}\\end{landscape}'),to)
-close(to)
-}
-
-if(spill){
-  to <-file(paste(tab.dir,"Spillovers_A.tex", sep=""))
-  writeLines(c('\\begin{table}[!htbp] \\centering',
-             '\\caption{The Morning After Pill and Treatment Spillovers}',
-             '\\label{TEENtab:Spillover} \\begin{tabular}',
-             '{@{\\extracolsep{5pt}}lcccc}\\\\[-1.8ex]\\hline\\hline\\\\',
-             '[-1.8ex] & All & 15-19 & 20-34 & 35-49 \\\\',
-             '& Women & Year olds & Year olds & Year olds \\\\ \\midrule',
-             '\\multicolumn{5}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
-             '& & & & \\\\',
-             paste(xvar,cAll$b[1],'&',c1519$b[1],'&',c2034$b[1],'&',c3549$b[1],'\\\\',sep=""),
-             paste('&',cAll$s[1],'&',c1519$s[1],'&',c2034$s[1],'&',c3549$s[1],'\\\\',sep=""),            
-             paste(xv2,cAll$b[2],'&',c1519$b[2],'&',c2034$b[2],'&',c3549$b[2],'\\\\',sep=""),
-             paste('&',cAll$s[2],'&',c1519$s[2],'&',c2034$s[2],'&',c3549$s[2],'\\\\',sep=""),
-             paste(xv3,cAll$b[3],'&',c1519$b[3],'&',c2034$b[3],'&'           ,'\\\\',sep=""),
-             paste('&',cAll$s[3],'&',c1519$s[3],'&',c2034$s[3],'&'           ,'\\\\',sep=""), 
-             paste(xv4,cAll$b[4],'&',c1519$b[4],'&'           ,'&'           ,'\\\\',sep=""),
-             paste('&',cAll$s[4],'&',c1519$s[4],'&'           ,'&'           ,'\\\\',sep=""), 
-             '& & & & \\\\',
-             paste(obs,cAll$n,'&',c1519$n,'&',c2034$n,'&',c3549$n,'\\\\',sep=""),
-             paste(R2,cAll$r,'&',c1519$r,'&',c2034$r,'&',c3549$r,'\\\\ \\midrule',sep="")),
-             to)
-  close(to)
-
-  to <-file(paste(tab.dir,"SpilloversROAD_A.tex", sep=""))
-  writeLines(c('\\begin{table}[!htbp] \\centering',
-             '\\caption{The Morning After Pill and Treatment Spillovers (Roads)}',
-             '\\label{TEENtab:SpilloverRoads} \\begin{tabular}',
-             '{@{\\extracolsep{5pt}}lcccc}\\\\[-1.8ex]\\hline\\hline\\\\',
-             '[-1.8ex] & All & 15-19 & 20-34 & 35-49 \\\\',
-             '& Women & Year olds & Year olds & Year olds \\\\ \\midrule',
-             '\\multicolumn{5}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
-             '& & & & \\\\',
-               paste(xvar,dAll$b[1],'&',d1519$b[1],'&',
-                     d2034$b[1],'&',d3549$b[1],'\\\\',sep=""),
-               paste('&' ,dAll$s[1],'&',d1519$s[1],'&',
-                     d2034$s[1],'&',d3549$s[1],'\\\\',sep=""),            
-               paste(xv2 ,dAll$b[2],'&',d1519$b[2],'&',
-                     d2034$b[2],'&',d3549$b[2],'\\\\',sep=""),
-               paste('&' ,dAll$s[2],'&',d1519$s[2],'&',
-                     d2034$s[2],'&',d3549$s[2],'\\\\',sep=""),
-               paste(xv3, dAll$b[3],'&',d1519$b[3],'&',
-                     d2034$b[3],'&',d3549$b[3],'\\\\',sep=""),
-               paste('&', dAll$s[3],'&',d1519$s[3],'&',
-                     d2034$s[3],'&',d3549$s[3],'\\\\',sep=""), 
-             '& & & & \\\\',
-               paste(obs,dAll$n,'&',d1519$n,'&',d2034$n,
-                     '&',d3549$n,'\\\\',sep=""),
-               paste(R2,dAll$r,'&',d1519$r,'&',d2034$r,
-                     '&',d3549$r,'\\\\ \\midrule',sep="")),
-             to)
-  close(to)
-  
-  xv2  <- 'Close $<15$ mins &'
-  xv3  <- 'Close 15-30 mins &'
-  xv4  <- 'Close 30-45 mins &'
-
-  to <-file(paste(tab.dir,"SpilloversTIME_A.tex", sep=""))
-  writeLines(c('\\begin{table}[!htbp] \\centering',
-             '\\caption{The Morning After Pill and Treatment Spillovers (Time)}',
-             '\\label{TEENtab:SpilloverTime} \\begin{tabular}',
-             '{@{\\extracolsep{5pt}}lcccc}\\\\[-1.8ex]\\hline\\hline\\\\',
-             '[-1.8ex] & All & 15-19 & 20-34 & 35-49 \\\\',
-             '& Women & Year olds & Year olds & Year olds \\\\ \\midrule',
-             '\\multicolumn{5}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
-             '& & & & \\\\',
-               paste(xvar,eAll$b[1],'&',e1519$b[1],'&',
-                     e2034$b[1],'&',e3549$b[1],'\\\\',sep=""),
-               paste('&', eAll$s[1],'&',e1519$s[1],'&',
-                     e2034$s[1],'&',e3549$s[1],'\\\\',sep=""),            
-               paste(xv2, eAll$b[2],'&',e1519$b[2],'&',
-                     e2034$b[2],'&',e3549$b[2],'\\\\',sep=""),
-               paste('&', eAll$s[2],'&',e1519$s[2],'&',
-                     e2034$s[2],'&',e3549$s[2],'\\\\',sep=""),
-               paste(xv3, eAll$b[3],'&',e1519$b[3],'&',
-                     e2034$b[3],'&'           ,'\\\\',sep=""),
-               paste('&', eAll$s[3],'&',e1519$s[3],'&',
-                     e2034$s[3],'&'           ,'\\\\',sep=""), 
-               paste(xv4, eAll$b[4],'&',e1519$b[4],'&'
-                    ,'&'           ,'\\\\',sep=""),
-               paste('&', eAll$s[4],'&',e1519$s[4],'&'
-                    ,'&'           ,'\\\\',sep=""), 
-             '& & & & \\\\',
-               paste(obs, eAll$n,'&',e1519$n,'&',
-                     e2034$n,'&',e3549$n,'\\\\',sep=""),
-               paste(R2,  eAll$r,'&',e1519$r,'&',
-                     e2034$r,'&',e3549$r,'\\\\ \\midrule',sep="")),
-             to)
-  close(to)
-}
-
-if(aboe) {
-to <-file(paste(tab.dir,"Consistency.tex", sep=""))
-writeLines(c('\\begin{table}[!htbp] \\centering',
-           '\\caption{Back of the Envelope Calculation of Effect Sizes}',
-           '\\label{TEENtab:BOE}',
-           '\\begin{tabular}{@{\\extracolsep{5pt}}lcc}',
-           '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-           '& 18 \\& Under & 19 \\& Over\\\\ ',
-           '&(1)&(2) \\\\ \\hline',
-           ' & &  \\\\',
-            paste(xvar,boe18$b[1],'&',boe19$b[1],'\\\\',sep=""),
-            paste('&', boe18$s[1],'&',boe19$s[1],'\\\\',sep=""),            
-            paste(xv2, boe18$b[2],'&',boe19$b[2],'\\\\',sep=""),
-            paste('&', boe18$s[2],'&',boe19$s[2],'\\\\',sep=""),
-            paste(xv3, boe18$b[3],'&',boe19$b[3],'\\\\',sep=""),
-            paste('&', boe18$s[3],'&',boe19$s[3],'\\\\',sep=""),
-            '& & \\\\ \\midrule',
-            paste('N Preg (pill) &', NPp18,'&', NPp19 ,'\\\\',sep=""),
-            paste('N Preg (close 15) &',NPc1518,'&',NPc1519,'\\\\',sep=""),             
-            paste('N Preg (close 30) &',NPc3018,'&',NPc3019,'\\\\',sep=""),             
-            'Pills Disbursed & 5,736 & 11,121 \\\\',
-            '\\hline \\hline \\\\[-1.8ex]',
-            '\\multicolumn{3}{p{8cm}}{\\begin{footnotesize}\\textsc{Notes:} ',
-            'Regression coefficients and standard errors are calculated in ',
-            'line with specification (\\ref{TEENeqn:spillover}). The number of ',
-            'pills disbursed is calculated from administrative data described in ',
-            'figure \\ref{TEENfig:Pilltime}, and number of avoided pregnancy is ',
-            'based on regression estimates and total births in administrative ',
-            'data. Further details are provided in appendix \\ref{TEENscn:BOE}.',
-            paste(sig, '\\end{footnotesize}}', sep=""),
-            '\\normalsize\\end{tabular}\\end{table}'),to)
-
-close(to)             
-}
-
 
 if(prTab){
     to <-file(paste(tab.dir,"aggregateASFRunweight.tex", sep=""))
@@ -1065,8 +812,8 @@ if(prTab){
                  '& Birth& Birth& Birth& Birth\\\\',
                  '& Rate & Rate & Rate & Rate \\\\',
                  '&(1)&(2)&(3)&(4) \\\\ \\hline',
-                 '\\multicolumn{5}{l}{\\textbf{',
-                 '\\noindent Panel A: All Women}} \\\\',
+                 '\\multicolumn{5}{l}{\\noindent \\textbf{',
+                 'Panel A: All Women}} \\\\',
                  paste('Emergency Contraceptive Pill&',wAll$b,'\\\\',sep=""),
                  paste('            &',wAll$s,'\\\\',sep=""),
                  ' & & & & \\\\',
@@ -1169,7 +916,7 @@ if(prTab){
                  ' each municipality.  ASFR is defined as the number of   ',
                  'births per 1,000 women.  In the case of all women, this ',
                  'is called the General Fertility Rate (GFR). All models  ',
-                 'are estimated by OLS, and each municipalities is        ',
+                 'are estimated by OLS, and each municipality is          ',
                  'weighted by the population of women. Time varying       ',
                  'controls included in the regression consist of party    ',
                  'dummies for the mayor in power, the mayor\'s gender, the',
@@ -1362,7 +1109,7 @@ if(prTab){
                  '\\normalsize\\end{tabular}\\end{table}'),to)
     close(to)
 
-        to <-file(paste(tab.dir,"aggregateLogBirths.tex", sep=""))
+    to <-file(paste(tab.dir,"aggregateLogBirths.tex", sep=""))
     writeLines(c('\\begin{table}[!htbp] \\centering',
                  '\\caption{The Effect of the EC Pill on log Births}',
                  '\\label{TEENtab:aggregateLog}',
@@ -1420,186 +1167,257 @@ if(prTab){
     close(to)
 }
 
-if(ChMund){
-    to <-file(paste(tab.dir,"ChamberlainMundlak.tex", sep=""))
+
+if(spill){
+    to <-file(paste(tab.dir,"Spillovers_A.tex", sep=""))
     writeLines(c('\\begin{table}[!htbp] \\centering',
-                 '\\caption{Logit Results with Chamberlian-Mundlak Device}',
-                 '\\label{TEENtab:ChamberlainMundlak}',
-                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
-                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '& 15--19 years & 20--34 years & 35--49 years \\\\',
-                 '&(1)&(2)&(3) \\\\ \\hline',
-                 ' & & & \\\\',
-                 paste(xvar,a1519$CM$b,'&',a2034$CM$b,'&',a3549$CM$b,'\\\\', sep=""), 
-                 paste(' &',a1519$CM$s,'&',a2034$CM$s,'&',a3549$CM$s,'\\\\', sep=""), 
-                 ' & & & \\\\',
-                 paste(obs, a1519$CM$n,'&',a2034$CM$n,'&',a3549$CM$n,'\\\\', sep=""), 
-                 paste('$R^2$&',a1519$CM$r,'&',a2034$CM$r,'&',a3549$CM$r,'\\\\', sep=""), 
-                 '\\hline \\hline \\\\[-1.8ex]',
-                 '\\multicolumn{4}{p{9.4cm}}{\\begin{footnotesize}\\textsc{Notes:}',
-                 'Regression results estimated using logit with the Chamberlain--%' ,
-                 'Mundlak device.  Specification identical to logit estimates from',
-                 'column 1 in table \\ref{TEENtab:PillPreg}, using Chamberlain--%' ,
-                 'Mundlak rather than comuna fixed effects.',
-                 paste(sig, '\\end{footnotesize}}', sep=""),
-                 '\\normalsize\\end{tabular}\\end{table}'),to)
-    close(to)
+             '\\caption{The Morning After Pill and Treatment Spillovers}',
+             '\\label{TEENtab:Spillover} \\begin{tabular}',
+             '{@{\\extracolsep{5pt}}lcccc}\\\\[-1.8ex]\\hline\\hline\\\\',
+             '[-1.8ex] & All & 15-19 & 20-34 & 35-49 \\\\',
+             '& Women & Year olds & Year olds & Year olds \\\\ \\midrule',
+             '\\multicolumn{5}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
+             '& & & & \\\\',
+             paste(xvar,cAll$b[1],'&',c1519$b[1],'&',c2034$b[1],'&',c3549$b[1],'\\\\',sep=""),
+             paste('&',cAll$s[1],'&',c1519$s[1],'&',c2034$s[1],'&',c3549$s[1],'\\\\',sep=""),            
+             paste(xv2,cAll$b[2],'&',c1519$b[2],'&',c2034$b[2],'&',c3549$b[2],'\\\\',sep=""),
+             paste('&',cAll$s[2],'&',c1519$s[2],'&',c2034$s[2],'&',c3549$s[2],'\\\\',sep=""),
+             paste(xv3,cAll$b[3],'&',c1519$b[3],'&',c2034$b[3],'&'           ,'\\\\',sep=""),
+             paste('&',cAll$s[3],'&',c1519$s[3],'&',c2034$s[3],'&'           ,'\\\\',sep=""), 
+             paste(xv4,cAll$b[4],'&',c1519$b[4],'&'           ,'&'           ,'\\\\',sep=""),
+             paste('&',cAll$s[4],'&',c1519$s[4],'&'           ,'&'           ,'\\\\',sep=""), 
+             '& & & & \\\\',
+             paste(obs,cAll$n,'&',c1519$n,'&',c2034$n,'&',c3549$n,'\\\\',sep=""),
+             paste(R2,cAll$r,'&',c1519$r,'&',c2034$r,'&',c3549$r,'\\\\ \\midrule',sep="")),
+             to)
+  close(to)
 
+  to <-file(paste(tab.dir,"SpilloversROAD_A.tex", sep=""))
+  writeLines(c('\\begin{table}[!htbp] \\centering',
+             '\\caption{The Morning After Pill and Treatment Spillovers (Roads)}',
+             '\\label{TEENtab:SpilloverRoads} \\begin{tabular}',
+             '{@{\\extracolsep{5pt}}lcccc}\\\\[-1.8ex]\\hline\\hline\\\\',
+             '[-1.8ex] & All & 15-19 & 20-34 & 35-49 \\\\',
+             '& Women & Year olds & Year olds & Year olds \\\\ \\midrule',
+             '\\multicolumn{5}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
+             '& & & & \\\\',
+               paste(xvar,dAll$b[1],'&',d1519$b[1],'&',
+                     d2034$b[1],'&',d3549$b[1],'\\\\',sep=""),
+               paste('&' ,dAll$s[1],'&',d1519$s[1],'&',
+                     d2034$s[1],'&',d3549$s[1],'\\\\',sep=""),            
+               paste(xv2 ,dAll$b[2],'&',d1519$b[2],'&',
+                     d2034$b[2],'&',d3549$b[2],'\\\\',sep=""),
+               paste('&' ,dAll$s[2],'&',d1519$s[2],'&',
+                     d2034$s[2],'&',d3549$s[2],'\\\\',sep=""),
+               paste(xv3, dAll$b[3],'&',d1519$b[3],'&',
+                     d2034$b[3],'&',d3549$b[3],'\\\\',sep=""),
+               paste('&', dAll$s[3],'&',d1519$s[3],'&',
+                     d2034$s[3],'&',d3549$s[3],'\\\\',sep=""), 
+             '& & & & \\\\',
+               paste(obs,dAll$n,'&',d1519$n,'&',d2034$n,
+                     '&',d3549$n,'\\\\',sep=""),
+               paste(R2,dAll$r,'&',d1519$r,'&',d2034$r,
+                     '&',d3549$r,'\\\\ \\midrule',sep="")),
+             to)
+  close(to)
+  
+  xv2  <- 'Close $<15$ mins &'
+  xv3  <- 'Close 15-30 mins &'
+  xv4  <- 'Close 30-45 mins &'
 
-    to <-file(paste(tab.dir,"noComunaTrends.tex", sep=""))
-    writeLines(c('\\begin{table}[!htbp] \\centering',
-                 '\\caption{Estimates without Comuna-Specific Linear Trends}',
-                 '\\label{TEENtab:NoTrend}',
-                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
-                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '& 15--19 years & 20--34 years & 35--49 years \\\\',
-                 '&(1)&(2)&(3) \\\\ \\hline',
-                 ' & & & \\\\',
-                 paste(xvar,a1519$NT$b,'&',a2034$NT$b,'&',a3549$NT$b,'\\\\', sep=""), 
-                 paste(' &',a1519$NT$s,'&',a2034$NT$s,'&',a3549$NT$s,'\\\\', sep=""), 
-                 ' & & & \\\\',
-                 paste(obs, a1519$NT$n,'&',a2034$NT$n,'&',a3549$NT$n,'\\\\', sep=""), 
-                 paste('$R^2$&',a1519$NT$r,'&',a2034$NT$r,'&',a3549$NT$r,'\\\\', sep=""), 
-                 '\\hline \\hline \\\\[-1.8ex]',
-                 '\\multicolumn{4}{p{9.4cm}}{\\begin{footnotesize}\\textsc{Notes:}' ,
-                 'Regression results estimated using comuna fixed effects.        ' ,
-                 'Specification identical to logit estimates from column 1 in table',
-                 '\\ref{TEENtab:PillPreg}, omitting comuna specific trends.',
-                 paste(sig, '\\end{footnotesize}}', sep=""),
-                 '\\normalsize\\end{tabular}\\end{table}'),to)
-    close(to)
-
+  to <-file(paste(tab.dir,"SpilloversTIME_A.tex", sep=""))
+  writeLines(c('\\begin{table}[!htbp] \\centering',
+             '\\caption{The Morning After Pill and Treatment Spillovers (Time)}',
+             '\\label{TEENtab:SpilloverTime} \\begin{tabular}',
+             '{@{\\extracolsep{5pt}}lcccc}\\\\[-1.8ex]\\hline\\hline\\\\',
+             '[-1.8ex] & All & 15-19 & 20-34 & 35-49 \\\\',
+             '& Women & Year olds & Year olds & Year olds \\\\ \\midrule',
+             '\\multicolumn{5}{l}{\\textsc{\\noindent Panel A: Births}} \\\\',
+             '& & & & \\\\',
+               paste(xvar,eAll$b[1],'&',e1519$b[1],'&',
+                     e2034$b[1],'&',e3549$b[1],'\\\\',sep=""),
+               paste('&', eAll$s[1],'&',e1519$s[1],'&',
+                     e2034$s[1],'&',e3549$s[1],'\\\\',sep=""),            
+               paste(xv2, eAll$b[2],'&',e1519$b[2],'&',
+                     e2034$b[2],'&',e3549$b[2],'\\\\',sep=""),
+               paste('&', eAll$s[2],'&',e1519$s[2],'&',
+                     e2034$s[2],'&',e3549$s[2],'\\\\',sep=""),
+               paste(xv3, eAll$b[3],'&',e1519$b[3],'&',
+                     e2034$b[3],'&'           ,'\\\\',sep=""),
+               paste('&', eAll$s[3],'&',e1519$s[3],'&',
+                     e2034$s[3],'&'           ,'\\\\',sep=""), 
+               paste(xv4, eAll$b[4],'&',e1519$b[4],'&'
+                    ,'&'           ,'\\\\',sep=""),
+               paste('&', eAll$s[4],'&',e1519$s[4],'&'
+                    ,'&'           ,'\\\\',sep=""), 
+             '& & & & \\\\',
+               paste(obs, eAll$n,'&',e1519$n,'&',
+                     e2034$n,'&',e3549$n,'\\\\',sep=""),
+               paste(R2,  eAll$r,'&',e1519$r,'&',
+                     e2034$r,'&',e3549$r,'\\\\ \\midrule',sep="")),
+             to)
+  close(to)
 }
 
-if(invPS){
-    to <-file(paste(tab.dir,"inversePS.tex", sep=""))
+if(aboe) {
+    to <-file(paste(tab.dir,"Consistency.tex", sep=""))
     writeLines(c('\\begin{table}[!htbp] \\centering',
-                 '\\caption{Inverse Propensity Score Weighting}',
-                 '\\label{TEENtab:inversePS}',
-                 '\\begin{tabular}{@{\\extracolsep{5pt}}lccc}',
-                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-                 '& 15--19 years & 20--34 years & 35--49 years \\\\',
-                 '&(1)&(2)&(3) \\\\ \\hline',
-                 ' & & & \\\\',
-                 paste(xvar,ps1519$b,'&',ps2034$b,'&',ps3549$b,'\\\\', sep=""), 
-                 paste(' &',ps1519$s,'&',ps2034$s,'&',ps3549$s,'\\\\', sep=""), 
-                 ' & & & \\\\',
-                 paste(obs, ps1519$n,'&',ps2034$n,'&',ps3549$n,'\\\\', sep=""), 
-                 paste('$R^2$&',ps1519$r,'&',ps2034$r,'&',ps3549$r,'\\\\', sep=""), 
-                 '\\hline \\hline \\\\[-1.8ex]',
-                 '\\multicolumn{4}{p{10.4cm}}{\\begin{footnotesize}\\textsc{Notes:}' ,
-                 'Regression results estimated using inverse propensity score ',
-                 'weighting based on Pr(treatment) on full observables.',
-                 'Specifications and controls identical to those described in table',
-                 '\\ref{TEENtab:PillPreg}.',
-                 paste(sig, '\\end{footnotesize}}', sep=""),
-                 '\\normalsize\\end{tabular}\\end{table}'),to)
-    close(to)
-}
+           '\\caption{Back of the Envelope Calculation of Effect Sizes}',
+           '\\label{TEENtab:BOE}',
+           '\\begin{tabular}{@{\\extracolsep{5pt}}lcc}',
+           '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
+           '& 18 \\& Under & 19 \\& Over\\\\ ',
+           '&(1)&(2) \\\\ \\hline',
+           ' & &  \\\\',
+            paste(xvar,boe18$b[1],'&',boe19$b[1],'\\\\',sep=""),
+            paste('&', boe18$s[1],'&',boe19$s[1],'\\\\',sep=""),            
+            paste(xv2, boe18$b[2],'&',boe19$b[2],'\\\\',sep=""),
+            paste('&', boe18$s[2],'&',boe19$s[2],'\\\\',sep=""),
+            paste(xv3, boe18$b[3],'&',boe19$b[3],'\\\\',sep=""),
+            paste('&', boe18$s[3],'&',boe19$s[3],'\\\\',sep=""),
+            '& & \\\\ \\midrule',
+            paste('N Preg (pill) &', NPp18,'&', NPp19 ,'\\\\',sep=""),
+            paste('N Preg (close 15) &',NPc1518,'&',NPc1519,'\\\\',sep=""),             
+            paste('N Preg (close 30) &',NPc3018,'&',NPc3019,'\\\\',sep=""),             
+            'Pills Disbursed & 5,736 & 11,121 \\\\',
+            '\\hline \\hline \\\\[-1.8ex]',
+            '\\multicolumn{3}{p{8cm}}{\\begin{footnotesize}\\textsc{Notes:} ',
+            'Regression coefficients and standard errors are calculated in ',
+            'line with specification (\\ref{TEENeqn:spillover}). The number of ',
+            'pills disbursed is calculated from administrative data described in ',
+            'figure \\ref{TEENfig:Pilltime}, and number of avoided pregnancy is ',
+            'based on regression estimates and total births in administrative ',
+            'data. Further details are provided in appendix \\ref{TEENscn:BOE}.',
+            paste(sig, '\\end{footnotesize}}', sep=""),
+            '\\normalsize\\end{tabular}\\end{table}'),to)
 
+close(to)             
+}
 
 if(robust) {
-to <-file(paste(tab.dir,"BirthRobust.tex", sep=""))
-writeLines(c('\\begin{landscape}','\\begin{table}[!htbp] \\centering',
-             '\\caption{Alternative Specifications -- Births}',
-             '\\label{TEENtab:BirthRobust}',
-             '\\begin{tabular}{@{\\extracolsep{5pt}}lccccccc}',
-             '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] ',
-             '&(1)&(2)&(3)&(4)&(5)&(6)&(7) \\\\',
-             '&Double&No    & Inv &Chamb--& Full     & OLS   & OLS  \\\\',
-             '&Diff. &Trend & PS  &Mundlak& Controls & Count & Rate  \\\\ \\midrule',
-             '\\multicolumn{8}{l}{\\textsc{\\noindent All Age Groups}} \\\\',
-             ' & & & & & & & \\\\',
-             paste(xvar,strsplit(aAll$b,'&')[[1]][1],'&',aAll$NT$b,'&',psAll$b,
-                   '&',aAll$CM$b,'&',cAll$b[1],'&',
-                   strsplit(NAll$b,'&')[[1]][1],'&',strsplit(rAll$b,'&')[[1]][1],
-                   '\\\\',sep=""),
-             paste('&' ,strsplit(aAll$se,'&')[[1]][1],'&',aAll$NT$s,'&','&',psAll$s,
-                   aAll$CM$s,'&',cAll$s[1],'&',
-                   strsplit(NAll$s,'&')[[1]][1],'&',strsplit(rAll$s,'&')[[1]][1],
-                   '\\\\',sep=""),
-             ' & & & & & & & \\\\',
-             paste('R$^2$/Pseudo-R$^2$&',strsplit(aAll$r,'&')[[1]][1],'&',aAll$NT$r,
-                   '&',psAll$r,'&',aAll$CM$r,'&',cAll$r[1],'&',
-                   strsplit(NAll$r,'&')[[1]][1],'&',strsplit(rAll$r,'&')[[1]][1],
-                   '\\\\',sep=""),
-             paste('Observations&',strsplit(aAll$n,'&')[[1]][1],'&',aAll$NT$n,'&',
-                   psAll$n,'&',aAll$CM$n,'&',cAll$n[1],'&',
-                   strsplit(NAll$n,'&')[[1]][1],'&',strsplit(rAll$n,'&')[[1]][1],
-                   '\\\\',sep=""),
-             '\\multicolumn{8}{l}{\\textsc{\\noindent 15-19 Year-Olds}} \\\\',
-             ' & & & & & & & \\\\',
-             paste(xvar,strsplit(a1519$b,'&')[[1]][1],'&',a1519$NT$b,'&',ps1519$b,'&',
-                   a1519$CM$b,'&',c1519$b[1],'&',
-                   strsplit(N1519$b,'&')[[1]][1],'&',strsplit(r1519$b,'&')[[1]][1],
-                   '\\\\',sep=""),
-             paste('&' ,strsplit(a1519$se,'&')[[1]][1],'&',a1519$NT$s,'&','&',ps1519$s,
-                   a1519$CM$s,'&',c1519$s[1],'&',
-                   strsplit(N1519$s,'&')[[1]][1],'&',strsplit(r1519$s,'&')[[1]][1],
-                   '\\\\',sep=""),
-             ' & & & & & & & \\\\',
-             paste('R$^2$/Pseudo-R$^2$&',strsplit(a1519$r,'&')[[1]][1],'&',
-                   a1519$NT$r,'&',ps1519$r,'&',a1519$CM$r,'&',c1519$r[1],'&',
-                   strsplit(N1519$r,'&')[[1]][1],'&',strsplit(r1519$r,'&')[[1]][1],
-                   '\\\\',sep=""),
-             paste('Observations&',strsplit(a1519$n,'&')[[1]][1],'&',
-                   a1519$NT$n,'&',ps1519$n,'&',a1519$CM$n,'&',c1519$n[1],'&',
-                   strsplit(N1519$n,'&')[[1]][1],'&',strsplit(r1519$n,'&')[[1]][1],
-                   '\\\\',sep=""),
-             '\\multicolumn{8}{l}{\\textsc{\\noindent 20-34 Year-Olds}} \\\\',
-             ' & & & & & & & \\\\',
-             paste(xvar,strsplit(a2034$b,'&')[[1]][1],'&',a2034$NT$b,'&',ps2034$b,'&',
-                   a2034$CM$b,'&',c2034$b[1],'&',
-                   strsplit(N2034$b,'&')[[1]][1],'&',strsplit(r2034$b,'&')[[1]][1],
-                   '\\\\',sep=""),
-             paste('&' ,strsplit(a2034$se,'&')[[1]][1],'&',a2034$NT$s,'&',ps2034$s,'&',
-                   a2034$CM$s,'&',c2034$s[1],'&',
-                   strsplit(N2034$s,'&')[[1]][1],'&',strsplit(r2034$s,'&')[[1]][1],
-                   '\\\\',sep=""),
-             ' & & & & & & & \\\\',
-             paste('R$^2$/Pseudo-R$^2$&',strsplit(a2034$r,'&')[[1]][1],'&',
-                   a2034$NT$r,'&',ps2034$r,'&',a2034$CM$r,'&',c2034$r[1],'&',
-                   strsplit(N2034$r,'&')[[1]][1],'&',strsplit(r2034$r,'&')[[1]][1],
-                   '\\\\',sep=""),
-             paste('Observations&',strsplit(a2034$n,'&')[[1]][1],'&',
-                   a2034$NT$n,'&',ps2034$n,'&',a2034$CM$n,'&',c2034$n[1],'&',
-                   strsplit(N2034$n,'&')[[1]][1],'&',strsplit(r2034$n,'&')[[1]][1],
-                   '\\\\',sep=""),
-             '\\multicolumn{8}{l}{\\textsc{\\noindent 35-49 Year-Olds}} \\\\',
-             ' & & & & & & & \\\\',
-             paste(xvar,strsplit(a3549$b,'&')[[1]][1],'&',a3549$NT$b,'&',ps3549$b,'&',
-                   a3549$CM$b,'&',c3549$b[1],'&',
-                   strsplit(N3549$b,'&')[[1]][1],'&',strsplit(r3549$b,'&')[[1]][1],
-                   '\\\\',sep=""),
-             paste('&' ,strsplit(a3549$se,'&')[[1]][1],'&',a3549$NT$s,'&',ps3549$s,'&',
-                   a3549$CM$s,'&',c3549$s[1],'&',
-                   strsplit(N3549$s,'&')[[1]][1],'&',strsplit(r3549$s,'&')[[1]][1],
-                   '\\\\',sep=""),
-             ' & & & & & & & \\\\',
-             paste('R$^2$/Pseudo-R$^2$&',strsplit(a3549$r,'&')[[1]][1],'&',
-                   a3549$NT$r,'&',ps3549$r,'&',a3549$CM$r,'&',c3549$r[1],'&',
-                   strsplit(N3549$r,'&')[[1]][1],'&',strsplit(r3549$r,'&')[[1]][1],
-                   '\\\\',sep=""),
-             paste('Observations&',strsplit(a3549$n,'&')[[1]][1],'&',
-                   a3549$NT$n,'&',ps3549$n,'&',a3549$CM$n,'&',c3549$n[1],'&',
-                   strsplit(N3549$n,'&')[[1]][1],'&',strsplit(r3549$n,'&')[[1]][1],
-                   '\\\\',sep=""),
-             '\\hline \\\\[-1.8ex] ',
-             '\\multicolumn{8}{p{17.2cm}}{\\begin{footnotesize}\\textsc{Notes:}  ',
-             'Column 1 replicates the diff-in-diff result from table             ',
-             '\\ref{TEENtab:PillPreg}. Column 2 estimates the same specification,',
-             ' however without municipality fixed effects. Column 3 weights using',
-             ' inverse propensity score, where propensity scores are estimated   ',
-             'using a probit and full controls are described in table            ',
-             '\\ref{TEENtab:PillPreg}.  Column 4 uses the Chamberlain-Mundlak    ',
-             'device where municipal fixed effects are replaced with             ',
-             'municipal-level mean independent variables, and column 5 presents  ',
-             'regressions using full controls and correcting for spillovers (see ',
-             'table \\ref{TEENtab:Spillover}). Columns 6 and 7 are estimated at  ',
-             'the municipal level using continuous outcome variables: the count  ',
-             'of pregnancies, or the rate of pregnancies/all women.  Full results',
-             'for these specifications are included in online appendix tables.   ',
-             paste(sig, '\\end{footnotesize}}', sep=""),
-             '\\normalsize\\end{tabular}\\end{table}\\end{landscape}'),to)
-close(to)
+    to <-file(paste(tab.dir,"BirthRobust.tex", sep=""))
+    writeLines(c('\\begin{landscape}'                                         ,
+                 '\\begin{table}[!htbp] \\centering'                          ,
+                 '\\caption{Alternative Specifications -- EC Pill and Births}',
+                 '\\label{TEENtab:BirthRobust}'                               ,
+                 '\\begin{tabular}{@{\\extracolsep{5pt}}lcccccc}'             ,
+                 '\\\\[-1.8ex]\\hline \\hline \\\\[-1.8ex] '                  ,
+                 '&Double&Full    & No     &Inv & OLS   & OLS        \\\\'    ,
+                 '&Diff. &Controls& Weights&PS  & Count & ln(Birth)  \\\\ '   ,
+                 '&(1)&(2)&(3)&(4)&(5)&(6) \\\\ \\midrule'                    ,
+                 '\\multicolumn{7}{l}{\\textbf{'                              ,
+                 '\\noindent Panel A: All Women}} \\\\'                       ,
+                 paste(xvar,strsplit(rAll$b,'&')[[1]][1],'&'                  ,
+                            strsplit(rAll$b,'&')[[1]][4],'&'                  ,
+                            strsplit(wAll$b,'&')[[1]][4],'&',psAll$b,'&'      ,
+                            strsplit(NAll$b,'&')[[1]][4],'&'                  ,
+                            strsplit(lAll$b,'&')[[1]][4],'\\\\')              ,
+                 paste('&' ,strsplit(rAll$s,'&')[[1]][1],'&'                  ,
+                            strsplit(rAll$s,'&')[[1]][4],'&'                  ,
+                            strsplit(wAll$s,'&')[[1]][4],'&',psAll$s,'&'      ,
+                            strsplit(NAll$s,'&')[[1]][4],'&'                  ,
+                            strsplit(lAll$s,'&')[[1]][4],'\\\\')              ,
+                 ' & & & & & & \\\\'                                          ,
+                 paste(obs, strsplit(rAll$n,'&')[[1]][1],'&'                  ,
+                            strsplit(rAll$n,'&')[[1]][4],'&'                  ,
+                            strsplit(wAll$n,'&')[[1]][4],'&',psAll$n,'&'      ,
+                            strsplit(NAll$n,'&')[[1]][4],'&'                  ,
+                            strsplit(lAll$n,'&')[[1]][4],'\\\\')              ,
+                 paste('Mean of Dep Var&',strsplit(rAll$m,'&')[[1]][1],'&'    ,
+                       strsplit(rAll$m,'&')[[1]][4],'&'                       ,
+                       strsplit(wAll$m,'&')[[1]][4],'&'                       ,
+                       strsplit(wAll$m,'&')[[1]][4],'&'                       ,
+                       strsplit(NAll$m,'&')[[1]][4],'&'                       ,
+                       strsplit(lAll$m,'&')[[1]][4],'\\\\')                   ,
+                 ' & & & & & & \\\\ \\multicolumn{7}{l}{\\textbf{'            ,
+                 '\\noindent Panel B: 15-19 year olds}} \\\\'                 ,
+                 paste(xvar,strsplit(r1519$b,'&')[[1]][1],'&'                 ,
+                            strsplit(r1519$b,'&')[[1]][4],'&'                 ,
+                            strsplit(w1519$b,'&')[[1]][4],'&',ps1519$b,'&'    ,
+                            strsplit(N1519$b,'&')[[1]][4],'&'                 ,
+                            strsplit(l1519$b,'&')[[1]][4],'\\\\')             ,
+                 paste('&' ,strsplit(r1519$s,'&')[[1]][1],'&'                 ,
+                            strsplit(r1519$s,'&')[[1]][4],'&'                 ,
+                            strsplit(w1519$s,'&')[[1]][4],'&',ps1519$s,'&'    ,
+                            strsplit(N1519$s,'&')[[1]][4],'&'                 ,
+                            strsplit(l1519$s,'&')[[1]][4],'\\\\')             ,
+                 ' & & & & & & \\\\'                                          ,
+                 paste(obs, strsplit(r1519$n,'&')[[1]][1],'&'                 ,
+                            strsplit(r1519$n,'&')[[1]][4],'&'                 ,
+                            strsplit(w1519$n,'&')[[1]][4],'&',ps1519$n,'&'    ,
+                            strsplit(N1519$n,'&')[[1]][4],'&'                 ,
+                            strsplit(l1519$n,'&')[[1]][4],'\\\\')             ,
+                 paste('Mean of Dep Var&',strsplit(r1519$m,'&')[[1]][1],'&'   ,
+                       strsplit(r1519$m,'&')[[1]][4],'&'                      ,
+                       strsplit(w1519$m,'&')[[1]][4],'&'                      ,
+                       strsplit(w1519$m,'&')[[1]][4],'&'                      ,
+                       strsplit(N1519$m,'&')[[1]][4],'&'                      ,
+                       strsplit(l1519$m,'&')[[1]][4],'\\\\')                  ,
+                 ' & & & & & & \\\\ \\multicolumn{7}{l}{\\textbf{'            ,
+                 '\\noindent Panel C: 20-34 year olds}} \\\\'                 ,
+                 paste(xvar,strsplit(r2034$b,'&')[[1]][1],'&'                 ,
+                            strsplit(r2034$b,'&')[[1]][4],'&'                 ,
+                            strsplit(w2034$b,'&')[[1]][4],'&',ps2034$b,'&'    ,
+                            strsplit(N2034$b,'&')[[1]][4],'&'                 ,
+                            strsplit(l2034$b,'&')[[1]][4],'\\\\')             ,
+                 paste('&' ,strsplit(r2034$s,'&')[[1]][1],'&'                 ,
+                            strsplit(r2034$s,'&')[[1]][4],'&'                 ,
+                            strsplit(w2034$s,'&')[[1]][4],'&',ps2034$s,'&'    ,
+                            strsplit(N2034$s,'&')[[1]][4],'&'                 ,
+                            strsplit(l2034$s,'&')[[1]][4],'\\\\')             ,
+                 ' & & & & & & \\\\'                                          ,
+                 paste(obs, strsplit(r2034$n,'&')[[1]][1],'&'                 ,
+                            strsplit(r2034$n,'&')[[1]][4],'&'                 ,
+                            strsplit(w2034$n,'&')[[1]][4],'&',ps2034$n,'&'    ,
+                            strsplit(N2034$n,'&')[[1]][4],'&'                 ,
+                            strsplit(l2034$n,'&')[[1]][4],'\\\\')             ,
+                 paste('Mean of Dep Var&',strsplit(r2034$m,'&')[[1]][1],'&'   ,
+                       strsplit(r2034$m,'&')[[1]][4],'&'                      ,
+                       strsplit(w2034$m,'&')[[1]][4],'&'                      ,
+                       strsplit(w2034$m,'&')[[1]][4],'&'                      ,
+                       strsplit(N2034$m,'&')[[1]][4],'&'                      ,
+                       strsplit(l2034$m,'&')[[1]][4],'\\\\')                  ,
+                 ' & & & & & & \\\\ \\multicolumn{7}{l}{\\textbf{'            ,
+                 '\\noindent Panel D: 35-49 year olds}} \\\\'                 ,
+                 paste(xvar,strsplit(r3549$b,'&')[[1]][1],'&'                 ,
+                            strsplit(r3549$b,'&')[[1]][4],'&'                 ,
+                            strsplit(w3549$b,'&')[[1]][4],'&',ps3549$b,'&'    ,
+                            strsplit(N3549$b,'&')[[1]][4],'&'                 ,
+                            strsplit(l3549$b,'&')[[1]][4],'\\\\')             ,
+                 paste('&' ,strsplit(r3549$s,'&')[[1]][1],'&'                 ,
+                            strsplit(r3549$s,'&')[[1]][4],'&'                 ,
+                            strsplit(w3549$s,'&')[[1]][4],'&',ps3549$s,'&'    ,
+                            strsplit(N3549$s,'&')[[1]][4],'&'                 ,
+                            strsplit(l3549$s,'&')[[1]][4],'\\\\')             ,
+                 ' & & & & & & \\\\'                                          ,
+                 paste(obs, strsplit(r3549$n,'&')[[1]][1],'&'                 ,
+                            strsplit(r3549$n,'&')[[1]][4],'&'                 ,
+                            strsplit(w3549$n,'&')[[1]][4],'&',ps3549$n,'&'    ,
+                            strsplit(N3549$n,'&')[[1]][4],'&'                 ,
+                            strsplit(l3549$n,'&')[[1]][4],'\\\\')             ,
+                 paste('Mean of Dep Var&',strsplit(r3549$m,'&')[[1]][1],'&'   ,
+                       strsplit(r3549$m,'&')[[1]][4],'&'                      ,
+                       strsplit(w3549$m,'&')[[1]][4],'&'                      ,
+                       strsplit(w3549$m,'&')[[1]][4],'&'                      ,
+                       strsplit(N3549$m,'&')[[1]][4],'&'                      ,
+                       strsplit(l3549$m,'&')[[1]][4],'\\\\')                  ,
+                 '\\hline \\\\[-1.8ex] '                                      ,
+                 '\\multicolumn{7}{p{17.6cm}}{\\begin{footnotesize}          ',
+                 '\\textsc{Notes:}                                           ',
+                 'Column 1 replicates the diff-in-diff result from table     ',
+                 '\\ref{TEENtab:aggregateASFR} column 1.  Column 2 estimates ',
+                 'the same specification, however with full controls (our    ',
+                 'preferred specification).  Column 3 presents unweighted    ',
+                 'results of the preferred specification, and column 4       ',
+                 'weights using the inverse propensity score of the          ',
+                 'municipality\'s treatment status.  Columns 5 and 6 present ',
+                 'results using alternative outcome measures.  These are the ',
+                 'absolute number of births, and the log number of births    ',
+                 'plus 1 (respectively).  All standard errors are clustered  ',
+                 'at the level of the municipality. Full results with and    ',
+                 'without controls and trends for each specification are     ',
+                 'included in online appendix tables.                        ',
+                 paste(sig, '\\end{footnotesize}}', sep="")                   ,
+                 '\\normalsize\\end{tabular}\\end{table}\\end{landscape}'),to)
+    close(to)
 }
