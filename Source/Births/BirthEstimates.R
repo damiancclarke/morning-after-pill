@@ -705,20 +705,20 @@ if(Lpreg){
 
 if(spill){
     print("Spillover Models")
-    c1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=FALSE,road=FALSE)
-    c2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=FALSE,road=FALSE)
-    c3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=FALSE,road=FALSE)
-    cAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=FALSE,road=FALSE)
+    c1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,F,F)
+    c2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,F,F)
+    c3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,F,F)
+    cAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,F,F)
     print("Spillover Models (Road)")
-    d1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=FALSE,road=TRUE)
-    d2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=FALSE,road=TRUE)
-    d3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=FALSE,road=TRUE)
-    dAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=FALSE,road=TRUE)
+    d1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,F,T)
+    d2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,F,T)
+    d3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,F,T)
+    dAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,F,T)
     print("Spillover Models (Time)")
-    e1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,time=TRUE,road=FALSE)
-    e2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,time=TRUE,road=FALSE)
-    e3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,time=TRUE,road=FALSE)
-    eAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,time=TRUE,road=FALSE)
+    e1519 <- spillovers(age_sub = 15:19, order_sub = 1:100,T,F)
+    e2034 <- spillovers(age_sub = 20:34, order_sub = 1:100,T,F)
+    e3549 <- spillovers(age_sub = 35:49, order_sub = 1:100,T,F)
+    eAll  <- spillovers(age_sub = 15:49, order_sub = 1:100,T,F)
 
 }  
 
