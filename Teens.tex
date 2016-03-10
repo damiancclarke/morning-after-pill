@@ -7,16 +7,13 @@ those of other large-scale contraceptive reforms. To do so we examine a
 quasi-experimental policy reform occurring in Chile in 2008. Using vital 
 statistics covering all births and fetal deaths over the period 2006-2012, we 
 show that the availability of the morning after pill reduces pregnancy and early 
-gestation fetal death, which we argue proxy for illegal abortions. These effects 
+gestation fetal death, which we argue proxies for illegal abortion. These effects 
 are particularly pronounced among teenagers and young women: point estimates 
-suggest a 7\% reduction in teenage pregnancy and 4.2\% reduction for 20-34 
-year olds. We suggest that diffusion of the morning after pill between treatment 
-and control areas played an important role, and suggest a way to estimate 
-unbiased treatment effects of the reform in the presence of local spillovers. 
-Our results suggest that in the context of Chile, a country with among the most 
-conservative abortion laws in the world, the emergency contraceptive pill may 
-have effects nearly as large as various abortion reforms observed in other 
-contexts.
+suggest a 6.7\% reduction in teenage pregnancy and 2.9\% reduction for
+20-34 year-olds. Our results suggest that in the context of Chile, a country
+with among the most conservative abortion laws in the world, the emergency
+contraceptive pill may have effects nearly as large as various abortion reforms
+observed in other contexts.
 \\ \JELs 
 \end{abstract}
 
@@ -29,7 +26,7 @@ undesired pregnancy and with far-reaching consequences for the social and
 productive structure of modern society. The widespread introduction of the oral 
 contraceptive pill has brought with it lower birth rates, delays in childbearing 
 and marriage, higher rates of human capital attainment and labour market 
-participation for women \citep{AngristEvans1996,Bailey2006,GoldinKatz2002a,
+participation for women \citep{Bailey2006,Bailey2009,GoldinKatz2002a,
 GoldinKatz2002b}, reductions in the gender wage differential 
 \citep{Baileyetal2012}, and, theoretically at least, more empowered women 
 \citep{ChiapporiOreffice2008}.  In the long-run, these outcomes have led to 
@@ -505,86 +502,80 @@ sections, we examine this effect econometrically.
 %********************************************************************************
 \section{Methodology}
 \label{TEENscn:ID}
-\subsection{Flexible Differences-in-Differences Estimates}
-\Person take advantage of the quasi-experimental nature of the expansion of the 
-availability of the morning after pill to women in Chile.  A woman $i$, living
-in municipality $j$ in year $t$ is considered as treated if public health 
-centres report that the pill is available upon request.  A woman's child-bearing 
-status $birth_{ijt}$ is regressed on the availability of the pill ($pill_{jt}$) 
-in the preceding year:
+We take advantage of the quasi-experimental nature of the expansion of the 
+availability of the EC pill to women in different municipalities in Chile.
+Municipality $j$ in year $t$ is considered as treated if public health centres
+report that the EC pill is available upon request.  Municipal-level birth
+rates $BirthRate_{jt}$ are regressed on the availability of the EC pill
+($ECpill_{jt}$) in the preceding year:
 \begin{equation}
  \label{TEENeqn:pill}
-birth_{ijt} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt-1}\} + \phi_t + \eta_j + 
-\eta_j\cdot t + X_{jt-1}\gamma + \varepsilon_{ijt}.
+BirthRate_{jt} = \alpha + \delta\cdot \mathbb{I}\{ECpill_{jt-1}\} + \phi_t +
+                 \eta_j + \eta_j\cdot t + X_{jt-1}\gamma + \varepsilon_{jt}.
 \end{equation}
 In (\ref{TEENeqn:pill}), full municipality and year fixed effects are included,
-and municipality-specific time trends are allowed.  Standard errors are 
-estimated which allow for auto-correlation by municipality.  The identifying 
-variation in availability of the pill is by municipality and year.  Prior to 
-the legal reform the pill was unavailable to all women, while posterior to the
-reform the pill was available to those women living in municipalities where the
-mayor did not restrict access.\footnote{Prescribing the pill in a given year
-after the reform does not imply that municipalities necessarily prescribe the 
-pill in the years following.  For example, in some cases municipalities 
-switched from 0 (pre-reform), to 1 (during reform), back to 0 (during reform), 
-and then to 1 definitively (post-reform) after the EC pill was made legal in the 
-whole country in 2013.
-Our identification strategy takes advantage of this switching, given that 
-$Pill_{jt}$ varies by municipality and time.}  This provides a flexible 
-difference-in-differences (hereafter diff-in-diff) framework, and allows us to 
-causally estimate the effect of the morning after pill if we believe that 
-typical diff-in-diff assumptions hold.  Namely, we require that unobserved 
-components $\varepsilon_{ijt}$ in the above specification evolve similarly over 
-time in the treated and untreated municipalities.
+and municipality-specific time trends are allowed.  In our main specification,
+each municipality is weighted by its population of fertile aged women, although
+unweighted results are also presented. Standard errors are clustered by
+municipality.  The identifying variation in availability of the EC pill is by
+municipality and year.  Prior to the legal reform the EC pill was unavailable to
+all women, while posterior to the reform the EC pill was available to those women
+living in municipalities where the mayor did not restrict access.\footnote{%
+Prescribing the EC pill in a given year after the reform does not imply that
+municipalities necessarily prescribe the pill in the years following.  For
+example, in some cases municipalities switched from 0 (pre-reform), to 1 (during
+reform), back to 0 (during reform), and then to 1 definitively (post-reform)
+after the EC pill was made legal in the whole country in 2013. Our identification
+strategy takes advantage of this switching, given that $ECpill_{jt}$ varies by
+municipality and time.}  This provides a flexible difference-in-differences
+(hereafter diff-in-diff) framework, and allows us to causally estimate the effect
+of the EC pill if we believe that typical diff-in-diff assumptions hold.  Namely,
+we require that unobserved components $\varepsilon_{jt}$ in the above
+specification evolve similarly over time in the treated and untreated
+municipalities.
 
 Given the geographically disperse, and, as discussed in previous sections,
 plausibly exogenous (with respect to the woman) nature of the arrival of the 
-morning after pill, we may be willing to accept that this assumption is valid.  
-However, to minimise the potential that spurrious events confound the arrival 
-of the pill, we progressively include higher order time trends and other factors 
-that vary non-linearly over time across municipalities. These factors, $X_{jt-1}$, 
-include controls for political and social outcomes such as the mayor's party
-(and implicitly the conservativeness of views), the degree of voter support for
-the mayor, the mayor's gender, health and education inputs including staffing
-and training investments, and time varying measures of female empowerment by
-municipality.
+EC pill, we may be willing to accept that this assumption is valid.  However,
+to minimise the potential that spurrious events confound the arrival of the EC
+pill, we progressively include municipality-specific linear time trends and other
+factors that vary non-linearly over time across municipalities. These factors,
+$X_{jt-1}$, include controls for political and social outcomes such as the
+mayor's party (and implicitly the conservativeness of views), the degree of voter
+support for the mayor, the mayor's gender, health and education inputs including
+staffing and training investments, rates of reported condom usage over time, and
+time varying measures of female empowerment (including women in public positions)
+by municipality.
 
 In our principal specification, we estimate (\ref{TEENeqn:pill}) using weighted
-logits.  From our data, we observe the number of women who give birth 
-($birth_{ijt}=1$) and those who don't give birth ($birth_{ijt}=0$) in each 
-municipality and time period.  This allows us to estimate a logit, where each 
-outcome in each municipality is weighted by the number of women who give birth 
-or who do not give birth respectively.\footnote{In this case, identification is
-based on municipal-level variation in $Pill_{jt}$, and the unweighted number of
-observations is simply the number of municipalities by the number of time 
-periods.  However, each outcome (birth or no birth), is weighted by the number
-of women for whom this is relevant, so the total weighted number of observations 
-is the number of fertile aged women by the number of time periods. In each case,
-we cluster standard errors at the level of the municipality.} As an alternative
-specification, we also estimate (\ref{TEENeqn:pill}) by OLS at the level of 
-the municipality where we replace the binary outcome $birth_{ijt}$ by the 
-municipal-level birth rate (the general fertility rate, and age specific 
-fertility rates), and also by the simple count of the number of births. In 
-these specifications, our outcome variable is $BirthRate_{jt}$, and standard 
-errors are once again clustered at the level of the municipality.  We begin by
-examining the effect of the reform on all women of child-bearing age (15-49), 
-before testing for heterogeneity of effects by age groups, focusing seperately
-on teenagers (15-19 year olds), 20-34 year olds, and 35-49 year olds.
+OLS, and birth rates defined as births per 1,000 women.  From our data, we
+observe the number of women who give birth, as well as the total number of women
+of each age in in each municipality.  When calculated for all fertile-aged women
+(ages 15-49) this measure is known as the General Fertility Rate (GFR).
+We estimate both weighted and unweighted regressions, and also a number of
+alternative measures of fertilty as robustness checks.  These measures are the
+absolute number of births, $Birth_{jt}$, and the log of the number of births
+plus 1, $log(Birth)_{jt}$.  We begin by examining the effect of the reform on
+all women of child-bearing age (15-49), before testing for heterogeneity of
+effects by age groups, focusing seperately on teenagers (15-19 year-olds), 20-34
+year-olds, and 35-49 year-olds.  These age specific birth rates are referred to
+as Age Specific Fertility Rates (ASFR).
 
-Similar estimations are run replacing $birth_{ijt}$ with $fetal\ death_{ijt}$,
-and the rate of fetal death which---for certain subsets---we believe proxy 
-illegal abortion (as discussed in section \ref{TEENscn:Data}).  Finally, after 
-assessing the pill's impact on pregnancy, and abortion \person estimate reduced 
-form effects of the pill's arrival on various measures of mother and child 
-outcomes.  These include maternal education, employment status and marital 
-status, and child birthweight and gestational length.  While we don't believe 
-that these regressions are demonstrating causality in the case of mother's 
-outcomes, they are a useful test to determine whether certain groups are more 
-likely to access the EC pill, leading to aggregate compositional change in the 
-cohorts of women who give birth.
+Similar regressions are run replacing $BirthRate_{jt}$ with
+$FetalDeathRate_{jt}$, which is a measure of the number of observed fetal deaths
+per 1,000 live births.  As discussed in section \ref{TEENscn:Data}, we believe
+that certain types of fetal deaths may be a reasonable proxy for illegal
+abortion. Finally, after assessing the EC pill's impact on pregnancy and fetal
+deaths, we estimate the reduced form effect of the EC pill's arrival on various
+measures of mother and child outcomes.  These include maternal education,
+employment status and marital status, and child birthweight and gestational
+length.  While we don't believe that these regressions are demonstrating
+causality in the case of mother's outcomes, they are a useful test to examine
+whether certain groups are more likely to access the EC pill, leading to aggregate
+compositional change in the cohorts of women who give birth.
 
 %********************************************************************************
-\subsection{Identifying Spillovers Between Municipalities}
+\paragraph{Identifying Spillovers Between Municipalities}
 \label{TEENsscn:spilloverID}
 Our diff-in-diff estimates in the previous section potentially underestimate the 
 true effect of the morning after pill.  Principally, we may be concerned that
@@ -598,9 +589,9 @@ example, if women rely on friends or contacts in neighbouring municipalities to
 gain access.}  This motivates the following specification:
 \begin{equation}
  \label{TEENeqn:spillover}
-y_{ijct} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt-1}\} + 
+y_{jct} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt-1}\} + 
 \sum_{c=0}^C\zeta_c\cdot close_{cdjt-1} + \phi_t + \eta_j + \eta_j\cdot t +
-X_{jt-1}\gamma + \varepsilon_{ijct}.
+X_{jt-1}\gamma + \varepsilon_{jct}.
 \end{equation}
 where
 \[
@@ -640,135 +631,7 @@ the EC pill, but is within (0,15] km of a treatment municipality.  Similarly
 $close_{15,30,jt}=1$ for municipalities located (15,30] km from the nearest
 EC pill.}
 
-To see this, define $y_{1ijt}$ as the potential outcome for a woman in the 
-presence of treatment.  Likewise, $y_{0ijt}$ is the potential outcome for a 
-woman in the absence of treatment.  As is well known in the treatment effects
-literature,\footnote{See for example \citet{CardKruger1994}.} difference-in-%
-differences will allow us to estimate the causal effect of treatment if we are 
-willing to make a common trends assumption about treament and control 
-municipalities.  Implicitly, this common trends assumption nests an assumption
-that spillovers between treatment and control muncipalities may not occur, as 
-these will affect the pre-existing trend in the control state.\footnote{%
-Fortunately for the naive estimates of treatment effects in this case, any 
-estimates will be attenuated rather than overstated, given that the mixture of 
-treated units with the control group will cause outcomes in control group to 
-look more like those in the treatment group.}  This is analogous to the Stable 
-Unit Treatment Value Assumption (SUTVA) of the Rubin Causal Model.
 
-Now, rather than dealing with the two potential outcomes statuses above, we
-define new outcomes.  First, we define $y_{0ijtc}$, the potential outcome for 
-woman $i$ in untreated municipality $j$ in time $t$ and with close status $c$.  
-For simplicity, in what follows we will consider $c$ as binary, indicating whether
-$j$ is `close' or `not close' to a treatment municipality, although the results
-for a categorical variable follow logically.  Similarly, we define $y_{1ijtc}$
-as the potential outcome in a treated municipality with close status 
-$c$.\footnote{However, in the case of treated municipalities $c$ will always
-take the value of 0 given that these municipalities are themselves treated rather
-than simply close to a treated municipality.}
-
-As is typical in a double-differences framework, an additive structure for 
-$y_{ijtc}$ is assumed which consists of a municipality effect, a time effect,
-an indicator for treatment ($D_{jt}$), and in our case, an indicator for being 
-`close' to treatment ($close_{jtc}$):
-\begin{equation}
- \label{TEENeqn:DDa1}
- y_{ijtc} = \eta_j + \phi_t + \delta D_{jt} + \zeta close_{jtc} + 
-\varepsilon_{ijtc}
-\end{equation}
-Now, if we consider the single differences which make up a double-differences 
-estimate, we have, for the treatment group:
-\begin{eqnarray}
-\label{TEENeqn:diftreat}
- E[y_{ijtc}|j=Pill,t=2,c=1]- E[y_{ijtc}|j=Pill,t=1,c=1] = \phi_2-\phi_1+\delta.
-\end{eqnarray}
-This is the traditional single difference which forms one half of a typical
-double-differences estimator, and consists of the effect of treatment plus a time
-trend.  However, in the case of the control group, the single difference is no 
-longer simple.  It will now be made up of two components: the difference over 
-time in control municipalities who are `close' to treatment municipalities:
-\renewcommand{\theequation}{\arabic{equation}a}
-\begin{equation}
-\label{TEENeqn:difclose}
- E[y_{ijtc}|j=No Pill,t=2,c=1]- E[y_{ijtc}|j=No Pill,t=1,c=1] = \phi_2-\phi_1+\zeta
-\end{equation}
-\addtocounter{equation}{-1}
-\renewcommand{\theequation}{\arabic{equation}b}
-and the difference over time for `non-close' control municipalities:
-\begin{equation}
-\label{TEENeqn:difnonclose}
- E[y_{ijtc}|j=No Pill,t=2,c=0]- E[y_{ijtc}|j=No Pill,t=1,c=0] = \phi_2-\phi_1.
-\end{equation}
-\renewcommand{\theequation}{\arabic{equation}}
-If we were to naively combine close and non-close control municipalities to make
-one large control group, we would have that our second difference consists of the
-weighted sum of (\ref{TEENeqn:difclose}) and (\ref{TEENeqn:difnonclose}).  Were
-we then to combine the first difference (\ref{TEENeqn:diftreat}) and the second
-difference (the weighted average of \ref{TEENeqn:difclose} and 
-\ref{TEENeqn:difnonclose}) to form our double-differences estimator, this would 
-give:
-\begin{equation}
-\begin{split}
- \{E[y_{ijtc}|j=Pill,t=2,c=1]- E[y_{ijtc}|j=Pill,t=1,c=1]\}-\\
- \bigg(\frac{N_c}{N_c+N_{nc}}\{E[y_{ijtc}|j=No Pill,t=2,c=1]- E[y_{ijtc}|j=No Pill,t=1,c=1]\}+\\
- \frac{N_{nc}}{N_c+N_{nc}}\{E[y_{ijtc}|j=No Pill,t=2,c=0]- E[y_{ijtc}|j=No Pill,t=1,c=0]\}\bigg) = \\
- \delta - \frac{N_{c}}{N_{c}+N_{nc}}\zeta.
- \end{split}
-\end{equation}
-Here we clearly see that our naive estimator fails to recover the true parameter
-of interest $\delta$.\footnote{This estimator includes as a limiting case the
-typical diff-in-diff estimator, as in this case we assume that no spillovers are 
-present and SUTVA holds, meaning that $\zeta=0$.  Similarly, if no municipalities 
-were close enough to experience spillovers, we would have that $N_c=0$, and once 
-again $\delta$ would be recovered.}  Generally, we would suspect that if 
-spillovers exist, then they are likely to be of the same direction as the effect 
-of treatment, meaning that $\delta$ and $\zeta$ will have the same sign.  If this 
-is the case, the inclusion of $\frac{N_c}{N_{nc}+N_c}\zeta$ in the naive estimate 
-attenuates the treatment effect.
-
-However, in the above discussion, we are concerned that SUTVA has been violated 
-in a specific manner.  We are concerned that the treatment status of women in 
-treatment municipalities spillover to those of control muncipalities `close' to 
-these treatment municipalities.  Conversely then, we assume that women in 
-control muncipalities `far enough away' from those in treatment municipalities 
-are not affected by their treatment status, and so SUTVA still holds in these 
-cases.  Specifically, imagine that our double-difference estimator is now only 
-based upon those control municipalities which are not classed as belonging to 
-$close$.  In this case:
-\begin{equation}
- \label{TEENeqn:DDaextend}
-\begin{split}
- \{E[y_{ijtc}|j=Pill,t=2,c=1]- E[y_{ijtc}|j=Pill,t=1,c=1]\}-\\
- \{E[y_{ijtc}|j=No Pill,t=2,c=0]- E[y_{ijtc}|j=No Pill,t=1,c=0]\} = \delta,
- \end{split}
-\end{equation}
-and using the sample analogue of these population parameters we are able to
-correctly recover the true effect of interest.  Discussion of how to precisely
-determine which municipalities are and are not part of the $close$ group is 
-delayed until section \ref{TEENsscn:spillover}.
-
-Estimating (\ref{TEENeqn:spillover}) provides a flexible regression-based 
-framework for (\ref{TEENeqn:DDaextend}).  Both $Pill_{jt}$ and $close_{cjdt}$
-switch on only in those municipalities who are affected by the pill (either
-directly or via spillover) in the date after the morning after pill has become
-available.  In this case both $\delta$ and $\zeta$ (from \ref{TEENeqn:spillover}) 
-identify the effect of living in a pill or close-to-pill municipality by 
-comparing them to treatment municipalities which are sufficiently far from the 
-morning after pill that we can plausibly assume SUTVA.  In the case of the 
-coefficient on pill this is simply estimating our effect of interest
-(\ref{TEENeqn:DDaextend}), while the coefficient on $close$ identifies the 
-marginal effect of being close to the pill.\footnote{In the framework above, 
-this can be viewed as: 
-\begin{equation}
-\nonumber
-\begin{split}
-\{E[y_{ijtc}|j=No Pill,t=2,c=1]- E[y_{ijtc}|j=No Pill,t=1,c=1]\}- \\
-\{E[y_{ijtc}|j=No Pill,t=2,c=0]- E[y_{ijtc}|j=No Pill,t=1,c=0]\} = \zeta.
-\end{split}
-\end{equation}}
-Given that we are assuming geographic dependence in these estimates, we use 
-\citeauthor{Conley1999}'s (1999) spatial standard errors.  This involves defining 
-a reasonably flexible covariance matrix which inversely weights observations to 
-allow for dependence across individuals based on distance.
 
 %********************************************************************************
 \section{Results}
@@ -1107,7 +970,7 @@ technologies can have significant effects on rates of fertility, particularly
 among young women.  Evidence from historical reforms in USA and around the world
 suggest that these reforms may have effects on fertility rates of young women 
 approaching $-$10\%.  The evidence on the effectiveness of the morning after pill 
-is much more limited.  In this paperwe provide the first national level study of 
+is much more limited.  In this paper we provide the first national level study of 
 its effect using complete vital statistics, in an environment where abortion is 
 completely outlawed. We find that in these circumstances, the EC pill may be as, 
 or nearly as, effective as abortion at reducing rates of teenage pregnancy.

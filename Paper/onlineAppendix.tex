@@ -534,15 +534,20 @@ all women who do not have a birth (first four columns), and all
 \emph{first} births versus all women who do not have a birth (second four 
 columns).
 
-\input{../Tables/aggregateASFR.tex}
-\input{../Tables/DeathsPerBirth.tex}
-\input{../Tables/aggregateLogBirths.tex}
+\input{../Tables/aggregateASFRunweight.tex}
 \input{../Tables/aggregateBirths.tex}
-\input{../Tables/PregFullCovars.tex}
-\input{../Tables/DeathFullCovars.tex}
+\input{../Tables/aggregateBirthsunweight.tex}
+\input{../Tables/aggregateLogBirths.tex}
+\input{../Tables/aggregateLogsunweight.tex}
+\input{../Tables/DeathsPerBirthunweight.tex}
+
+\clearpage
+
+%\input{../Tables/PregFullCovars.tex}
+%\input{../Tables/DeathFullCovars.tex}
 \input{../Tables/SpilloversROAD.tex}
 \input{../Tables/SpilloversTIME.tex}
-\input{../Tables/BirthsBoth.tex}
+
 
 %%%When we examine the effect only on first births, we see a somewhat smaller, but
 %%%still important 3.5\% reduction in births (or an imprecisely estimated 2.1\% 
@@ -599,6 +604,55 @@ should occur).
 
 \input{../Tables/Placebo.tex}
 
+\section{Alternative Event Study Specifications and Results}
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Event Study Using ln(Births): 15-19 Years}
+    \vspace{-5mm}
+    \label{TEENfig:Event1519log}
+    \includegraphics[scale=0.5]{../Figures/Event1519_log.eps}
+  \end{center}
+\end{figure}
+
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Event Study Using ln(Births): 20-34 Years}
+    \vspace{-5mm}
+    \label{TEENfig:Event2034log}
+    \includegraphics[scale=0.5]{../Figures/Event2034_log.eps}
+  \end{center}
+  \floatfoot{Note to figures \ref{TEENfig:Event1519log}-\ref{TEENfig:Event2034log}:
+    Event study figures \ref{TEENfig:Event1519} and \ref{TEENfig:Event2034}
+    replicated using ln(Births+1) in place of birth rates per 1,000 women.
+    Refer to figures \ref{TEENfig:Event1519} and \ref{TEENfig:Event2034} for full
+    notes.}
+  \end{figure}
+
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Event Study For All Women (15-49 Years)}
+    \vspace{-5mm}
+    \label{TEENfig:EventAll}
+    \includegraphics[scale=0.5]{../Figures/EventAll.eps}
+  \end{center}
+  \floatfoot{Note to figure \ref{TEENfig:EventAll}: Estimates are identical
+    to those in figures \ref{TEENfig:Event1519} and \ref{TEENfig:Event2034}
+    of the paper, however for women of all ages. Refer to figures
+    \ref{TEENfig:Event1519} and \ref{TEENfig:Event2034} for full notes.}
+\end{figure}
+
+\begin{figure}[htpb!]
+  \begin{center}
+    \caption{Event Study Using ln(Births): All Women}
+    \vspace{-5mm}
+    \label{TEENfig:Event2034log}
+    \includegraphics[scale=0.5]{../Figures/EventAll_log.eps}
+  \end{center}
+  \floatfoot{Note to figures \ref{TEENfig:EventAlllog}: Event study replicates
+    figure \ref{TEENfig:EventAll} using ln(Births+1) in place of birth rates
+    per 1,000 women. Refer to figures \ref{TEENfig:Event1519} and
+    \ref{TEENfig:Event2034} for full notes.}
+  \end{figure}
 
 \section{A Back of The Envelope Consistency Check of Effect Sizes}
 \label{TEENscn:BOE}
