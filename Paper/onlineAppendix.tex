@@ -69,6 +69,7 @@
 \renewcommand\tablename{Appendix Table}
 \renewcommand\thesection{\Alph{section}}
 \renewcommand*{\thepage}{A\arabic{page}}
+\renewcommand*{\theequation}{A\arabic{equation}}
 
 
 %-------------------------------------------------------------------------------
@@ -130,65 +131,66 @@ statistics on all births and deaths occurring to residents in the municipality
 of women of fertile age living in each municipality, and the number of women
 pregnant in each municipality during the time period of interest.  They can be
 merged at the level of the municipality, resulting in counts of total number of
-births and non-pregnant women, and also the calculation of municipal-level rates
-of pregnancy (births/total women), and fetal deaths (deaths/total births).
+births, fetal deaths, and women of each age, and hence a calculation of
+municipal-level rates of pregnancy (births/total women), and fetal deaths
+(fetal deaths/total births).
 
-Appendix tables \ref{strucTab} and \ref{reshapeTab} provide an excerpt of the
-structure of the data constructed using MINSAL vital statistics and INE 
-population records.  Municipal level data of population and total births are
-collected for each municipality, year and age group, and the number of 
-non-pregnant women is calculated by subtracting pregnant women from the total
-female population of this age (Appendix table \ref{strucTab}).  From this
-table rates and counts of births are known and OLS regressions can be run.  In 
-order to run a weighted binary regression, this table can be reshaped, to form
-records of the number of pregnant and non-pregnant women in each municipality,
-year and age group (Appendix table \ref{reshapeTab}).  In both cases, the data
-are matched at the level of the municipality, so all birth and population 
-records are successfully matched.
-
-\end{spacing}
-\begin{spacing}{1}
-\begin{table}[htpb!]
-\begin{center}
-\caption{Birth and Population Data (18 year olds)}
-\label{strucTab}
-\begin{tabular}{lccccc} \toprule
-Comuna & Year & Population & Pregnant & Not Pregnant & Rate \\ \midrule
-Arica & 2009 & 1575 & 119 & 1456 & 0.076 \\
-Arica & 2010 & 1579 & 118 & 1461 & 0.075 \\ 
-Arica & 2011 & 1534 & 116 & 1418 & 0.076 \\ \bottomrule
-\multicolumn{6}{p{11.2cm}}{\begin{footnotesize}\textsc{Note:} Column 3 is from INE, 
-column 4 from MINSAL. Non-pregnancies in Column 5 are calculated from birts and
-total women (Column 3$-$Column 4), and the rate is calcualted by taking the ratio
-of pregancies over total women (Column 4/Column 3).\end{footnotesize}}
-\end{tabular}
-\end{center}
-\end{table}
-
-\begin{table}[htpb!]
-\begin{center}
-\caption{Reshaped Data for Analysis (18 yo)}
-\label{reshapeTab}
-\begin{tabular}{lccc} \toprule
-Comuna & Year & Pregnant & Weight \\ \midrule
-Arica & 2009 & 1 & 119 \\
-Arica & 2009 & 0 & 1456 \\
-Arica & 2010 & 1 & 118 \\
-Arica & 2010 & 0 & 1461 \\
-Arica & 2011 & 1 & 116 \\
-Arica & 2011 & 0 & 1418 \\ \bottomrule
-\end{tabular} \\
-\end{center}
-\end{table}
-\end{spacing}
-\begin{spacing}{1.4}
+%Appendix tables \ref{strucTab} and \ref{reshapeTab} provide an excerpt of the
+%structure of the data constructed using MINSAL vital statistics and INE 
+%population records.  Municipal level data of population and total births are
+%collected for each municipality, year and age group, and the number of 
+%non-pregnant women is calculated by subtracting pregnant women from the total
+%female population of this age (Appendix table \ref{strucTab}).  From this
+%table rates and counts of births are known and OLS regressions can be run.  In 
+%order to run a weighted binary regression, this table can be reshaped, to form
+%records of the number of pregnant and non-pregnant women in each municipality,
+%year and age group (Appendix table \ref{reshapeTab}).  In both cases, the data
+%are matched at the level of the municipality, so all birth and population 
+%records are successfully matched.
+%
+%\end{spacing}
+%\begin{spacing}{1}
+%\begin{table}[htpb!]
+%\begin{center}
+%\caption{Birth and Population Data (18 year olds)}
+%\label{strucTab}
+%\begin{tabular}{lccccc} \toprule
+%Comuna & Year & Population & Pregnant & Not Pregnant & Rate \\ \midrule
+%Arica & 2009 & 1575 & 119 & 1456 & 0.076 \\
+%Arica & 2010 & 1579 & 118 & 1461 & 0.075 \\ 
+%Arica & 2011 & 1534 & 116 & 1418 & 0.076 \\ \bottomrule
+%\multicolumn{6}{p{11.2cm}}{\begin{footnotesize}\textsc{Note:} Column 3 is from INE, 
+%column 4 from MINSAL. Non-pregnancies in Column 5 are calculated from birts and
+%total women (Column 3$-$Column 4), and the rate is calcualted by taking the ratio
+%of pregancies over total women (Column 4/Column 3).\end{footnotesize}}
+%\end{tabular}
+%\end{center}
+%\end{table}
+%
+%\begin{table}[htpb!]
+%\begin{center}
+%\caption{Reshaped Data for Analysis (18 yo)}
+%\label{reshapeTab}
+%\begin{tabular}{lccc} \toprule
+%Comuna & Year & Pregnant & Weight \\ \midrule
+%Arica & 2009 & 1 & 119 \\
+%Arica & 2009 & 0 & 1456 \\
+%Arica & 2010 & 1 & 118 \\
+%Arica & 2010 & 0 & 1461 \\
+%Arica & 2011 & 1 & 116 \\
+%Arica & 2011 & 0 & 1418 \\ \bottomrule
+%\end{tabular} \\
+%\end{center}
+%\end{table}
+%\end{spacing}
+%\begin{spacing}{1.4}
 
 %-------------------------------------------------------------------------------
 We observe 1,605,300 live births and 13,063 fetal deaths occurring to 15-49 year 
 old women from 2006-2012.  Appendix figure \ref{TEENfig:ageHist} plots the 
 distribution of mother's age at birth in Chile over the period of study, while
 appendix figure \ref{TEENfig:ageHistD} plots the distribution of fetal deaths by 
-ages of the woman.  For births, the distribution is approximately multi-modal, 
+ages of the woman.  For births, the distribution is multi-modal, 
 with a peak for women in their late teens and early 20s, and another peak in the 
 late 20s.  As in the USA, the rate of fetal deaths are highest among teenage and 
 older women \citep{MacDormanGregory2015}, with the absolute number in Chile 
@@ -224,8 +226,9 @@ from INE are 17,556,815, and 50.5\% respectively.}  Over the entire period
 year for 7 years).  Appendix figure \ref{TEENfig:Pregtime} displays pregnancy 
 rates by age-group over the period of study, calculated from MINSAL vital
 statistics and INE population data. These figures are virtually indistinguishable 
-from rates published in aggregate data by MINSAL \citep{MINSAL2013}.\footnote{For
-example, The Ministry of Health reports that the rate of pregnancy per 1,000
+from rates published in aggregate data by MINSAL \citep{MINSAL2013} as well as
+those published in The World Bank's Data Bank (indicator SP.ADO.TFRT).\footnote{%
+For example, The Ministry of Health reports that the rate of pregnancy per 1,000
 women aged 15-19 over the same period was: 51.0 per 1,000 in 2006, 53.4/1,000
 in 2007, 54.9/1,000 in 2008, 54.3/1,000 in 2009, 52.0/1,000 in 2010, 
 50.4/1,000 in 2011, and 48.6/1,000 in 2012.}  A similar figure for rates of
@@ -248,6 +251,37 @@ body of the paper (figure \ref{TEENfig:BirthDeath}).
 \setlength\parskip{0.25in}
 
 \subsection{Distance to Treatment}
+Distance-to-treatment analysis is run, to determine whether local spillovers
+occur between EC pill and ``near to EC pill'' municipalities.  An expanded
+explanation of equation \ref{TEENeqn:spillover} (from the paper) is provided
+below.  This consists of defining a series of $close$ variables in the
+following specification:
+\begin{equation}
+ \label{TEENeqn:spillover2}
+y_{jt} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt-1}\} + 
+	\sum_{c=0}^C\zeta_c\cdot close^c_{jt-1} + \phi_t + 
+\eta_j + \eta_j\cdot t + X_{jt-1}\gamma + \varepsilon_{jt}.
+\end{equation}
+where
+\[
+ close^C_{jt} =
+  \begin{cases}
+   1 & \text{if } dist_{jt} > c \wedge dist_{jt}\leq c+k   \\
+   0 & \text{if } dist_{jt} \leq c \vee  dist_{jt}>c+k.
+  \end{cases}
+\]
+where $dist_{jt}$ is the distance (in km) to the nearest treatment municipality 
+(ie a municipality which reports prescribing the pill)\footnote{In theory, we
+will also be concerned if the distance to a national border is small, and women
+can easily cross the national border to gain access to the EC pill.  In practice
+in Chile this is not a major concern given that arriving to Argentina (which
+\emph{does} provide access to the EC pill requires crossing the Andes, and 
+Chile's two other neighbours: Bolivia and Peru, either do not prescribe the EC
+pill (Bolivia), or require a national identity card for access (Peru).} and 
+$k$ is a bandwidth-type parameter.  We define $k$ as 10, so close is defined
+as a dummy for living withing (0,10]km, (10,20]km, and (20,30]km from the
+nearest EC pill municipality.
+
 Spillover analysis in section \ref{TEENsscn:spillover} of the paper requires
 data on the distance of each non-treatment municipality to the nearest 
 treatment municipality.  Principal measures of distance from treatment is 
@@ -259,19 +293,6 @@ from the Chilean Library of Congress was consulted, which available on the
 web at \texttt{http://siit2.bcn.cl/mapas_vectoriales}.}  The distribution of
 distances from each non-treatment municipality to its nearest treatment 
 municipality in kilometres is presented in Appendix figure \ref{dist}.
-
-\begin{figure}[htpb!]
-\includegraphics[scale=0.55]{../Figures/EuclideanDistance.eps}
-\caption{Simple Distance to Treatment}
-\label{dist}
-\floatfoot{\textsc{Notes to figures \ref{dist}}: 
-Histogram presents the distance from each municipality where the pill
-was not available to the closest pill municipality in the years 2009-2011.
-Distances over 150 km have been omitted for clarity.  Less than 1.5\% of 
-non-pill municipalities are greater than 150km from the nearest pill 
-municipality.}
-\end{figure}
-
 
 As a robustness check, alternative distance measures were also used.
 Firstly, we collated the shortest distance over roads from non-teatment to 
@@ -291,6 +312,18 @@ Figure \ref{googdist}).  In each case ``distance to treatment'' is then the
 minimum value to the nearest treatment area, which varies by municipality and 
 year.  Appendix Figure \ref{altdist} displays the distribution of alternative
 distance measures for shortest distance over roads, and travel time in car.
+
+\begin{figure}[htpb!]
+\includegraphics[scale=0.55]{../Figures/EuclideanDistance.eps}
+\caption{Simple Distance to Treatment}
+\label{dist}
+\floatfoot{\textsc{Notes to figures \ref{dist}}: 
+Histogram presents the distance from each municipality where the pill
+was not available to the closest pill municipality in the years 2009-2011.
+Distances over 150 km have been omitted for clarity.  Less than 1.5\% of 
+non-pill municipalities are greater than 150km from the nearest pill 
+municipality.}
+\end{figure}
 
 \begin{figure}[htpb!]
 \includegraphics[scale=0.7]{../Figures/mapDistance.png}
@@ -326,12 +359,13 @@ case, less than 1.5\% of non-pill municipalities are greater than 150km
 
 These alternative measures of distance do not majorly affect the quantitative 
 implication of findings reported in the paper.  Appendix tables 
-\ref{TEENtab:SpilloverRoads} and  \ref{TEENtab:SpilloverTime} replicate table 
+\ref{TEENtab:SpilloverRoad} and \ref{TEENtab:SpilloverTime} replicate table 
 \ref{TEENtab:Spillover} from the paper, replacing Euclidean distance with 
 distance over roads, or travel time in car. Results from both tables suggest 
-a treatment effect of approximately -0.075 once accounting for spillovers of 
-30 minutes travel time or 30km of distance respectively, following the 
-spillover methodology outlined in the paper.
+a treatment effect of approximately 3.5 fewer births per 1,000 women aged
+15-19 once accounting for spillovers of 30 minutes travel time or
+30km of distance respectively, following the spillover methodology outlined
+in the paper.
 
 \clearpage
 \subsection{Time-Varying Municipality and Region Controls}
@@ -347,7 +381,7 @@ results from municipal elections for the full time period of this study.  Raw
 data is available online at 
 \url{http://www.servel.cl/ss/site/mobile/padron_electoral_comunal_por_ano_informe_comunal_anual.html}
 or processed as one line per municipality at the data page of the author
-(Clarke's) webiste: \url{github.com/damiancclarke/PlanB}.
+(Clarke's) webiste: \url{github.com/damiancclarke/morning-after-pill}.
 
 Finally, we calculate data for alternative contraceptive use based on
 a series of regionally representative surveys collected every 3 years beginning
@@ -356,11 +390,11 @@ method of contraception in both their first and most recent sexual activity.
 In the case that they did not use a condom, they are asked whether this is 
 because they did not have access.  Based on this survey, access to condom is
 calculated as an additional time-varying control.  However, it should be noted
-that this variable can only be calculated at the level of the region (one 
-level above the municipality), given that this survey is not representative at 
-the level of the municipality.  Once again, processed data and processing 
-scripts are made available at the data section of the author's site, and, if 
-desired, raw data is available on the web: 
+that this variable can only be calculated at the level of the region (one
+geographic level above the municipality), given that this survey is not
+representative at the level of the municipality.  Once again, processed data and
+processing scripts are made available at the data section of the author's site,
+and, if desired, raw data is available on the web: 
 \url{http://extranet.injuv.gob.cl/Encuesta_Nacional_de_la_Juventud/contenido/index.php}.
 
 \clearpage
@@ -451,7 +485,7 @@ the only survey data of which we are aware which asks about the Yuzpe method
 these mention suggesting the Yuzpe method if the EC pill is not available.  Our 
 reading of the source documents and data suggests that there is no reason to 
 think that the reform is associated with a change in the frequency of the Yuzpe 
-method, or that the Yuzpe method was particularly widely known in Chile.
+method, or that the Yuzpe method was widely discussed in Chile.
 
 \begin{figure}
 \startchronology[align=left, startyear=2004,stopyear=2015, height=0pt, startdate=false, stopdate=false, dateselevation=1pt, arrow=false, box=true]
@@ -485,68 +519,72 @@ pharmacies without a prescription.}
 \clearpage
 \section{Alternative Specifications and Tests}
 \textbf{Notes for appendix tables}\\
-Appendix Table \ref{TEENtab:aggregateASFR}: Full OLS regressions of 
-age-specific fertility rate (ASFR) and gross fertility rate (GFR) at 
-the municipality level with FEs, trends, and time varying controls.  
-Partial results are displayed in the main paper, in table 
+Appendix Table \ref{TEENtab:aggregateASFRunweight}: Full OLS
+regressions of age-specific fertility rate (ASFR) and gross fertility
+rate (GFR) at the municipality level, not weighted for municipal
+population. Partial results are displayed in the main paper, in table 
 \ref{TEENtab:BirthRobust}.
-
-\noindent Appendix Table \ref{TEENtab:DeathOLS}: Full OLS regressions 
-of deaths per live birth at the municipality level with FEs, trends,
-and time varying controls.  Referred to in section 
-\ref{TEENsscn:rabortion} of the main paper.
 
 \noindent Appendix table \ref{TEENtab:aggregateLog}: Full OLS regressions 
 of the log(number of births + 1) at the level of the municipality, with
 FEs, trends and time varying controls.  Referred to in section 
-\ref{TEENsscn:rbirths} of the main paper.
+\ref{TEENsscn:rbirths} of the main paper, and partial results are
+displayed in the main paper, in table 
+\ref{TEENtab:BirthRobust}.
+
+\noindent Appendix table \ref{TEENtab:aggregateLogunweight}: Identical
+to appendix table \ref{TEENtab:aggregateLog}, however with no weighting
+for municipal population.
 
 \noindent Appendix table \ref{TEENtab:aggregate}: Identical to appendix
 table \ref{TEENtab:aggregateLog}, but using the number rather than the log
 number of births.  Partial results are displayed in the main paper, in 
 table \ref{TEENtab:BirthRobust}.
 
-\noindent Appendix table \ref{TEENtabPregFull}: Identical to main weighted
-logit presented in the paper for the effect of the EC pill on births with 
-full controls, however displaying all control variables in output.
+\noindent Appendix table \ref{TEENtab:aggregateunweight}: Identical
+to appendix table \ref{TEENtab:aggregate}, however with no weighting
+for municipal population.
 
-\noindent Appendix table \ref{TEENtabDeathFull}: Identical to main weighted
-logit presented in the paper for the effect of the EC pill on early term
-fetal deaths with full controls, however displaying all control variables in 
-output.
+\noindent Appendix Table \ref{TEENtab:DeathOLSunweight}: Full OLS
+regressions of deaths per live birth at the municipality level with FEs,
+trends, and time varying controls, but not weighted by municipality
+population. Weighted table is presented as table \ref{TEENtab:DeathOLS}
+in the main paper.
 
-\noindent Appendix table \ref{TEENtab:SpilloverRoads}: Identical to main 
+%%\noindent Appendix table \ref{TEENtabPregFull}: Identical to main weighted
+%%logit presented in the paper for the effect of the EC pill on births with 
+%%full controls, however displaying all control variables in output.
+%%
+%%\noindent Appendix table \ref{TEENtabDeathFull}: Identical to main weighted
+%%logit presented in the paper for the effect of the EC pill on early term
+%%fetal deaths with full controls, however displaying all control variables in 
+%%output.
+
+\noindent Appendix table \ref{TEENtab:SpilloverRoad}: Identical to main 
 spillover table in body of the paper (table \ref{TEENtab:Spillover}), but 
 rather than measuring distance to treatment as the Euclidean distance from 
 the centroid of each municipality, distance is measured as kilometres 
 travelled over roads.
 
-\noindent Appendix table \ref{TEENtab:SpilloverRoads}: Identical to main 
+\noindent Appendix table \ref{TEENtab:SpilloverTime}: Identical to main 
 spillover table in body of the paper (table \ref{TEENtab:Spillover}), but 
 rather than measuring distance to treatment as the Euclidean distance from 
 the centroid of each municipality, distance is measured as total travel time
 expected in vehicle.
 
-\noindent Appendix table \ref{TEENtab:PillPregBoth}: Identical to the
-main weighted logit regressions for the effect of the EC pill on births
-(table \ref{TEENtab:PillPreg}), but now looks at both all births versus 
-all women who do not have a birth (first four columns), and all 
-\emph{first} births versus all women who do not have a birth (second four 
-columns).
 
 \input{../Tables/aggregateASFRunweight.tex}
-\input{../Tables/aggregateBirths.tex}
-\input{../Tables/aggregateBirthsunweight.tex}
 \input{../Tables/aggregateLogBirths.tex}
 \input{../Tables/aggregateLogsunweight.tex}
+\input{../Tables/aggregateBirths.tex}
+\input{../Tables/aggregateBirthsunweight.tex}
 \input{../Tables/DeathsPerBirthunweight.tex}
+\input{../Tables/SpilloversROAD.tex}
+\input{../Tables/SpilloversTIME.tex}
 
-\clearpage
 
 %\input{../Tables/PregFullCovars.tex}
 %\input{../Tables/DeathFullCovars.tex}
-\input{../Tables/SpilloversROAD.tex}
-\input{../Tables/SpilloversTIME.tex}
 
 
 %%%When we examine the effect only on first births, we see a somewhat smaller, but
@@ -565,44 +603,44 @@ columns).
 %%%
 
 
-\clearpage
-%-------------------------------------------------------------------------------
-\section{Additional Placebo Tests of the Reform}
-\label{TEENsscn:placebo}
-In the body of the paper we estimate full event-studies surrounding the EC pill
-reform. Here we provide alternative placebo tests using data entirely prior to
-the reform. In order to do se, we run analogous regressions to those outlined in
-specifications (\ref{TEENeqn:pill}) and (\ref{TEENeqn:spillover}) described in 
-the body of the paper, however rather than looking at births following the 
-introduction of the pill, we examine births \emph{preceding} the introduction of 
-the pill.  The logic underlying these tests is that if it is the arrival of the 
-EC pill which reduces undesired births, then there should be no difference 
-between trends in births in pill and non-pill municipalities in years preceding 
-the reform.  If however, the effects are due to general differences in trends in 
-non-pill and pill municipalities, we may expect that an effect would be seen even 
-in the absence of the EC pill.  We thus run the following series of tests:
-\begin{equation}\tag{A1}
- \label{TEENeqn:placebo}
-birth_{ijt-l} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt}\} + \phi_t + \eta_j + 
-\eta_j\cdot t + \varepsilon_{ijt},
-\end{equation}
-where $l$ refers to a series of lags $l\in 3,4,5$ years.  We choose lags of
-at least 3 years so that all births observed will occur entirely before the 
-arrival of the EC pill in 2008.
-
-These results are presented in Appendix table \ref{TEENtab:Placebo}, both for 
-specification (\ref{TEENeqn:placebo}) and an analogous specification where 
-placebo close municipalities are defined.  These placebo tests support the 
-diff-in-diff specification estimated.  In all but 2 of 30 coefficients, small
-and statistically insignificant results are observed on placebo treatments.  In
-2 of 30 cases, significant effects are found (at the 10\% level), although these 
-are always on placebo `close' treatments, and not on the main treatment itself.  
-Generally this is quite strong evidence in favour of an absence of pre-treatment 
-differential trends, as at 10\% significance levels, it is expected that 
-approximately 3 in 30 coefficients should be falsely accepted (ie a type I error
-should occur).
-
-\input{../Tables/Placebo.tex}
+%\clearpage
+%%-------------------------------------------------------------------------------
+%\section{Additional Placebo Tests of the Reform}
+%\label{TEENsscn:placebo}
+%In the body of the paper we estimate full event-studies surrounding the EC pill
+%reform. Here we provide alternative placebo tests using data entirely prior to
+%the reform. In order to do se, we run analogous regressions to those outlined in
+%specifications (\ref{TEENeqn:pill}) and (\ref{TEENeqn:spillover}) described in 
+%the body of the paper, however rather than looking at births following the 
+%introduction of the pill, we examine births \emph{preceding} the introduction of 
+%the pill.  The logic underlying these tests is that if it is the arrival of the 
+%EC pill which reduces undesired births, then there should be no difference 
+%between trends in births in pill and non-pill municipalities in years preceding 
+%the reform.  If however, the effects are due to general differences in trends in 
+%non-pill and pill municipalities, we may expect that an effect would be seen even 
+%in the absence of the EC pill.  We thus run the following series of tests:
+%\begin{equation}\tag{A1}
+% \label{TEENeqn:placebo}
+%birth_{ijt-l} = \alpha + \delta\cdot \mathbb{I}\{Pill_{jt}\} + \phi_t + \eta_j + 
+%\eta_j\cdot t + \varepsilon_{ijt},
+%\end{equation}
+%where $l$ refers to a series of lags $l\in 3,4,5$ years.  We choose lags of
+%at least 3 years so that all births observed will occur entirely before the 
+%arrival of the EC pill in 2008.
+%
+%These results are presented in Appendix table \ref{TEENtab:Placebo}, both for 
+%specification (\ref{TEENeqn:placebo}) and an analogous specification where 
+%placebo close municipalities are defined.  These placebo tests support the 
+%diff-in-diff specification estimated.  In all but 2 of 30 coefficients, small
+%and statistically insignificant results are observed on placebo treatments.  In
+%2 of 30 cases, significant effects are found (at the 10\% level), although these 
+%are always on placebo `close' treatments, and not on the main treatment itself.  
+%Generally this is quite strong evidence in favour of an absence of pre-treatment 
+%differential trends, as at 10\% significance levels, it is expected that 
+%approximately 3 in 30 coefficients should be falsely accepted (ie a type I error
+%should occur).
+%
+%\input{../Tables/Placebo.tex}
 
 \section{Alternative Event Study Specifications and Results}
 \begin{figure}[htpb!]
@@ -645,7 +683,7 @@ should occur).
   \begin{center}
     \caption{Event Study Using ln(Births): All Women}
     \vspace{-5mm}
-    \label{TEENfig:Event2034log}
+    \label{TEENfig:EventAlllog}
     \includegraphics[scale=0.5]{../Figures/EventAll_log.eps}
   \end{center}
   \floatfoot{Note to figures \ref{TEENfig:EventAlllog}: Event study replicates
@@ -680,37 +718,36 @@ figures are displayed in table \ref{TEENtab:BOE}.  In order to determine the
 reduction in pregnancies which these estimates imply, we compare the 
 theoretical number of pregnancies without the pill, to the number recorded 
 with the pill.  For example, in the case of the 18 and under group, the pill acts 
-to reduce pregnancies by $1-\exp(-0.069)=0.067$, or 6.7\%.  So, we inflate the 
+to reduce pregnancies by 2.377 births per 1,000 women, which when expressed in
+percentage terms is a 2.377/44.79=5.3\% reduction.  So, we inflate the 
 total number of pregnancies for this group (which was 20,713), suggesting that 
-the total number of pregnancies without the pill would have been 22,612 (which
-we calculate as $\frac{20,713}{1-0.067}$).  Thus, the approximate effect of the 
-pill for this group is estimated as a reduction of 22,200-20,713=1,487
+the total number of pregnancies without the pill would have been 21,872 (which
+we calculate as $\frac{20,713}{1-0.053}$).  Thus, the approximate effect of the 
+pill for this group is estimated as a reduction of 21,872-20,713=1,159
 pregnancies.  Similar calculations can be run for each subset, to calculate the
 total estimated effect in each age group.
 
 Based on this methodology, our estimates suggest that the pill accounted for 
-3,212 fewer pregnancies in the 18 and under age group, and 11,742 fewer 
+1,659 fewer pregnancies in the 18 and under age group, and 7,420 fewer 
 pregnancies in the 18 and over age group.\footnote{The full calculation for the 
 18 and under group is:
 \begin{equation}
 \nonumber
-\left(\frac{20,713}{1-0.067}-20,713\right)+
-\left(\frac{10,370}{1-0.072}-10,370\right)+
-\left(\frac{6,141}{1-0.048}-6,141\right)=2,596
+\left(\frac{20,713}{1-0.053}-20,713\right)+
+\left(\frac{10,370}{1-0.046}-10,370\right)=1,659
 \end{equation}
 and a similar calculation for the 19 and over group gives 
 \begin{equation}
 \nonumber
-\left(\frac{172,557}{1-0.032}-172,557\right)+
-\left(\frac{100,749}{1-0.032}-100,749\right)+
-\left(\frac{48,756}{1-0.013}-48,756\right)=9,525.
+\left(\frac{172,557}{1-0.029}-172,557\right)+
+\left(\frac{100,749}{1-0.022}-100,749\right)=7,420.
 \end{equation}
 }
 Comparing these to total pill disbursements of 5,736 and 11,121, the estimated
 effects seem to be quite close to actual data on pills acquired.  Although the
 estimates are slightly higher than expected for the 19 and over group (implying
--0.86 births per pill dispursed) and perhaps slightly lower than expected for the
-18 and under group (-0.45 births per pill dispursed), this back of the envelope 
+-0.66 births per pill dispursed) and perhaps slightly lower than expected for the
+18 and under group (-0.29 births per pill dispursed), this back of the envelope 
 consistency check performs remarkably well, and when considering the standard 
 errors on our estimates, certainly falls within the margins that we would expect
 given the number of pill requests.\footnote{Further, when considering that
@@ -722,13 +759,11 @@ If we instead compare the total pill disbursements over the period to the
 total estimated reduction in pregnancies,\footnote{It seems reasonable to make 
 such a comparison given the the spillover effects estimated in this paper suggest 
 that the person accessing the pill may not be the same as the person using the 
-pill.}  this implies an efficiency rate of 71.9\% (or that 71.9\% of pills should 
+pill.}  this implies an efficiency rate of 53.9\% (or that 53.9\% of pills should 
 result in an avoided pregnancy to account for the reduction in births.  For 
 reference, the United States FDA reports an effectiveness rate of 89\% based on
 typical usage.
 \input{../Tables/Consistency.tex}
-
-
 
 
 \newpage
