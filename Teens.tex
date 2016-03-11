@@ -662,7 +662,7 @@ errors are considerably larger and levels of statistical significance smaller,
 though on the whole magnitudes of point estimates are similar.  Finally, columns
 5 and 6 estimate using only birth data.  In column 5, the count of births are
 used instead of the birth rate, and in column 6 the log of the number of births
-(plus 1)---$ln(Birth+1)$.  These results agree, in magnitude and significance,
+(plus 1): $ln(Birth+1)$.  These results agree, in magnitude and significance,
 with our main results.  The log birth results suggest approximately a 6\%
 reduction in teen births, and 2.8\% reduction in all births.  Full results for
 each of these specifications with and without trends and controls are included
@@ -672,40 +672,44 @@ in the online appendix to this paper.
 %********************************************************************************
 \subsection{The Effect of Emergency Contraception on Abortions}
 \label{TEENsscn:rabortion}
-In table \ref{TEENtab:PillDeath}, difference-in-difference estimates of the 
-effect of the emergency contraceptive pill on fetal deaths are presented.  Once
-again the main specification is estimated using a weighted logit. In this case 
-the denominator (or 0 in the outcome variable) is assigned to each live birth
-ocurring in the municipality and year, while a fetal death is assigned a 1. All 
-effects are thus interpreted as fetal deaths per live births. As discussed in 
-section \ref{TEENscn:Data}, by using certain subsets of fetal deaths we aim to 
-proxy for illegal abortion.  We expect that if the emergency contraceptive pill 
-affects abortion, this should turn up in fetal deaths occurring from 0-20 weeks, 
-however should not turn up in deaths occuring later in the gestational period, 
-given that abortions rarely take place beyond the 20\textsuperscript{th} week.
+In table \ref{TEENtab:DeathOLS}, diff-in-diff estimates of the effect of the
+emergency contraceptive pill on fetal deaths are presented.  Once again the main
+specification is estimated using weighted OLS, and unweighted results are
+presented in the online appendix. In this case the denominator is the total
+number of live births ocurring in the municipality and year, while the total
+number of fetal deaths is assigned to the numerator.  This value is multiplied
+by 1,000 to express the results as fetal deaths per 1,000 live births. The total
+number of observations in this case is fewer, as in various cases no births are
+observed in a particular municipality and year.
 
-Column (1) of table \ref{TEENtab:PillDeath} presents the effect of the pill on
+As discussed in section \ref{TEENscn:Data}, by using certain subsets of fetal
+deaths we aim to proxy for illegal abortion.  We expect that if the emergency
+contraceptive pill affects abortion, this should turn up in fetal deaths
+occurring between 0-20 weeks of gestation, however should not turn up in deaths
+occurring later in the gestational period, given that abortions rarely take
+place beyond the 20\textsuperscript{th} week.
+
+Column (1) of table \ref{TEENtab:DeathOLS} presents the effect of the pill on
 \emph{all} fetal deaths.  We are, however, most intersted in columns (2) and (3),
-which present results for early (0-20 weeks), and late ($>$21 weeks) 
+which present results for early (0-20 weeks), and late ($\geq$21 weeks) 
 respectively.  In these columns we have removed from the sample any fetal deaths
 which have been classified in ICD class Q (a minority of fetal deaths), as these 
 represent causes such as congenital defects, which are very unlikely to proxy
 abortion.
 
-For the 15-19 year old group, significant evidence is found to suggest that 
-the morning after pill may reduce the prevalence of (illegal) abortion.  Some
-effect is found when examining the effect on all fetal deaths, however when 
-this is examined by subgroups, the effect is entirely driven by early gestation
-deaths.  The size of the coefficient is empirically very important: it 
-suggests a reduction in early gestation deaths by 37\%, (these coefficients are
-log odds, so the effect size is interpreted as: $1-\log(-0.468)=-0.37$) which we 
-interpret as strong evidence in favour of reductions of illegal abortion.  When 
-compared to the null effect on late-term deaths, this seems to provide more 
-support to this claim. A similar pattern is observed for the 20-34 year old group 
-of women, however effects are smaller and not statistically significant. Although
-point estimates suggest that the effect of the EC pill on early term fetal deaths
-is negative, and larger than the effect on late term fetal deaths, neither of 
-these are precisely estimated.  
+For the 15-19 year old group, evidence is found (at the 10\% significance level)
+to suggest that the EC pill may reduce the prevalence of (illegal) abortion.
+When examining the effect of the EC pill, it only has an effect on \emph{early}
+gestation fetal deaths.  Although not precisely estimated, the size of the
+coefficient is empirically very important: it suggests a reduction in early
+gestation deaths by approximately 55\% (1.34 fewer fetal deaths per 1,000 live
+births versus an average rate of 2.42 per 1,000 births). We interpret this as
+suggestive evidence in favour of reductions of illegal abortion for this age
+group.  When compared to the insignficant (and even weakly positive) effect on
+late-term deaths, this seems to provide more support to this claim.  These
+effects, while somewhat imprecisely estimated, appear to be focused on younger
+women. When turning to women aged 20-34 and 35 and over, effects are smaller
+and not statistically significant.
 
 While the suggestive estimates on the effect of the EC pill on abortion are 
 large, particularly for young women, these are not implausible given the steep 
@@ -716,22 +720,6 @@ mid-2000s) approximately one third of maternal deaths in Chile are classified as
 Further anecdotal evidence suggests some cases of physical and emotional abuse 
 in hospitals, or even refusal of treatment if women were suspected of accessing 
 clandestine abortions prior to hospitalisation.
-
-The group of women aged 35 years and above is somewhat less clear, and, while the 
-effect sizes of the coefficients follows the pattern outlined above, the
-significance on late gestation fetal deaths is somewhat surprising.  Given that
-fetal death is much more common as maternal age increases, it is perhaps 
-unsurprising that we find some effect for this group.  One possible explanation
-for this finding is that the morning after pill allows less healthy women to 
-select out of child bearing, although given the lack of covariates recording 
-mother's health at the time of childbirth, this cannot be explored fully.  In
-robustness checks which are reported in online appendices (appendix table 4 in
-online appendix E), we find that OLS estimates using the rate of fetal death at 
-the level of the municipality (analogous to column 7 of table 
-\ref{TEENtab:BirthRobust}) result in insignificant estimates for the over 35 age 
-group, while the pattern of other results remains unchanged. This suggests that 
-the effect on the over 35 age group is quite noisy, and less robust than birth 
-findings and the fetal death effects at younger ages.
 
 %********************************************************************************
 \subsection{Emergency Contraception and Aggregate Human Capital at Birth}
@@ -744,7 +732,8 @@ aggregate compositional changes will be seen in both maternal and child human
 capital outcomes.  There is considerable evidence of this effect when considering
 long-term outcomes following access to the oral contraceptive pill 
 \citep{Baileyetal2012,OltmansHungerman2012}, and the arrival of legal abortion 
-\citep{Whitaker2011,Ananatetal2009} in the USA.
+\citep{Whitaker2011,Ananatetal2009} in the USA and in Romania
+\citep{PopEleches2006}.
 
 We examine three outcome variables for mothers: years of education, employment 
 status, and a binary variable for marriage, and three outcome variables for 
@@ -758,30 +747,24 @@ indicators. This is the case among mothers, and consequently among newborn
 babies.
 
 Panel A of table \ref{TEENtab:PillAgg} presents estimates by age group.  For
-both teenagers and 20-34 year olds, no effect is seen on any of the variables
-examined. In general, these results seem to suggest that access to the morning 
-after pill is transversal, and is not centred on highly educated or employed 
-women.  Moving to the 35-49 year old group, some evidence exists to suggest
-that the aggregate education of women giving birth is slightly higher where
-the morning after pill is available.  This would be consistent with less
-educated (and perhaps less healthy) women selecting out of child bearing in
-this age group, which is consistent with the results found for this age group
-in table \ref{TEENtab:PillDeath}.
-
-Panel B provides estimates for all children born over the period under study.
-Once again, very little evidence is found to suggest that the emergency 
+women of all ages, no effect is seen on any of the variables examined. In
+general, these results seem to suggest that access to the EC pill is transversal,
+and is not centred on highly educated or employed women. Panel B provides
+estimates for all children born over the period under study.  Once again, very
+little evidence is found to suggest that the emergency 
 contraceptive pill has created large-scale compositional effects to birth
 cohorts, at least over the short time frame of the reform.  Given the lack of 
 effect found in mothers, it is not surprising that similar results are found 
-for their babies.  In each case, no effect is observed on birthweight, 
-gestational period, or length at birth (with the exception of a very small 
-reduction in gestational length for babies born to 20-34 year olds).  Each of 
-the reported significance levels is based on a two-tailed $t$-test.\footnote{In
-the reported results, we test the effect of the reform on various outcome 
-measures.  Given that the results are largely insignificant, we do not correct 
-for multiple hypothesis testing.  If we were to correct using stepdown testing,
-we would be even less likely to reject the null of no effect on maternal or
-birth cohorts.}  
+for their babies. In each case, no effect is observed on birthweight, 
+gestational period, or length at birth.  While point estimates suggest that
+babies affected by the EC reform are on average lighter, potentially suggesting
+a negative selection into motherhood, none of these estimates are significant,
+even at the 10\% leve.  Each of the reported significance levels is based on a
+two-tailed $t$-test.\footnote{In the reported results, we test the effect of the
+reform on various outcome measures.  Given that the results are largely
+insignificant, we do not correct for multiple hypothesis testing.  If we were to
+correct using stepdown testing, we would be even less likely to reject the null
+of no effect on maternal or birth cohorts.}  
 
 %********************************************************************************
 \subsection{Event Study Analysis}
@@ -813,26 +796,24 @@ year), a lag of three years is 2008, entirely before the pill arrived to Chile.
 As the raw trends presented in figures \ref{TEENfig:Trend1519} and 
 \ref{TEENfig:Trend2034} suggest, formal event studies show that differences 
 between EC pill and non EC-pill municipalities do occur after the arrival of the
-reform.  With the exception of one marginally significant lag for the 20-34 year
-old group, all lags suggest that no significant difference between in trends
+reform.  All lags suggest that no significant difference between in trends
 between treated and control areas exist before the reform.  However, after the
 reform differences do emerge, and these are particularly pronounced after the
-reform has been in place for some time (1 or 2 years).
+reform has been in place for some time (1 or 2 years).  In the online appendix
+similar event studies are presented for all women, and also using the log of the
+number of births as an outcome variable, and qualitiatively identical results are
+found.
 
 %********************************************************************************
 \subsection{Municipality Spillover and Imperfect `Compliance'}
 \label{TEENsscn:spillover}
-We augment our naive estimates from sections \ref{TEENsscn:rbirths} and
-\ref{TEENsscn:rabortion} to account for between-cluster spillovers in table
-\ref{TEENtab:Spillover}.  These results are estimated according to equation
-(\ref{TEENeqn:spillover}) using a logit regression.  The discussion in section
-\ref{TEENsscn:spilloverID} proposes including controls for areas which are `close 
-enough' to treatment municipalities that they are likely to be affected by
-spillovers.  However, discussion regarding how to determine the threshold has
-been putoff until this point. In this section we examine two related ways which 
-this can be done.  Both of these ways rely on the data and specific context 
-of the treatment in question to determine the range over which municipalities 
-should be considered as close.
+Our results from section \ref{TEENsscn:rbirths} present the effect of the EC
+reform only on municipalities which themselves received treatment.  However,
+as we lay out in equation (\ref{TEENeqn:spillover}) and section \ref{TEENscn:ID},
+we may be interested also in the effect on women who live close to, but not
+precisely in, treatment municipalities.  If these women are able to travel the
+short distance and access the EC pill in nearby areas, close areas may themselves
+be affected by the reform.  
 
 The first method involves a series of consecutive regressions and tests on the
 coefficient $\widehat\delta$ (the estimated treatment effect).  First, a 
